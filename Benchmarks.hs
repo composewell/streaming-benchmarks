@@ -142,6 +142,7 @@ main =
     [
       -- A fair comparison without fusion
       -- Assuming, fusion won't be able to combine effectful ops
+      {-
       let f x =
               if (x `mod` 4 == 0)
               then
@@ -158,18 +159,69 @@ main =
         , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
         , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
         ]
+        -}
 
       -- A fair comparison without fusion
       -- Assuming, fusion won't be able to combine effectful ops
-    , let m = M.autoM return
+      let m = M.autoM return
           s = S.mapM return
           p = P.mapM return
           c = C.mapM return
-      in bgroup "mapM-return"
+      in bgroup "mapM"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
         , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
         , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+        ]
+
+    , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
+          s = S.filter (<= value) . S.map (subtract 1)
+          p = P.map (subtract 1)  P.>-> P.filter (<= value)
+          c = C.map (subtract 1)  C.=$= C.filter (<= value)
+      in bgroup "map-filter-alternate"
+        [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
+        , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
+        , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
+        , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+        ]
+
+    -- Compose multiple ops, all stages letting everything through
+    -- IO monad makes a big difference especially for machines
+    , let m = M.filtered (<= value)
+          s = S.filter (<= value)
+          p = P.filter (<= value)
+          c = C.filter (<= value)
+      in bgroup "passing-filters"
+        [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
+        , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
+        , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
+        , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+        ]
+
+      -- how filtering affects the subsequent composition
+    , let m = M.filtered (> value)
+          s = S.filter   (> value)
+          p = P.filter   (> value)
+          c = C.filter   (> value)
+      in bgroup "blocking-filters"
+        [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
+        , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
+        , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
+        , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+        ]
+    ]
+
+  , bgroup "compose-Identity"
+    [
+      let m = M.autoM return
+          s = S.mapM return
+          p = P.mapM return
+          c = C.mapM return
+      in bgroup "mapM"
+        [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
+        , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
+        , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
+        , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
         ]
 
     , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
@@ -183,47 +235,11 @@ main =
         , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
         ]
 
-    , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
-          s = S.filter (<= value) . S.map (subtract 1)
-          p = P.map (subtract 1)  P.>-> P.filter (<= value)
-          c = C.map (subtract 1)  C.=$= C.filter (<= value)
-      in bgroup "map-filter-alternate-io"
-        [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-        , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-        , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-        , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
-        ]
-
-    -- Compose multiple ops, all stages letting everything through
     , let m = M.filtered (<= value)
           s = S.filter (<= value)
           p = P.filter (<= value)
           c = C.filter (<= value)
-      in bgroup "passing-filters-Identity"
-        [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
-        , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
-        , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
-        , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
-        ]
-
-    -- IO monad makes a big difference especially for machines
-    , let m = M.filtered (<= value)
-          s = S.filter (<= value)
-          p = P.filter (<= value)
-          c = C.filter (<= value)
-      in bgroup "passing-filters-IO"
-        [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-        , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-        , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-        , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
-        ]
-
-      -- how filtering affects the subsequent composition
-    , let m = M.filtered (> value)
-          s = S.filter   (> value)
-          p = P.filter   (> value)
-          c = C.filter   (> value)
-      in bgroup "blocking-filter"
+      in bgroup "passing-filters"
         [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
         , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
@@ -234,11 +250,11 @@ main =
           s = S.filter   (> value)
           p = P.filter   (> value)
           c = C.filter   (> value)
-      in bgroup "blocking-filter-io"
-        [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-        , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-        , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-        , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+      in bgroup "blocking-filters"
+        [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
+        , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
+        , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
+        , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
         ]
     ]
 
