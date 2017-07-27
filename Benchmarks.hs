@@ -127,10 +127,10 @@ main =
               (C.getZipSource $ (,) <$> C.ZipSource sourceC <*> C.ZipSource sourceC)
           ]
       , bgroup "concat"
-          [ bench "machines" $ whnf drainM (M.mapping (replicate 10) M.~> M.asParts)
-          , bench "streaming" $ whnf drainS (S.concat . S.map (replicate 10))
-          , bench "pipes" $ whnf drainP (P.map (replicate 10) P.>-> P.concat)
-          , bench "conduit" $ whnf drainC (C.map (replicate 10) C.$= C.concat)
+          [ bench "machines" $ whnf drainM (M.mapping (replicate 3) M.~> M.asParts)
+          , bench "streaming" $ whnf drainS (S.concat . S.map (replicate 3))
+          , bench "pipes" $ whnf drainP (P.map (replicate 3) P.>-> P.concat)
+          , bench "conduit" $ whnf drainC (C.map (replicate 3) C.$= C.concat)
           ]
       , bgroup "last"
           [ bench "machines" $ whnf drainM (M.final)
@@ -142,7 +142,6 @@ main =
     [
       -- A fair comparison without fusion
       -- Assuming, fusion won't be able to combine effectful ops
-      {-
       let f x =
               if (x `mod` 4 == 0)
               then
@@ -159,11 +158,10 @@ main =
         , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
         , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
         ]
-        -}
 
       -- A fair comparison without fusion
       -- Assuming, fusion won't be able to combine effectful ops
-      let m = M.autoM return
+    , let m = M.autoM return
           s = S.mapM return
           p = P.mapM return
           c = C.mapM return
@@ -178,7 +176,7 @@ main =
           s = S.filter (<= value) . S.map (subtract 1)
           p = P.map (subtract 1)  P.>-> P.filter (<= value)
           c = C.map (subtract 1)  C.=$= C.filter (<= value)
-      in bgroup "map-filter-alternate"
+      in bgroup "map-filter"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
         , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
@@ -228,7 +226,7 @@ main =
           s = S.filter (<= value) . S.map (subtract 1)
           p = P.map (subtract 1)  P.>-> P.filter (<= value)
           c = C.map (subtract 1)  C.=$= C.filter (<= value)
-      in bgroup "map-filter-alternate"
+      in bgroup "map-filter"
         [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
         , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
