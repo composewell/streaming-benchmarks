@@ -2,6 +2,7 @@ module Main (main) where
 
 import Control.Monad (void)
 import Control.Monad.Identity
+import Control.Monad.Trans.Class (lift)
 import Criterion.Main
 import Data.Function ((&))
 import System.Random (randomIO)
@@ -9,6 +10,7 @@ import System.Random (randomIO)
 import qualified Data.Conduit      as C
 import qualified Data.Conduit.Combinators as CC
 import qualified Data.Conduit.List as C
+import qualified List.Transformer  as L
 import qualified Data.Machine      as M
 import qualified Pipes             as P
 import qualified Pipes.Prelude     as P
@@ -16,6 +18,12 @@ import qualified Streaming.Prelude as S
 
 value :: Int
 value = 1000000
+
+drainL :: (Int -> L.ListT Identity Int) -> ()
+drainL l = runIdentity $ L.runListT (sourceL >>= l)
+
+drainLIO :: (Int -> L.ListT IO Int) -> IO ()
+drainLIO l = L.runListT (sourceL >>= l)
 
 drainM :: M.ProcessT Identity Int o -> ()
 drainM m = runIdentity $ M.runT_ (sourceM M.~> m)
@@ -45,6 +53,9 @@ drainS s = runIdentity $ S.effects $ sourceS & s
 drainSIO :: (S.Stream (S.Of Int) IO () -> S.Stream (S.Of Int) IO ()) -> IO ()
 drainSIO s = sourceS & s & S.mapM_ (\_ -> return ())
 
+sourceL :: Monad m => L.ListT m Int
+sourceL = L.select [1..value]
+
 sourceM :: Monad m => M.SourceT m Int
 sourceM = M.enumerateFromTo 1 value
 
@@ -67,12 +78,14 @@ main =
           , bench "streaming" $ whnf drainS (S.map (+1))
           , bench "pipes" $ whnf drainP (P.map (+1))
           , bench "conduit" $ whnf drainC (C.map (+1))
+          , bench "list-transformer" $ whnf drainL (lift . return . (+1))
           ]
       , bgroup "drop"
           [ bench "machines" $ whnf drainM (M.dropping value)
           , bench "streaming" $ whnf drainS (S.drop value)
           , bench "pipes" $ whnf drainP (P.drop value)
           , bench "conduit" $ whnf drainC (C.drop value)
+          , bench "list-transformer" $ whnf (runIdentity . L.runListT) (L.drop value sourceL :: L.ListT Identity Int)
           ]
       , bgroup "dropWhile"
           [ bench "machines" $ whnf drainM (M.droppingWhile (<= value))
@@ -91,6 +104,7 @@ main =
           , bench "streaming" $ whnf drainS (S.take value)
           , bench "pipes" $ whnf drainP (P.take value)
           , bench "conduit" $ whnf drainC (C.isolate value)
+          , bench "list-transformer" $ whnf (runIdentity . L.runListT) (L.take value sourceL :: L.ListT Identity Int)
           ]
       , bgroup "takeWhile"
           [ bench "machines" $ whnf drainM (M.takingWhile (<= value))
@@ -103,6 +117,7 @@ main =
           , bench "streaming" $ whnf runIdentity $ (S.fold (+) 0 id) sourceS
           , bench "pipes" $ whnf runIdentity $ (P.fold (+) 0 id) sourceP
           , bench "conduit" $ whnf drainSC (C.fold (+) 0)
+          , bench "list-transformer" $ whnf runIdentity (L.fold (+) 0 id sourceL :: Identity Int)
           ]
       , bgroup "filter"
           [ bench "machines" $ whnf drainM (M.filtered even)
@@ -152,11 +167,13 @@ main =
           s = S.mapM f
           p = P.mapM f
           c = C.mapM f
+          l = lift . f
       in bgroup "mapM-randomIO"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
         , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
         , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+        , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
         ]
 
       -- A fair comparison without fusion
@@ -165,11 +182,13 @@ main =
           s = S.mapM return
           p = P.mapM return
           c = C.mapM return
+          l = lift . return
       in bgroup "mapM"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
         , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
         , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+        , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
         ]
 
     , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
