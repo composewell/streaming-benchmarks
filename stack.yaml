@@ -1,6 +1,13 @@
 resolver: lts-8.23
 packages:
 - '.'
+#- location: ../asyncly-perf
+- location: ../asyncly-lazy
+  extra-dep: true
+- location:
+    git: https://github.com/harendra-kumar/monad-recorder
+    commit: 05bb0cfd827d9f955108d3b03dfb20b7c6820c25
+  extra-dep: true
 extra-deps:
 - list-transformer-1.0.2
 flags: {}
