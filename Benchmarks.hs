@@ -1,13 +1,17 @@
+{-# LANGUAGE FlexibleContexts          #-}
 module Main (main) where
 
 import Control.Monad (void)
 import Control.Monad.Identity
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
+--import Control.Monad.Trans.Control (MonadBaseControl)
 import Criterion.Main
 import Data.Foldable (msum)
 import Data.Function ((&))
 import System.Random (randomIO)
 
+import qualified Asyncly           as A
 import qualified Data.Conduit      as C
 import qualified Data.Conduit.Combinators as CC
 import qualified Data.Conduit.List as C
@@ -40,6 +44,9 @@ drainLBIO l = LB.traverse_ (\_ -> return ()) (sourceLB >>= l)
 drainLGIO :: (Int -> LG.LogicT IO Int) -> IO ()
 drainLGIO l = LG.observeAllT (sourceLG >>= l) >> return ()
 
+drainAIO :: (Int -> A.AsynclyT IO Int) -> IO ()
+drainAIO a = A.runAsyncly $ (sourceA >>= a)
+
 drainM :: M.ProcessT Identity Int o -> ()
 drainM m = runIdentity $ M.runT_ (sourceM M.~> m)
 
@@ -67,6 +74,9 @@ drainS s = runIdentity $ S.effects $ sourceS & s
 
 drainSIO :: (S.Stream (S.Of Int) IO () -> S.Stream (S.Of Int) IO ()) -> IO ()
 drainSIO s = sourceS & s & S.mapM_ (\_ -> return ())
+
+sourceA :: A.MonadAsync m => A.AsynclyT m Int
+sourceA = A.each [1..value]
 
 sourceL :: Monad m => L.ListT m Int
 sourceL = L.select [1..value]
@@ -191,6 +201,7 @@ main =
           l = lift . f
           lb = lift . f
           lg = lift . f
+          a = liftIO . f
       in bgroup "mapM-randomIO"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
@@ -199,6 +210,7 @@ main =
         , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
         , bench "list-t"    $ whnfIO $ drainLBIO $ \x -> lb x >>= lb >>= lb >>= lb
         , bench "logict"    $ whnfIO $ drainLGIO $ \x -> lg x >>= lg >>= lg >>= lg
+        , bench "asyncly"   $ whnfIO $ drainAIO $ \x -> a x >>= a >>= a >>= a
         ]
 
       -- A fair comparison without fusion
@@ -210,6 +222,7 @@ main =
           l = lift . return
           lb = lift . return
           lg = lift . return
+          a = liftIO . return
       in bgroup "mapM"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
@@ -218,6 +231,7 @@ main =
         , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
         , bench "list-t"    $ whnfIO $ drainLBIO $ \x -> lb x >>= lb >>= lb >>= lb
         , bench "logict"    $ whnfIO $ drainLGIO $ \x -> lg x >>= lg >>= lg >>= lg
+        , bench "asyncly"   $ whnfIO $ drainAIO $ \x -> a x >>= a >>= a >>= a
         ]
 
     , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
