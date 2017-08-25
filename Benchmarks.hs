@@ -4,6 +4,7 @@ import Control.Monad (void)
 import Control.Monad.Identity
 import Control.Monad.Trans.Class (lift)
 import Criterion.Main
+import Data.Foldable (msum)
 import Data.Function ((&))
 import System.Random (randomIO)
 
@@ -12,6 +13,7 @@ import qualified Data.Conduit.Combinators as CC
 import qualified Data.Conduit.List as C
 import qualified List.Transformer  as L
 import qualified ListT             as LB
+import qualified Control.Monad.Logic as LG
 import qualified Data.Machine      as M
 import qualified Pipes             as P
 import qualified Pipes.Prelude     as P
@@ -26,11 +28,17 @@ drainL l = runIdentity $ L.runListT (sourceL >>= l)
 drainLB :: (Int -> LB.ListT Identity Int) -> ()
 drainLB l = runIdentity $ LB.traverse_ (\_ -> return ()) (sourceLB >>= l)
 
+drainLG :: (Int -> LG.LogicT Identity Int) -> ()
+drainLG l = runIdentity $ LG.runLogicT (sourceLG >>= l) (\_ _ -> return ()) (return ())
+
 drainLIO :: (Int -> L.ListT IO Int) -> IO ()
 drainLIO l = L.runListT (sourceL >>= l)
 
 drainLBIO :: (Int -> LB.ListT IO Int) -> IO ()
 drainLBIO l = LB.traverse_ (\_ -> return ()) (sourceLB >>= l)
+
+drainLGIO :: (Int -> LG.LogicT IO Int) -> IO ()
+drainLGIO l = LG.observeAllT (sourceLG >>= l) >> return ()
 
 drainM :: M.ProcessT Identity Int o -> ()
 drainM m = runIdentity $ M.runT_ (sourceM M.~> m)
@@ -65,6 +73,9 @@ sourceL = L.select [1..value]
 
 sourceLB :: Monad m => LB.ListT m Int
 sourceLB = LB.fromFoldable [1..value]
+
+sourceLG :: Monad m => LG.LogicT m Int
+sourceLG = msum $ map return [1..value]
 
 sourceM :: Monad m => M.SourceT m Int
 sourceM = M.enumerateFromTo 1 value
@@ -178,7 +189,8 @@ main =
           p = P.mapM f
           c = C.mapM f
           l = lift . f
-          lb = lift . return
+          lb = lift . f
+          lg = lift . f
       in bgroup "mapM-randomIO"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
@@ -186,6 +198,7 @@ main =
         , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
         , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
         , bench "list-t"    $ whnfIO $ drainLBIO $ \x -> lb x >>= lb >>= lb >>= lb
+        , bench "logict"    $ whnfIO $ drainLGIO $ \x -> lg x >>= lg >>= lg >>= lg
         ]
 
       -- A fair comparison without fusion
@@ -196,6 +209,7 @@ main =
           c = C.mapM return
           l = lift . return
           lb = lift . return
+          lg = lift . return
       in bgroup "mapM"
         [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
         , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
@@ -203,6 +217,7 @@ main =
         , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
         , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
         , bench "list-t"    $ whnfIO $ drainLBIO $ \x -> lb x >>= lb >>= lb >>= lb
+        , bench "logict"    $ whnfIO $ drainLGIO $ \x -> lg x >>= lg >>= lg >>= lg
         ]
 
     , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
