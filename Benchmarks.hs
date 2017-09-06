@@ -44,7 +44,7 @@ drainLBIO l = LB.traverse_ (\_ -> return ()) (sourceLB >>= l)
 drainLGIO :: (Int -> LG.LogicT IO Int) -> IO ()
 drainLGIO l = LG.observeAllT (sourceLG >>= l) >> return ()
 
-drainAIO :: (Int -> A.AsynclyT IO Int) -> IO ()
+drainAIO :: (Int -> A.AsyncT IO Int) -> IO ()
 drainAIO a = A.runAsyncly $ (sourceA >>= a)
 
 drainM :: M.ProcessT Identity Int o -> ()
@@ -75,8 +75,8 @@ drainS s = runIdentity $ S.effects $ sourceS & s
 drainSIO :: (S.Stream (S.Of Int) IO () -> S.Stream (S.Of Int) IO ()) -> IO ()
 drainSIO s = sourceS & s & S.mapM_ (\_ -> return ())
 
-sourceA :: A.MonadAsync m => A.AsynclyT m Int
-sourceA = A.each [1..value]
+sourceA :: A.MonadAsync m => A.AsyncT m Int
+sourceA = A.foldWith (A.<>) $ map return [1..value]
 
 sourceL :: Monad m => L.ListT m Int
 sourceL = L.select [1..value]
