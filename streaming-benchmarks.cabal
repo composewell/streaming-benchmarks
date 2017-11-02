@@ -42,4 +42,5 @@ benchmark benchmarks
     logict,
     machines            >= 0.6.2 && < 0.7,
     pipes               >= 4     && < 4.4,
-    streaming           >= 0.1.4 && < 0.2
+    streaming,
+    simple-conduit
