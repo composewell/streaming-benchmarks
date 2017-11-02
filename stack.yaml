@@ -1,4 +1,5 @@
-resolver: lts-8.23
+#resolver: lts-8.23
+resolver: nightly-2017-09-07
 packages:
 - '.'
 - location: ../asyncly-lazy
@@ -6,6 +7,9 @@ packages:
 extra-deps:
 - list-transformer-1.0.2
 - lockfree-queue-0.2.3.1
+- simple-conduit-0.6.0
+- streaming-0.1.4.5
+- mmorph-1.0.9
 flags: {}
 extra-package-dbs: []
 pvp-bounds: both
