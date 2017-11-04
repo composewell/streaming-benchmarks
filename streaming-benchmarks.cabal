@@ -29,7 +29,7 @@ benchmark benchmarks
 
   build-depends:
     base                == 4.*,
-    criterion           >= 0.6   && < 1.3,
+    gauge,
     mtl                 >= 2     && < 2.3,
     random              >= 1.0   && < 2,
     transformers,

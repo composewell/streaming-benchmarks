@@ -6,7 +6,7 @@ import Control.Monad.Identity
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
 --import Control.Monad.Trans.Control (MonadBaseControl)
-import Criterion.Main
+import Gauge.Main
 import Data.Foldable (msum)
 import Data.Function ((&))
 import System.Random (randomIO)
