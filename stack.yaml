@@ -5,6 +5,8 @@ packages:
 - location: ../asyncly-lazy
   extra-dep: true
 extra-deps:
+- gauge-0.1.0
+- basement-0.0.3
 - list-transformer-1.0.2
 - lockfree-queue-0.2.3.1
 - simple-conduit-0.6.0
