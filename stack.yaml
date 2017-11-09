@@ -1,8 +1,10 @@
-#resolver: lts-8.23
+#resolver: lts-9.12
 resolver: nightly-2017-09-07
 packages:
 - '.'
 - location: ../asyncly-lazy
+  extra-dep: true
+- location: ../../github/hs-gauge
   extra-dep: true
 extra-deps:
 - gauge-0.1.0
