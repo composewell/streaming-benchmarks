@@ -26,6 +26,7 @@ benchmark benchmarks
   main-is:          Benchmarks.hs
   ghc-options: -O2 -Wall -fwarn-identities -fwarn-incomplete-record-updates
                -fwarn-incomplete-uni-patterns -fwarn-tabs
+               -with-rtsopts "-T"
 
   build-depends:
     base                == 4.*,
