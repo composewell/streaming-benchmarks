@@ -4,6 +4,7 @@ module Main (main) where
 
 import Control.Monad (void)
 import Control.Monad.Identity
+import Control.Monad.Primitive (PrimState)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Class (lift)
 --import Control.Monad.Trans.Control (MonadBaseControl)
@@ -11,7 +12,11 @@ import Gauge
 import Gauge.Main
 import Data.Foldable (msum)
 import Data.Function ((&))
+import Data.Word (Word32)
 import System.Random (randomIO)
+import qualified System.Random.MWC as MWC
+import qualified System.Random as RND
+import qualified Data.Vector.Unboxed as V
 
 import qualified Asyncly           as A
 import qualified Asyncly.Prelude   as A
@@ -27,6 +32,8 @@ import qualified Pipes.Prelude     as P
 import qualified Streaming.Prelude as S
 import qualified Conduit.Simple    as SC
 
+-- TBD try a monadic random stream rather than a purely generated one
+
 value :: Int
 value = 1000000
 
@@ -34,8 +41,21 @@ value = 1000000
 -- Asyncly
 -------------------------------------------------------------------------------
 
+randomA :: Monad m => Int -> A.StreamT m Int
+randomA n = do
+    let g = RND.mkStdGen 0
+    A.unfoldr' go (g, n)
+
+    where
+          go (g, 0) = Nothing
+          go (g, n) =
+            let (i, g') = RND.random g
+             in Just $ (i, (g',  (n - 1)))
+
+
 sourceA :: Monad m => Int -> A.StreamT m Int
-sourceA v = A.each [1..v]
+--sourceA v = A.each [1..v]
+sourceA = randomA
 --sourceA = A.foldWith (A.<>) $ map return [1..value]
 
 -- An evaluated source
@@ -60,6 +80,24 @@ runIOA_M s t = A.runStreamT $ s >>= t
 -- streaming
 -------------------------------------------------------------------------------
 
+randomS :: Monad m => Int -> S.Stream (S.Of Int) m ()
+randomS n = do
+    let g = RND.mkStdGen 0
+    go g n
+
+    where
+          go g 0 = return ()
+          go g n = do
+            let (i, g') = RND.random g
+            S.yield i >> go g'  (n - 1)
+
+sourceS :: Monad m => Int -> S.Stream (S.Of Int) m ()
+--sourceS v = S.each [1..v]
+sourceS = randomS
+
+sourceS_ :: Monad m => S.Stream (S.Of Int) m ()
+sourceS_ = sourceS value
+
 runS :: S.Stream (S.Of Int) Identity ()
     -> (S.Stream (S.Of Int) Identity () -> S.Stream (S.Of Int) Identity ())
     -> ()
@@ -69,15 +107,27 @@ runIOS :: S.Stream (S.Of Int) IO ()
     -> (S.Stream (S.Of Int) IO () -> S.Stream (S.Of Int) IO ()) -> IO ()
 runIOS s t = s & t & S.mapM_ (\_ -> return ())
 
-sourceS :: Monad m => Int -> S.Stream (S.Of Int) m ()
-sourceS v = S.each [1..v]
-
-sourceS_ :: Monad m => S.Stream (S.Of Int) m ()
-sourceS_ = sourceS value
-
 -------------------------------------------------------------------------------
 -- simple-conduit
 -------------------------------------------------------------------------------
+
+randomSC :: Monad m => Int -> SC.Source m Int
+randomSC n = do
+    let g = RND.mkStdGen 0
+    SC.unfoldC go (g, n)
+
+    where
+          go (g, 0) = Nothing
+          go (g, n) =
+            let (i, g') = RND.random g
+             in Just $ (i, (g',  (n - 1)))
+
+sourceSC :: Monad m => Int -> SC.Source m Int
+--sourceSC v = SC.enumFromToC 1 v
+sourceSC = randomSC
+
+sourceSC_ :: Monad m => SC.Source m Int
+sourceSC_ = sourceSC value
 
 runSC :: SC.Source Identity Int -> SC.Conduit Int Identity a -> ()
 runSC s t = runIdentity $ s SC.$= t SC.$$ SC.sinkNull
@@ -85,15 +135,41 @@ runSC s t = runIdentity $ s SC.$= t SC.$$ SC.sinkNull
 runIOSC :: SC.Source IO Int -> SC.Conduit Int IO a -> IO ()
 runIOSC s t = s SC.$= t SC.$$ SC.mapM_C (\_ -> return ())
 
-sourceSC :: Monad m => Int -> SC.Source m Int
-sourceSC v = SC.enumFromToC 1 v
-
-sourceSC_ :: Monad m => SC.Source m Int
-sourceSC_ = sourceSC value
-
 -------------------------------------------------------------------------------
 -- conduit
 -------------------------------------------------------------------------------
+
+{-
+randomC :: Monad IO => Word32 -> Int -> C.Source IO Int
+randomC s n = do
+    g <- MWC.initialize (V.singleton s)
+    go g n
+
+    where
+    --      go :: MWC.Gen (PrimState (C.ConduitM () Int IO)) -> Int -> C.Source IO Int
+          go g 0 = return ()
+          go g n = do
+            i <- MWC.uniform g
+            C.yield i >> go g  (n - 1)
+            -}
+
+randomC :: Monad m => Int -> C.Source m Int
+randomC n = do
+    let g = RND.mkStdGen 0
+    go g n
+
+    where
+          go g 0 = return ()
+          go g n = do
+            let (i, g') = RND.random g
+            C.yield i >> go g'  (n - 1)
+
+sourceC :: Monad m => Int -> C.Source m Int
+--sourceC v = C.enumFromTo 1 v
+sourceC = randomC
+
+sourceC_ :: Monad m => C.Source m Int
+sourceC_ = sourceC value
 
 runC :: C.Producer Identity Int -> C.Conduit Int Identity a -> ()
 runC s t = runIdentity $ s C.$= t C.$$ CC.sinkNull
@@ -101,18 +177,24 @@ runC s t = runIdentity $ s C.$= t C.$$ CC.sinkNull
 runIOC :: C.Producer IO Int -> C.Conduit Int IO a -> IO ()
 runIOC s t = s C.$= t C.$$ C.mapM_ (\_ -> return ())
 
-sourceC :: Monad m => Int -> C.Producer m Int
-sourceC v = C.enumFromTo 1 v
-
-sourceC_ :: Monad m => C.Producer m Int
-sourceC_ = sourceC value
-
 -------------------------------------------------------------------------------
 -- pipes
 -------------------------------------------------------------------------------
 
+randomP :: Monad m => Int -> P.Producer' Int m ()
+randomP n = do
+    let g = RND.mkStdGen 0
+    go g n
+
+    where
+          go g 0 = return ()
+          go g n = do
+            let (i, g') = RND.random g
+            P.yield i >> go g'  (n - 1)
+
 sourceP :: Monad m => Int -> P.Producer' Int m ()
-sourceP v = P.each [1..v]
+--sourceP v = P.each [1..v]
+sourceP = randomP
 
 sourceP_ :: Monad m => P.Producer' Int m ()
 sourceP_ = sourceP value
@@ -127,8 +209,20 @@ runIOP s t = P.runEffect $ s P.>-> t P.>-> P.mapM_ (\_ -> return ())
 -- machines
 -------------------------------------------------------------------------------
 
+randomM :: Monad m => Int -> M.SourceT m Int
+randomM n = do
+    let g = RND.mkStdGen 0
+    M.unfoldT go (g, n)
+
+    where
+          go (g, 0) = return Nothing
+          go (g, n) = do
+            let (i, g') = RND.random g
+            return $ Just $ (i, (g',  (n - 1)))
+
 sourceM :: Monad m => Int -> M.SourceT m Int
-sourceM v = M.enumerateFromTo 1 v
+--sourceM v = M.enumerateFromTo 1 v
+sourceM = randomM
 
 sourceM_ :: Monad m => M.SourceT m Int
 sourceM_ = sourceM value
@@ -143,8 +237,20 @@ runIOM s t = M.runT_ (s M.~> t)
 -- list-transformer
 -------------------------------------------------------------------------------
 
+randomL :: Monad m => Int -> L.ListT m Int
+randomL n = do
+    let g = RND.mkStdGen 0
+    go (g, n)
+
+    where
+          go (g, 0) = L.ListT $ return L.Nil
+          go (g, n) = L.ListT $
+            let (i, g') = RND.random g
+             in return $ L.Cons i (go (g', n - 1))
+
 sourceL :: Monad m => Int -> L.ListT m Int
-sourceL v = L.select [1..v]
+--sourceL v = L.select [1..v]
+sourceL = randomL
 
 sourceL_ :: Monad m => L.ListT m Int
 sourceL_ = sourceL value
@@ -159,8 +265,20 @@ runIOL s t = L.runListT (s >>= t)
 -- list-t
 -------------------------------------------------------------------------------
 
+randomLT :: Monad m => Int -> LT.ListT m Int
+randomLT n = do
+    let g = RND.mkStdGen 0
+    LT.unfold go (g, n)
+
+    where
+          go (g, 0) = Nothing
+          go (g, n) =
+            let (i, g') = RND.random g
+             in Just $ (i, (g',  (n - 1)))
+
 sourceLT :: Monad m => Int -> LT.ListT m Int
-sourceLT v = LT.fromFoldable [1..v]
+--sourceLT v = LT.fromFoldable [1..v]
+sourceLT = randomLT
 
 sourceLT_ :: Monad m => LT.ListT m Int
 sourceLT_ = sourceLT value
@@ -175,11 +293,20 @@ runIOLT s t = LT.traverse_ (\_ -> return ()) (s >>= t)
 -- logict
 -------------------------------------------------------------------------------
 
+randomLG :: Monad m => Int -> LG.LogicT m Int
+randomLG n = go (RND.mkStdGen 0) n
+    where go g n = LG.LogicT $ \yld stp -> do
+            if n == 0
+            then stp
+            else let (i, g') = RND.random g
+                 in yld i ((LG.runLogicT (go g' (n - 1))) yld stp)
+
 sourceLG :: Monad m => Int -> LG.LogicT m Int
-sourceLG v = msum $ map return [1..v]
+--sourceLG v = msum $ map return [1..v]
+sourceLG = randomLG
 
 sourceLG_ :: Monad m => LG.LogicT m Int
-sourceLG_ = msum $ map return [1..value]
+sourceLG_ = sourceLG value
 
 runLG :: LG.LogicT Identity Int -> (Int -> LG.LogicT Identity Int) -> ()
 runLG s t = runIdentity $ LG.runLogicT (s >>= t) (\_ _ -> return ()) (return ())
@@ -220,33 +347,31 @@ main =
       -- the function being evaluated.
     , bgroup "Identity-null-pipe-fused"
         [
-        -- Monadic composition yields and awaits
-        -- Implicit stream composition using special operators
           bench "conduit"          $ nf (\v -> runIdentity $ (sourceC v) C.$$ C.sinkNull) value
         , bench "pipes"            $ nf (\v -> runIdentity $ P.runEffect (P.for (sourceP v) P.discard)) value
         , bench "machines"         $ nf (\v -> runIdentity $ M.runT_ (sourceM v)) value
-
-        -- Function style explicit stream transformation
         , bench "streaming"        $ nf (\v -> runS (sourceS v) id) value
-
-        -- List transformer style monadic composition
-        -- Function style explcit stream transformation
         , bench "asyncly"          $ nf (\v -> runA (sourceA v) id) value
         , bench "simple-conduit"   $ nf (\v -> runIdentity $ (sourceSC v) SC.$$ SC.sinkNull) value
         , bench "logict"           $ nf (\v -> runIdentity $ LG.runLogicT (sourceLG v) (\_ _ -> return ()) (return ())) value
         , bench "list-t"           $ nf (\v -> runIdentity $ LT.traverse_ (\_ -> return ()) (sourceLT v)) value
         , bench "list-transformer" $ nf (\v -> runIdentity $ L.runListT (sourceL v)) value
         ]
-        {-
-    , bgroup "drain-IO"
-        [ bench "machines"  $ nfIO $ M.runT_ sourceM
-        , bench "asyncly"   $ nfIO $ drainAIOStream id
-        , bench "streaming" $ nfIO $ drainSIO id
-        -- , bench "pipes"     $ whnfIO $ P.runEffect $ P.for sourceP P.discard
-        -- , bench "conduit" $ whnfIO $ sourceC C.$$ CC.sinkNull
-        -- , bench "simple-conduit" $ whnfIO $ sourceSC SC.$$ SC.sinkNull
-        --, bench "list-transformer" $ whnf (runIdentity . L.runListT) sourceL
+    , bgroup "IO-null-pipe"
+        [
+          bench "conduit"          $ nfIO $ (sourceC value) C.$$ C.mapM_ (\_ -> return ())
+          {-
+        , bench "pipes"            $ nfIO (\s -> runIdentity $ P.runEffect (P.for s P.discard)) (sourceP value)
+        , bench "machines"         $ nfIO (\s -> runIdentity $ M.runT_ s) (sourceM value)
+        , bench "streaming"        $ nfIO (\s -> runS s id) (sourceS value)
+        , bench "asyncly"          $ nfIO (\s -> runA s id) (sourceA value)
+        , bench "simple-conduit"   $ nfIO (\s -> runIdentity $ s SC.$$ SC.sinkNull) (sourceSC value)
+        , bench "logict"           $ nfIO (\s -> runIdentity $ LG.runLogicT s (\_ _ -> return ()) (return ())) (sourceLG value)
+        , bench "list-t"           $ nfIO (\s -> runIdentity $ LT.traverse_ (\_ -> return ()) s) (sourceLT value)
+        , bench "list-transformer" $ nfIO (\s -> runIdentity $ L.runListT s) (sourceL value)
+        -}
         ]
+        {-
     , bgroup "toList-Identity"
           [ bench "machines"  $ whnf (length . runIdentity) $ M.runT sourceM
           , bench "asyncly"   $ whnf (length . runIdentity) $ A.toList sourceA
