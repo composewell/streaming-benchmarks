@@ -201,12 +201,19 @@ main =
       -- value) instead of fusing the source API inside and applying value to
       -- the function being evaluated.
         [
-          bench "asyncly"          $ nf (\s -> runA s id) (sourceA value)
-        , bench "streaming"        $ nf (\s -> runS s id) (sourceS value)
-        , bench "simple-conduit"   $ nf (\s -> runIdentity $ s SC.$$ SC.sinkNull) (sourceSC value)
-        , bench "conduit"          $ nf (\s -> runIdentity $ s C.$$ C.sinkNull) (sourceC value)
+        -- Monadic composition yields and awaits
+        -- Implicit stream composition using special operators
+          bench "conduit"          $ nf (\s -> runIdentity $ s C.$$ C.sinkNull) (sourceC value)
         , bench "pipes"            $ nf (\s -> runIdentity $ P.runEffect (P.for s P.discard)) (sourceP value)
         , bench "machines"         $ nf (\s -> runIdentity $ M.runT_ s) (sourceM value)
+
+        -- Function style explicit stream transformation
+        , bench "streaming"        $ nf (\s -> runS s id) (sourceS value)
+
+        -- List transformer style monadic composition
+        -- Function style explcit stream transformation
+        , bench "asyncly"          $ nf (\s -> runA s id) (sourceA value)
+        , bench "simple-conduit"   $ nf (\s -> runIdentity $ s SC.$$ SC.sinkNull) (sourceSC value)
         , bench "list-transformer" $ nf (\s -> runIdentity $ L.runListT s) (sourceL value)
         , bench "list-t"           $ nf (\s -> runIdentity $ LT.traverse_ (\_ -> return ()) s) (sourceLT value)
         , bench "logict"           $ nf (\s -> runIdentity $ LG.runLogicT s (\_ _ -> return ()) (return ())) (sourceLG value)
