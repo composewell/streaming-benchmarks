@@ -197,9 +197,6 @@ main =
   [ bgroup "elimination"
     [
       bgroup "Identity-null-pipe"
-      -- Note: many libraries are significantly slower if we apply (sourceX
-      -- value) instead of fusing the source API inside and applying value to
-      -- the function being evaluated.
         [
         -- Monadic composition yields and awaits
         -- Implicit stream composition using special operators
@@ -214,9 +211,31 @@ main =
         -- Function style explcit stream transformation
         , bench "asyncly"          $ nf (\s -> runA s id) (sourceA value)
         , bench "simple-conduit"   $ nf (\s -> runIdentity $ s SC.$$ SC.sinkNull) (sourceSC value)
-        , bench "list-transformer" $ nf (\s -> runIdentity $ L.runListT s) (sourceL value)
-        , bench "list-t"           $ nf (\s -> runIdentity $ LT.traverse_ (\_ -> return ()) s) (sourceLT value)
         , bench "logict"           $ nf (\s -> runIdentity $ LG.runLogicT s (\_ _ -> return ()) (return ())) (sourceLG value)
+        , bench "list-t"           $ nf (\s -> runIdentity $ LT.traverse_ (\_ -> return ()) s) (sourceLT value)
+        , bench "list-transformer" $ nf (\s -> runIdentity $ L.runListT s) (sourceL value)
+        ]
+      -- Note: many libraries are significantly slower if we apply (sourceX
+      -- value) instead of fusing the source API inside and applying value to
+      -- the function being evaluated.
+    , bgroup "Identity-null-pipe-fused"
+        [
+        -- Monadic composition yields and awaits
+        -- Implicit stream composition using special operators
+          bench "conduit"          $ nf (\v -> runIdentity $ (sourceC v) C.$$ C.sinkNull) value
+        , bench "pipes"            $ nf (\v -> runIdentity $ P.runEffect (P.for (sourceP v) P.discard)) value
+        , bench "machines"         $ nf (\v -> runIdentity $ M.runT_ (sourceM v)) value
+
+        -- Function style explicit stream transformation
+        , bench "streaming"        $ nf (\v -> runS (sourceS v) id) value
+
+        -- List transformer style monadic composition
+        -- Function style explcit stream transformation
+        , bench "asyncly"          $ nf (\v -> runA (sourceA v) id) value
+        , bench "simple-conduit"   $ nf (\v -> runIdentity $ (sourceSC v) SC.$$ SC.sinkNull) value
+        , bench "logict"           $ nf (\v -> runIdentity $ LG.runLogicT (sourceLG v) (\_ _ -> return ()) (return ())) value
+        , bench "list-t"           $ nf (\v -> runIdentity $ LT.traverse_ (\_ -> return ()) (sourceLT v)) value
+        , bench "list-transformer" $ nf (\v -> runIdentity $ L.runListT (sourceL v)) value
         ]
         {-
     , bgroup "drain-IO"
