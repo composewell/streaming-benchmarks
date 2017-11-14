@@ -34,9 +34,6 @@ benchmark benchmarks
     mtl                 >= 2     && < 2.3,
     random              >= 1.0   && < 2,
     transformers,
-    vector,
-    mwc-random,
-    primitive,
 
     asyncly,
     conduit             >= 1.0   && < 1.3,
