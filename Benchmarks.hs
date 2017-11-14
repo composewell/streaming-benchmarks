@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE RankNTypes          #-}
 module Main (main) where
 
 import Control.Monad (void)
@@ -18,7 +19,7 @@ import qualified Data.Conduit      as C
 import qualified Data.Conduit.Combinators as CC
 import qualified Data.Conduit.List as C
 import qualified List.Transformer  as L
-import qualified ListT             as LB
+import qualified ListT             as LT
 import qualified Control.Monad.Logic as LG
 import qualified Data.Machine      as M
 import qualified Pipes             as P
@@ -29,109 +30,192 @@ import qualified Conduit.Simple    as SC
 value :: Int
 value = 1000000
 
-drainL :: (Int -> L.ListT Identity Int) -> ()
-drainL l = runIdentity $ L.runListT (sourceL >>= l)
+-------------------------------------------------------------------------------
+-- Asyncly
+-------------------------------------------------------------------------------
 
-drainLB :: (Int -> LB.ListT Identity Int) -> ()
-drainLB l = runIdentity $ LB.traverse_ (\_ -> return ()) (sourceLB >>= l)
-
-drainLG :: (Int -> LG.LogicT Identity Int) -> ()
-drainLG l = runIdentity $ LG.runLogicT (sourceLG >>= l) (\_ _ -> return ()) (return ())
-
-drainLIO :: (Int -> L.ListT IO Int) -> IO ()
-drainLIO l = L.runListT (sourceL >>= l)
-
-drainLBIO :: (Int -> LB.ListT IO Int) -> IO ()
-drainLBIO l = LB.traverse_ (\_ -> return ()) (sourceLB >>= l)
-
-drainLGIO :: (Int -> LG.LogicT IO Int) -> IO ()
-drainLGIO l = LG.observeAllT (sourceLG >>= l) >> return ()
-
-drainA :: (A.StreamT Identity Int -> A.StreamT Identity Int) -> ()
-drainA a = runIdentity $ A.runStreamT $ sourceA & a
-
-drainAIO :: (Int -> A.StreamT IO Int) -> IO ()
-drainAIO a = A.runStreamT $ (sourceA >>= a)
-
-drainAIOStream :: (A.StreamT IO Int -> A.StreamT IO Int) -> IO ()
-drainAIOStream a = A.runStreamT $ (sourceA & a)
-
-drainM :: M.ProcessT Identity Int o -> ()
-drainM m = runIdentity $ M.runT_ (sourceM M.~> m)
-
-drainMIO :: M.ProcessT IO Int o -> IO ()
-drainMIO m = M.runT_ (sourceM M.~> m)
-
-drainP :: P.Proxy () Int () a Identity () -> ()
-drainP p = runIdentity $ P.runEffect $ P.for (sourceP P.>-> p) P.discard
-
-drainPIO :: P.Proxy () Int () a IO () -> IO ()
-drainPIO p = P.runEffect $ sourceP P.>-> p P.>-> P.mapM_ (\_ -> return ())
-
-drainC :: C.Conduit Int Identity a -> ()
-drainC c = runIdentity $ (sourceC C.$= c) C.$$ CC.sinkNull
-
-drainSC :: SC.Conduit Int Identity a -> ()
-drainSC c = runIdentity $ (sourceSC SC.$= c) SC.$$ SC.sinkNull
-
-drainCIO :: C.Conduit Int IO a -> IO ()
-drainCIO c = (sourceC C.$= c) C.$$ C.mapM_ (\_ -> return ())
-
-drainS :: (S.Stream (S.Of Int) Identity () -> S.Stream (S.Of Int) Identity ())
-    -> ()
-drainS s = runIdentity $ S.effects $ sourceS & s
-
-drainSIO :: (S.Stream (S.Of Int) IO () -> S.Stream (S.Of Int) IO ()) -> IO ()
-drainSIO s = sourceS & s & S.mapM_ (\_ -> return ())
-
-sourceA :: Monad m => A.StreamT m Int
+sourceA :: Monad m => Int -> A.StreamT m Int
+sourceA v = A.each [1..v]
 --sourceA = A.foldWith (A.<>) $ map return [1..value]
-sourceA = A.each [1..value]
 
-sourceL :: Monad m => L.ListT m Int
-sourceL = L.select [1..value]
+-- An evaluated source
+sourceA_ :: Monad m => A.StreamT m Int
+sourceA_ = sourceA value
 
-sourceLB :: Monad m => LB.ListT m Int
-sourceLB = LB.fromFoldable [1..value]
+-- Category composition
+runA :: A.StreamT Identity Int -> (A.StreamT Identity Int -> A.StreamT Identity Int) -> ()
+runA s t = runIdentity $ A.runStreamT $ s & t
 
-sourceLG :: Monad m => LG.LogicT m Int
-sourceLG = msum $ map return [1..value]
+runIOA :: A.StreamT IO Int -> (A.StreamT IO Int -> A.StreamT IO Int) -> IO ()
+runIOA s t = A.runStreamT $ s & t
 
-sourceM :: Monad m => M.SourceT m Int
-sourceM = M.enumerateFromTo 1 value
+-- Monadic composition
+runA_M :: A.StreamT Identity Int -> (Int -> A.StreamT Identity Int) -> ()
+runA_M s t = runIdentity $ A.runStreamT $ s >>= t
 
-sourceC :: Monad m => C.Producer m Int
-sourceC = C.enumFromTo 1 value
+runIOA_M :: A.StreamT IO Int -> (Int -> A.StreamT IO Int) -> IO ()
+runIOA_M s t = A.runStreamT $ s >>= t
 
-sourceSC :: Monad m => SC.Source m Int
-sourceSC = SC.enumFromToC 1 value
+-------------------------------------------------------------------------------
+-- streaming
+-------------------------------------------------------------------------------
 
-sourceP :: Monad m => P.Producer' Int m ()
-sourceP = P.each [1..value]
+runS :: S.Stream (S.Of Int) Identity ()
+    -> (S.Stream (S.Of Int) Identity () -> S.Stream (S.Of Int) Identity ())
+    -> ()
+runS s t = runIdentity $ S.effects $ s & t
 
-sourceS :: Monad m => S.Stream (S.Of Int) m ()
-sourceS = S.each [1..value]
+runIOS :: S.Stream (S.Of Int) IO ()
+    -> (S.Stream (S.Of Int) IO () -> S.Stream (S.Of Int) IO ()) -> IO ()
+runIOS s t = s & t & S.mapM_ (\_ -> return ())
+
+sourceS :: Monad m => Int -> S.Stream (S.Of Int) m ()
+sourceS v = S.each [1..v]
+
+sourceS_ :: Monad m => S.Stream (S.Of Int) m ()
+sourceS_ = sourceS value
+
+-------------------------------------------------------------------------------
+-- simple-conduit
+-------------------------------------------------------------------------------
+
+runSC :: SC.Source Identity Int -> SC.Conduit Int Identity a -> ()
+runSC s t = runIdentity $ s SC.$= t SC.$$ SC.sinkNull
+
+runIOSC :: SC.Source IO Int -> SC.Conduit Int IO a -> IO ()
+runIOSC s t = s SC.$= t SC.$$ SC.mapM_C (\_ -> return ())
+
+sourceSC :: Monad m => Int -> SC.Source m Int
+sourceSC v = SC.enumFromToC 1 v
+
+sourceSC_ :: Monad m => SC.Source m Int
+sourceSC_ = sourceSC value
+
+-------------------------------------------------------------------------------
+-- conduit
+-------------------------------------------------------------------------------
+
+runC :: C.Producer Identity Int -> C.Conduit Int Identity a -> ()
+runC s t = runIdentity $ s C.$= t C.$$ CC.sinkNull
+
+runIOC :: C.Producer IO Int -> C.Conduit Int IO a -> IO ()
+runIOC s t = s C.$= t C.$$ C.mapM_ (\_ -> return ())
+
+sourceC :: Monad m => Int -> C.Producer m Int
+sourceC v = C.enumFromTo 1 v
+
+sourceC_ :: Monad m => C.Producer m Int
+sourceC_ = sourceC value
+
+-------------------------------------------------------------------------------
+-- pipes
+-------------------------------------------------------------------------------
+
+sourceP :: Monad m => Int -> P.Producer' Int m ()
+sourceP v = P.each [1..v]
+
+sourceP_ :: Monad m => P.Producer' Int m ()
+sourceP_ = sourceP value
+
+runP :: P.Producer' Int Identity () -> P.Proxy () Int () a Identity () -> ()
+runP s t = runIdentity $ P.runEffect $ P.for (s P.>-> t) P.discard
+
+runIOP :: P.Producer' Int IO () -> P.Proxy () Int () a IO () -> IO ()
+runIOP s t = P.runEffect $ s P.>-> t P.>-> P.mapM_ (\_ -> return ())
+
+-------------------------------------------------------------------------------
+-- machines
+-------------------------------------------------------------------------------
+
+sourceM :: Monad m => Int -> M.SourceT m Int
+sourceM v = M.enumerateFromTo 1 v
+
+sourceM_ :: Monad m => M.SourceT m Int
+sourceM_ = sourceM value
+
+runM :: M.SourceT Identity Int -> M.ProcessT Identity Int o -> ()
+runM s t = runIdentity $ M.runT_ (s M.~> t)
+
+runIOM :: M.SourceT IO Int -> M.ProcessT IO Int o -> IO ()
+runIOM s t = M.runT_ (s M.~> t)
+
+-------------------------------------------------------------------------------
+-- list-transformer
+-------------------------------------------------------------------------------
+
+sourceL :: Monad m => Int -> L.ListT m Int
+sourceL v = L.select [1..v]
+
+sourceL_ :: Monad m => L.ListT m Int
+sourceL_ = sourceL value
+
+runL :: L.ListT Identity Int -> (Int -> L.ListT Identity Int) -> ()
+runL s t = runIdentity $ L.runListT (s >>= t)
+
+runIOL :: L.ListT IO Int -> (Int -> L.ListT IO Int) -> IO ()
+runIOL s t = L.runListT (s >>= t)
+
+-------------------------------------------------------------------------------
+-- list-t
+-------------------------------------------------------------------------------
+
+sourceLT :: Monad m => Int -> LT.ListT m Int
+sourceLT v = LT.fromFoldable [1..v]
+
+sourceLT_ :: Monad m => LT.ListT m Int
+sourceLT_ = sourceLT value
+
+runLT :: LT.ListT Identity Int -> (Int -> LT.ListT Identity Int) -> ()
+runLT s t = runIdentity $ LT.traverse_ (\_ -> return ()) (s >>= t)
+
+runIOLT :: LT.ListT IO Int -> (Int -> LT.ListT IO Int) -> IO ()
+runIOLT s t = LT.traverse_ (\_ -> return ()) (s >>= t)
+
+-------------------------------------------------------------------------------
+-- logict
+-------------------------------------------------------------------------------
+
+sourceLG :: Monad m => Int -> LG.LogicT m Int
+sourceLG v = msum $ map return [1..v]
+
+sourceLG_ :: Monad m => LG.LogicT m Int
+sourceLG_ = msum $ map return [1..value]
+
+runLG :: LG.LogicT Identity Int -> (Int -> LG.LogicT Identity Int) -> ()
+runLG s t = runIdentity $ LG.runLogicT (s >>= t) (\_ _ -> return ()) (return ())
+
+runIOLG :: LG.LogicT IO Int -> (Int -> LG.LogicT IO Int) -> IO ()
+runIOLG s t = LG.observeAllT (s >>= t) >> return ()
+
+-------------------------------------------------------------------------------
+-- Benchmarks
+-------------------------------------------------------------------------------
 
 main :: IO ()
 main =
   defaultMain
   [ bgroup "elimination"
-    -- construction and elimination
     [
-      bgroup "drain-Identity"
-        [ bench "machines" $ whnf (runIdentity . M.runT_) sourceM
-        , bench "asyncly" $ whnf drainA id
-        --, bench "simple-conduit" $ whnf (\c -> runIdentity $! c) (sourceSC SC.$$ SC.sinkNull)
-        , bench "streaming" $ whnf drainS id
-        --, bench "pipes" $ whnf (runIdentity . P.runEffect) $ P.for sourceP P.discard
-        --, bench "conduit" $ whnf (runIdentity)
-        --                         $ sourceC C.$$ CC.sinkNull
-        , bench "list-transformer" $ whnf (runIdentity . L.runListT) sourceL
+      bgroup "Identity-null-pipe"
+      -- Note: many libraries are significantly slower if we apply (sourceX
+      -- value) instead of fusing the source API inside and applying value to
+      -- the function being evaluated.
+        [
+          bench "asyncly"          $ nf (\s -> runA s id) (sourceA value)
+        , bench "streaming"        $ nf (\s -> runS s id) (sourceS value)
+        , bench "simple-conduit"   $ nf (\s -> runIdentity $ s SC.$$ SC.sinkNull) (sourceSC value)
+        , bench "conduit"          $ nf (\s -> runIdentity $ s C.$$ C.sinkNull) (sourceC value)
+        , bench "pipes"            $ nf (\s -> runIdentity $ P.runEffect (P.for s P.discard)) (sourceP value)
+        , bench "machines"         $ nf (\s -> runIdentity $ M.runT_ s) (sourceM value)
+        , bench "list-transformer" $ nf (\s -> runIdentity $ L.runListT s) (sourceL value)
+        , bench "list-t"           $ nf (\s -> runIdentity $ LT.traverse_ (\_ -> return ()) s) (sourceLT value)
+        , bench "logict"           $ nf (\s -> runIdentity $ LG.runLogicT s (\_ _ -> return ()) (return ())) (sourceLG value)
         ]
+        {-
     , bgroup "drain-IO"
-        [ bench "machines"  $ whnfIO $ M.runT_ sourceM
-        -- , bench "asyncly"   $ whnfIO $ drainAIOStream id
-        , bench "streaming" $ whnfIO $ drainSIO id
+        [ bench "machines"  $ nfIO $ M.runT_ sourceM
+        , bench "asyncly"   $ nfIO $ drainAIOStream id
+        , bench "streaming" $ nfIO $ drainSIO id
         -- , bench "pipes"     $ whnfIO $ P.runEffect $ P.for sourceP P.discard
         -- , bench "conduit" $ whnfIO $ sourceC C.$$ CC.sinkNull
         -- , bench "simple-conduit" $ whnfIO $ sourceSC SC.$$ SC.sinkNull
@@ -182,16 +266,18 @@ main =
           , bench "pipes" $ whnf drainP (P.map (replicate 3) P.>-> P.concat)
           , bench "conduit" $ whnf drainC (C.map (replicate 3) C.$= C.concat)
           ]
+          -}
     ]
+    {-
     , bgroup "transformation"
         [ bgroup "map"
-          [ bench "machines" $ whnf drainM (M.mapping (+1))
-          , bench "asyncly" $ whnf drainA (fmap (+1))
-          , bench "streaming" $ whnf drainS (S.map (+1))
-          , bench "pipes" $ whnf drainP (P.map (+1))
-          , bench "conduit" $ whnf drainC (C.map (+1))
+          [ bench "machines" $ nf drainM (M.mapping (+1))
+          , bench "asyncly" $ nf drainA (fmap (+1))
+          , bench "streaming" $ nf drainS (S.map (+1))
+          , bench "pipes" $ nf drainP (P.map (+1))
+          , bench "conduit" $ nf drainC (C.map (+1))
           -- , bench "simple-conduit" $ whnf drainSC (SC.mapC (+1))
-          , bench "list-transformer" $ whnf drainL (lift . return . (+1))
+          , bench "list-transformer" $ nf drainL (lift . return . (+1))
           ]
         , bgroup "mapM"
           [ bench "machines" $ whnf drainM (M.autoM Identity)
@@ -513,4 +599,5 @@ main =
             , bench "4" $ whnf drainC $ f C.=$= f C.=$= f C.=$= f
             ]
         ]
+        -}
   ]
