@@ -196,15 +196,15 @@ main =
           , bench "list-t"         $ nfIO $ LT.toList sourceLT
           -- , bench "list-transformer" $ nfIO $ toList sourceL
           ]
-        {-
     , bgroup "fold"
-        [ bench "machines" $ whnf drainM (M.fold (+) 0)
-        , bench "asyncly" $ whnf (\c -> runIdentity $! c sourceA) (A.foldl (+) 0 id)
-        , bench "streaming" $ whnf (\c -> runIdentity $! c sourceS) (S.fold (+) 0 id)
-        , bench "pipes" $ whnf (\c -> runIdentity $! c sourceP) (P.fold (+) 0 id)
-        , bench "conduit" $ whnf (\c -> runIdentity $ void $! sourceC C.$$ c) (C.fold (+) 0)
-        , bench "list-transformer" $ whnf (\c -> runIdentity $! c sourceL) (L.fold (+) 0 id) -- sourceL :: Identity Int)
+        [ bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.fold (+) 0)
+        , bench "asyncly"   $ nfIO   $ A.foldl (+) 0 id sourceA
+        , bench "streaming" $ whnfIO $ S.fold (+) 0 id sourceS
+        , bench "pipes"     $ nfIO   $ P.fold (+) 0 id sourceP
+        , bench "conduit"   $ nfIO   $ sourceC C.$$ (C.fold (+) 0)
+        , bench "list-transformer" $ nfIO $ L.fold (+) 0 id sourceL
         ]
+        {-
     , bgroup "scan"
         [ bench "machines" $ whnf drainM (M.scan (+) 0)
         , bench "streaming" $ whnf drainS (S.scan (+) 0 id)
