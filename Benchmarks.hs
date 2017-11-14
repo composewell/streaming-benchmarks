@@ -360,16 +360,14 @@ main =
     , bgroup "IO-null-pipe"
         [
           bench "conduit"          $ nfIO $ (sourceC value) C.$$ C.mapM_ (\_ -> return ())
-          {-
-        , bench "pipes"            $ nfIO (\s -> runIdentity $ P.runEffect (P.for s P.discard)) (sourceP value)
-        , bench "machines"         $ nfIO (\s -> runIdentity $ M.runT_ s) (sourceM value)
-        , bench "streaming"        $ nfIO (\s -> runS s id) (sourceS value)
-        , bench "asyncly"          $ nfIO (\s -> runA s id) (sourceA value)
-        , bench "simple-conduit"   $ nfIO (\s -> runIdentity $ s SC.$$ SC.sinkNull) (sourceSC value)
-        , bench "logict"           $ nfIO (\s -> runIdentity $ LG.runLogicT s (\_ _ -> return ()) (return ())) (sourceLG value)
-        , bench "list-t"           $ nfIO (\s -> runIdentity $ LT.traverse_ (\_ -> return ()) s) (sourceLT value)
-        , bench "list-transformer" $ nfIO (\s -> runIdentity $ L.runListT s) (sourceL value)
-        -}
+        , bench "pipes"            $ nfIO $ P.runEffect $ (sourceP value) P.>-> P.mapM_ (\_ -> return ())
+        , bench "machines"         $ nfIO $ M.runT_ (sourceM value)
+        , bench "streaming"        $ nfIO $ runIOS (sourceS value) id
+        , bench "asyncly"          $ nfIO $ runIOA (sourceA value) id
+        , bench "simple-conduit"   $ nfIO $ (sourceSC value) SC.$$ SC.mapM_C (\_ -> return ())
+        , bench "logict"           $ nfIO $ LG.observeAllT (sourceLG value) >> return ()
+        , bench "list-t"           $ nfIO $ LT.traverse_ (\_ -> return ()) (sourceLT value)
+        , bench "list-transformer" $ nfIO $ L.runListT (sourceL value)
         ]
         {-
     , bgroup "toList-Identity"
