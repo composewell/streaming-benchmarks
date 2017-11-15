@@ -218,35 +218,35 @@ main =
           ]
           -- XXX variance need to be fixed, value used is not correct
         , bgroup "take"
-          [ bench "conduit" $ nfIO $ runIOC sourceC (C.isolate value)
-          , bench "pipes" $ nfIO $ runIOP sourceP (P.take value)
-          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.taking value)
-          , bench "streaming" $ whnfIO $ runIOS sourceS (S.take value)
-          , bench "asyncly" $ nfIO $ runIOA sourceA (A.take value)
+          [ bench "conduit" $ nfIO $ runIOC sourceC (C.isolate maxValue)
+          , bench "pipes" $ nfIO $ runIOP sourceP (P.take maxValue)
+          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.taking maxValue)
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.take maxValue)
+          , bench "asyncly" $ nfIO $ runIOA sourceA (A.take maxValue)
           -- , bench "list-transformer" $ nfIO $ (runIdentity . L.runListT) (L.take value sourceL :: L.ListT Identity Int)
           ]
         , bgroup "takeWhile"
-          [ bench "conduit"   $ nfIO $ runIOC sourceC (CC.takeWhile (<= value))
-          , bench "pipes"     $ nfIO $ runIOP sourceP (P.takeWhile (<= value))
-          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.takingWhile (<= value))
-          , bench "streaming" $ whnfIO $ runIOS sourceS (S.takeWhile (<= value))
-          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.takeWhile (<= value))
+          [ bench "conduit"   $ nfIO $ runIOC sourceC (CC.takeWhile (<= maxValue))
+          , bench "pipes"     $ nfIO $ runIOP sourceP (P.takeWhile (<= maxValue))
+          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.takingWhile (<= maxValue))
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.takeWhile (<= maxValue))
+          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.takeWhile (<= maxValue))
           ]
         , bgroup "drop"
-          [ bench "conduit"   $ nfIO $ runIOC sourceC (C.drop value)
-          , bench "pipes"     $ nfIO $ runIOP sourceP (P.drop value)
-          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.dropping value)
-          , bench "streaming" $ whnfIO $ runIOS sourceS (S.drop value)
-          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.drop value)
+          [ bench "conduit"   $ nfIO $ runIOC sourceC (C.drop maxValue)
+          , bench "pipes"     $ nfIO $ runIOP sourceP (P.drop maxValue)
+          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.dropping maxValue)
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.drop maxValue)
+          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.drop maxValue)
           -- , bench "simple-conduit" $ whnf drainSC (SC.dropC value)
           --, bench "list-transformer" $ whnf (runIdentity . L.runListT) (L.drop value sourceL :: L.ListT Identity Int)
           ]
         , bgroup "dropWhile"
-          [ bench "conduit"   $ nfIO $ runIOC sourceC (CC.dropWhile (<= value))
-          , bench "pipes"     $ nfIO $ runIOP sourceP (P.dropWhile (<= value))
-          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.droppingWhile (<= value))
-          , bench "streaming" $ whnfIO $ runIOS sourceS (S.dropWhile (<= value))
-          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.dropWhile (<= value))
+          [ bench "conduit"   $ nfIO $ runIOC sourceC (CC.dropWhile (<= maxValue))
+          , bench "pipes"     $ nfIO $ runIOP sourceP (P.dropWhile (<= maxValue))
+          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.droppingWhile (<= maxValue))
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.dropWhile (<= maxValue))
+          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.dropWhile (<= maxValue))
           ]
         ]
     , bgroup "zip"
@@ -286,11 +286,11 @@ main =
             , bench "logict"    $ nfIO $ getRandom >>= \v -> runIOLG (sourceLG v) $ \x -> lg x >>= lg >>= lg >>= lg
             ]
 
-        , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
-              s = S.filter (<= value) . S.map (subtract 1)
-              a = A.filter (<= value) . fmap (subtract 1)
-              p = P.map (subtract 1)  P.>-> P.filter (<= value)
-              c = C.map (subtract 1)  C.=$= C.filter (<= value)
+        , let m = M.mapping (subtract 1) M.~> M.filtered (<= maxValue)
+              s = S.filter (<= maxValue) . S.map (subtract 1)
+              a = A.filter (<= maxValue) . fmap (subtract 1)
+              p = P.map (subtract 1)  P.>-> P.filter (<= maxValue)
+              c = C.map (subtract 1)  C.=$= C.filter (<= maxValue)
           in bgroup "map-filter"
             [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
@@ -301,11 +301,11 @@ main =
 
         -- Compose multiple ops, all stages letting everything through
         -- IO monad makes a big difference especially for machines
-        , let m = M.filtered (<= value)
-              a = A.filter (<= value)
-              s = S.filter (<= value)
-              p = P.filter (<= value)
-              c = C.filter (<= value)
+        , let m = M.filtered (<= maxValue)
+              a = A.filter (<= maxValue)
+              s = S.filter (<= maxValue)
+              p = P.filter (<= maxValue)
+              c = C.filter (<= maxValue)
           in bgroup "passing-filters"
             [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
@@ -315,11 +315,11 @@ main =
             ]
 
           -- how filtering affects the subsequent composition
-        , let m = M.filtered (> value)
-              a = A.filter   (> value)
-              s = S.filter   (> value)
-              p = P.filter   (> value)
-              c = C.filter   (> value)
+        , let m = M.filtered (> maxValue)
+              a = A.filter   (> maxValue)
+              s = S.filter   (> maxValue)
+              p = P.filter   (> maxValue)
+              c = C.filter   (> maxValue)
           in bgroup "blocking-filters"
             [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
