@@ -183,14 +183,12 @@ main =
           , bench "streaming" $ whnfIO $ S.last sourceS
           , bench "asyncly" $ nfIO $ A.last sourceA
           ]
-        {-
     , bgroup "concat"
-          [ bench "machines" $ whnf drainM (M.mapping (replicate 3) M.~> M.asParts)
-          , bench "streaming" $ whnf drainS (S.concat . S.map (replicate 3))
-          , bench "pipes" $ whnf drainP (P.map (replicate 3) P.>-> P.concat)
-          , bench "conduit" $ whnf drainC (C.map (replicate 3) C.$= C.concat)
+          [ bench "conduit" $ nfIO $ runIOC sourceC (C.map (replicate 3) C.$= C.concat)
+          , bench "pipes" $ nfIO $ runIOP sourceP (P.map (replicate 3) P.>-> P.concat)
+          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.mapping (replicate 3) M.~> M.asParts)
+          , bench "streaming" $ nfIO $ runIOS sourceS (S.concat . S.map (replicate 3))
           ]
-          -}
     ]
     , bgroup "transformation"
         [ bgroup "map"
