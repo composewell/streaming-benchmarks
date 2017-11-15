@@ -3,17 +3,13 @@
 
 module Main (main) where
 
-import Control.Monad (void)
-import Control.Monad.Identity
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Trans.Class (lift)
---import Control.Monad.Trans.Control (MonadBaseControl)
 import Gauge
-import Gauge.Main
-import Data.Foldable (msum, toList)
+import Data.Foldable (msum)
 import Data.Function ((&))
-import Data.Word (Word32)
-import System.Random (randomIO, randomRIO)
+--import System.Random (randomIO)
+import System.Random (randomRIO)
 
 import qualified Asyncly           as A
 import qualified Asyncly.Prelude   as A
@@ -44,18 +40,14 @@ sourceA :: MonadIO m => A.StreamT m Int
 sourceA = getRandom >>= \v -> A.each [v..v+value]
 
 -- Category composition
-runA :: A.StreamT Identity Int -> (A.StreamT Identity Int -> A.StreamT Identity Int) -> ()
-runA s t = runIdentity $ A.runStreamT $ s & t
-
 runIOA :: A.StreamT IO Int -> (A.StreamT IO Int -> A.StreamT IO Int) -> IO ()
 runIOA s t = A.runStreamT $ s & t
 
+{-
 -- Monadic composition
-runA_M :: A.StreamT Identity Int -> (Int -> A.StreamT Identity Int) -> ()
-runA_M s t = runIdentity $ A.runStreamT $ s >>= t
-
 runIOA_M :: A.StreamT IO Int -> (Int -> A.StreamT IO Int) -> IO ()
 runIOA_M s t = A.runStreamT $ s >>= t
+-}
 
 -------------------------------------------------------------------------------
 -- streaming
@@ -63,11 +55,6 @@ runIOA_M s t = A.runStreamT $ s >>= t
 
 sourceS :: MonadIO m => S.Stream (S.Of Int) m ()
 sourceS = getRandom >>= \v -> S.each [v..v+value]
-
-runS :: S.Stream (S.Of Int) Identity ()
-    -> (S.Stream (S.Of Int) Identity () -> S.Stream (S.Of Int) Identity ())
-    -> ()
-runS s t = runIdentity $ S.effects $ s & t
 
 runIOS :: S.Stream (S.Of Int) IO ()
     -> (S.Stream (S.Of Int) IO () -> S.Stream (S.Of Int) IO ()) -> IO ()
@@ -80,9 +67,6 @@ runIOS s t = s & t & S.mapM_ (\_ -> return ())
 sourceSC :: MonadIO m => SC.Source m Int
 sourceSC = getRandom >>= \v -> SC.enumFromToC v (v + value)
 
-runSC :: SC.Source Identity Int -> SC.Conduit Int Identity a -> ()
-runSC s t = runIdentity $ s SC.$= t SC.$$ SC.sinkNull
-
 runIOSC :: SC.Source IO Int -> SC.Conduit Int IO a -> IO ()
 runIOSC s t = s SC.$= t SC.$$ SC.mapM_C (\_ -> return ())
 
@@ -92,9 +76,6 @@ runIOSC s t = s SC.$= t SC.$$ SC.mapM_C (\_ -> return ())
 
 sourceC :: MonadIO m => C.Source m Int
 sourceC = getRandom >>= \v -> C.enumFromTo v (v + value)
-
-runC :: C.Producer Identity Int -> C.Conduit Int Identity a -> ()
-runC s t = runIdentity $ s C.$= t C.$$ CC.sinkNull
 
 runIOC :: C.Source IO Int -> C.Conduit Int IO a -> IO ()
 runIOC s t = s C.$= t C.$$ C.mapM_ (\_ -> return ())
@@ -106,9 +87,6 @@ runIOC s t = s C.$= t C.$$ C.mapM_ (\_ -> return ())
 sourceP :: MonadIO m => P.Producer' Int m ()
 sourceP = getRandom >>= \v -> P.each [v..v+value]
 
-runP :: P.Producer' Int Identity () -> P.Proxy () Int () a Identity () -> ()
-runP s t = runIdentity $ P.runEffect $ P.for (s P.>-> t) P.discard
-
 runIOP :: P.Producer' Int IO () -> P.Proxy () Int () a IO () -> IO ()
 runIOP s t = P.runEffect $ s P.>-> t P.>-> P.mapM_ (\_ -> return ())
 
@@ -118,9 +96,6 @@ runIOP s t = P.runEffect $ s P.>-> t P.>-> P.mapM_ (\_ -> return ())
 
 sourceM :: Monad m => Int -> M.SourceT m Int
 sourceM v = M.enumerateFromTo v (v + value)
-
-runM :: M.SourceT Identity Int -> M.ProcessT Identity Int o -> ()
-runM s t = runIdentity $ M.runT_ (s M.~> t)
 
 runIOM :: M.SourceT IO Int -> M.ProcessT IO Int o -> IO ()
 runIOM s t = M.runT_ (s M.~> t)
@@ -132,9 +107,6 @@ runIOM s t = M.runT_ (s M.~> t)
 sourceL :: MonadIO m => L.ListT m Int
 sourceL = getRandom >>= \v -> L.select [v..v+value]
 
-runL :: L.ListT Identity Int -> (Int -> L.ListT Identity Int) -> ()
-runL s t = runIdentity $ L.runListT (s >>= t)
-
 runIOL :: L.ListT IO Int -> (Int -> L.ListT IO Int) -> IO ()
 runIOL s t = L.runListT (s >>= t)
 
@@ -145,9 +117,6 @@ runIOL s t = L.runListT (s >>= t)
 sourceLT :: MonadIO m => LT.ListT m Int
 sourceLT = getRandom >>= \v -> LT.fromFoldable [v..v+value]
 
-runLT :: LT.ListT Identity Int -> (Int -> LT.ListT Identity Int) -> ()
-runLT s t = runIdentity $ LT.traverse_ (\_ -> return ()) (s >>= t)
-
 runIOLT :: LT.ListT IO Int -> (Int -> LT.ListT IO Int) -> IO ()
 runIOLT s t = LT.traverse_ (\_ -> return ()) (s >>= t)
 
@@ -157,9 +126,6 @@ runIOLT s t = LT.traverse_ (\_ -> return ()) (s >>= t)
 
 sourceLG :: Monad m => Int -> LG.LogicT m Int
 sourceLG v = msum $ map return [v..v+value]
-
-runLG :: LG.LogicT Identity Int -> (Int -> LG.LogicT Identity Int) -> ()
-runLG s t = runIdentity $ LG.runLogicT (s >>= t) (\_ _ -> return ()) (return ())
 
 runIOLG :: LG.LogicT IO Int -> (Int -> LG.LogicT IO Int) -> IO ()
 runIOLG s t = LG.observeAllT (s >>= t) >> return ()
@@ -296,14 +262,13 @@ main =
     , bgroup "compose"
         [
         {-
-          -- A fair comparison without fusion
-          -- Assuming, fusion won't be able to combine effectful ops
           let f x =
                   if (x `mod` 4 == 0)
                   then
                       randomIO
                   else return x
-
+        -}
+          let f = return
               c = C.mapM f
               p = P.mapM f
               m = M.autoM f
@@ -312,26 +277,6 @@ main =
               lb = lift . f
               l = lift . f
               lg = lift . f
-          in bgroup "mapM-randomIO"
-            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
-            , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
-            , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
-            , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
-            , bench "asyncly"   $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
-            , bench "list-t"    $ nfIO $ runIOLT sourceLT $ \x -> lb x >>= lb >>= lb >>= lb
-            , bench "list-transformer" $ nfIO $ runIOL sourceL $ \x -> l x >>= l >>= l >>= l
-            , bench "logict"    $ nfIO $ getRandom >>= \v -> runIOLG (sourceLG v) $ \x -> lg x >>= lg >>= lg >>= lg
-            ]
-        ,
-        -}
-          let m = M.autoM return
-              s = S.mapM return
-              p = P.mapM return
-              c = C.mapM return
-              a = A.mapM return
-              l = lift . return
-              lb = lift . return
-              lg = lift . return
           in bgroup "mapM"
             [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
@@ -385,63 +330,7 @@ main =
             , bench "asyncly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
         ]
-    {-
-    , bgroup "compose-Identity"
-        [
-          let m = M.autoM return
-              a = A.mapM return
-              s = S.mapM return
-              p = P.mapM return
-              c = C.mapM return
-          in bgroup "mapM"
-            [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
-            , bench "asyncly"   $ whnf drainA $ \x -> a x & a & a & a
-            , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
-            ]
-
-        , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
-              a = A.filter (<= value) . fmap (subtract 1)
-              s = S.filter (<= value) . S.map (subtract 1)
-              p = P.map (subtract 1)  P.>-> P.filter (<= value)
-              c = C.map (subtract 1)  C.=$= C.filter (<= value)
-          in bgroup "map-filter"
-            [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
-            , bench "asyncly"   $ whnf drainA $ \x -> a x & a & a & a
-            , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
-            ]
-
-        , let m = M.filtered (<= value)
-              a = A.filter (<= value)
-              s = S.filter (<= value)
-              p = P.filter (<= value)
-              c = C.filter (<= value)
-          in bgroup "passing-filters"
-            [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
-            , bench "asyncly"   $ whnf drainA $ \x -> a x & a & a & a
-            , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
-            ]
-
-        , let m = M.filtered (> value)
-              a = A.filter   (> value)
-              s = S.filter   (> value)
-              p = P.filter   (> value)
-              c = C.filter   (> value)
-          in bgroup "blocking-filters"
-            [ bench "machines"  $ whnf drainM $ m M.~> m M.~> m M.~> m
-            , bench "asyncly"   $ whnf drainA $ \x -> a x & a & a & a
-            , bench "streaming" $ whnf drainS $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnf drainP $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
-            ]
-        ]
-    -}
-    , bgroup "compose-study"
+    , bgroup "compose-scaling"
         [
         -- Scaling with same operation in sequence
           let f = M.filtered (<= maxValue)
@@ -479,79 +368,5 @@ main =
             , bench "3" $ nfIO $ runIOC sourceC $ f C.=$= f C.=$= f
             , bench "4" $ nfIO $ runIOC sourceC $ f C.=$= f C.=$= f C.=$= f
             ]
-
-    {-
-        , let f = M.mapping (subtract 1) M.~> M.filtered (<= value)
-          in bgroup "machines-map-filter"
-            [ bench "1" $ whnf drainM f
-            , bench "2" $ whnf drainM $ f M.~> f
-            , bench "3" $ whnf drainM $ f M.~> f M.~> f
-            , bench "4" $ whnf drainM $ f M.~> f M.~> f M.~> f
-            ]
-        , let f = A.filter (<= value) . fmap (subtract 1)
-          in bgroup "asyncly-map-filter"
-            [ bench "1" $ whnf drainA (\x -> f x)
-            , bench "2" $ whnf drainA $ \x -> f x & f
-            , bench "3" $ whnf drainA $ \x -> f x & f & f
-            , bench "4" $ whnf drainA $ \x -> f x & f & f & f
-            ]
-        , let f = S.filter (<= value) . S.map (subtract 1)
-          in bgroup "streaming-map-filter"
-            [ bench "1" $ whnf drainS (\x -> f x)
-            , bench "2" $ whnf drainS $ \x -> f x & f
-            , bench "3" $ whnf drainS $ \x -> f x & f & f
-            , bench "4" $ whnf drainS $ \x -> f x & f & f & f
-            ]
-        , let f = P.map (subtract 1)  P.>-> P.filter (<= value)
-          in bgroup "pipes-map-filter"
-            [ bench "1" $ whnf drainP f
-            , bench "2" $ whnf drainP $ f P.>-> f
-            , bench "3" $ whnf drainP $ f P.>-> f P.>-> f
-            , bench "4" $ whnf drainP $ f P.>-> f P.>-> f P.>-> f
-            ]
-        , let f = C.map (subtract 1)  C.=$= C.filter (<= value)
-          in bgroup "conduit-map-filter"
-            [ bench "1" $ whnf drainC f
-            , bench "2" $ whnf drainC $ f C.=$= f
-            , bench "3" $ whnf drainC $ f C.=$= f C.=$= f
-            , bench "4" $ whnf drainC $ f C.=$= f C.=$= f C.=$= f
-            ]
-
-        , let f = M.filtered (> value)
-          in bgroup "machines-blocking-filter"
-            [ bench "1" $ whnf drainM f
-            , bench "2" $ whnf drainM $ f M.~> f
-            , bench "3" $ whnf drainM $ f M.~> f M.~> f
-            , bench "4" $ whnf drainM $ f M.~> f M.~> f M.~> f
-            ]
-        , let f = A.filter (> value)
-          in bgroup "asyncly-blocking-filter"
-            [ bench "1" $ whnf drainA (\x -> f x)
-            , bench "2" $ whnf drainA $ \x -> f x & f
-            , bench "3" $ whnf drainA $ \x -> f x & f & f
-            , bench "4" $ whnf drainA $ \x -> f x & f & f & f
-            ]
-        , let f = S.filter (> value)
-          in bgroup "streaming-blocking-filter"
-            [ bench "1" $ whnf drainS (\x -> f x)
-            , bench "2" $ whnf drainS $ \x -> f x & f
-            , bench "3" $ whnf drainS $ \x -> f x & f & f
-            , bench "4" $ whnf drainS $ \x -> f x & f & f & f
-            ]
-        , let f = P.filter (> value)
-          in bgroup "pipes-blocking-filter"
-            [ bench "1" $ whnf drainP f
-            , bench "2" $ whnf drainP $ f P.>-> f
-            , bench "3" $ whnf drainP $ f P.>-> f P.>-> f
-            , bench "4" $ whnf drainP $ f P.>-> f P.>-> f P.>-> f
-            ]
-        , let f = C.filter (> value)
-          in bgroup "conduit-blocking-filter"
-            [ bench "1" $ whnf drainC f
-            , bench "2" $ whnf drainC $ f C.=$= f
-            , bench "3" $ whnf drainC $ f C.=$= f C.=$= f
-            , bench "4" $ whnf drainC $ f C.=$= f C.=$= f C.=$= f
-            ]
-        -}
         ]
   ]
