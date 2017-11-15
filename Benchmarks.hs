@@ -29,11 +29,12 @@ import qualified Pipes.Prelude     as P
 import qualified Streaming.Prelude as S
 import qualified Conduit.Simple    as SC
 
-value :: Int
-value = 1000000
-
 getRandom :: MonadIO m => m Int
 getRandom =  liftIO $ randomRIO (1,1000)
+
+value, maxValue :: Int
+value = 1000000
+maxValue = value + 1000
 
 -------------------------------------------------------------------------------
 -- Asyncly
@@ -291,10 +292,10 @@ main =
         , bench "streaming" $ whnfIO $ S.effects (S.zip sourceS sourceS)
         , bench "asyncly" $ nfIO $ A.runStreamT $ (A.zipWith (,) sourceA sourceA)
         ]
-    {-
     -- Composing multiple stages of a pipeline
-    , bgroup "compose-IO"
+    , bgroup "compose"
         [
+        {-
           -- A fair comparison without fusion
           -- Assuming, fusion won't be able to combine effectful ops
           let f x =
@@ -303,45 +304,43 @@ main =
                       randomIO
                   else return x
 
+              c = C.mapM f
+              p = P.mapM f
               m = M.autoM f
               s = S.mapM f
-              p = P.mapM f
-              c = C.mapM f
-              l = lift . f
+              a = A.mapM f
               lb = lift . f
+              l = lift . f
               lg = lift . f
-              a = liftIO . f
           in bgroup "mapM-randomIO"
-            [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-            , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
-
-            , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
-            , bench "list-t"    $ whnfIO $ drainLBIO $ \x -> lb x >>= lb >>= lb >>= lb
-            , bench "logict"    $ whnfIO $ drainLGIO $ \x -> lg x >>= lg >>= lg >>= lg
-            , bench "asyncly"   $ whnfIO $ drainAIO $ \x -> a x >>= a >>= a >>= a
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
+            , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
+            , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
+            , bench "asyncly"   $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
+            , bench "list-t"    $ nfIO $ runIOLT sourceLT $ \x -> lb x >>= lb >>= lb >>= lb
+            , bench "list-transformer" $ nfIO $ runIOL sourceL $ \x -> l x >>= l >>= l >>= l
+            , bench "logict"    $ nfIO $ getRandom >>= \v -> runIOLG (sourceLG v) $ \x -> lg x >>= lg >>= lg >>= lg
             ]
-
-          -- A fair comparison without fusion
-          -- Assuming, fusion won't be able to combine effectful ops
-        , let m = M.autoM return
+        ,
+        -}
+          let m = M.autoM return
               s = S.mapM return
               p = P.mapM return
               c = C.mapM return
+              a = A.mapM return
               l = lift . return
               lb = lift . return
               lg = lift . return
-              a = liftIO . return
           in bgroup "mapM"
-            [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-            , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
-            , bench "list-transformer"   $ whnfIO $ drainLIO $ \x -> l x >>= l >>= l >>= l
-            , bench "list-t"    $ whnfIO $ drainLBIO $ \x -> lb x >>= lb >>= lb >>= lb
-            , bench "logict"    $ whnfIO $ drainLGIO $ \x -> lg x >>= lg >>= lg >>= lg
-            , bench "asyncly"   $ whnfIO $ drainAIO $ \x -> a x >>= a >>= a >>= a
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
+            , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
+            , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
+            , bench "asyncly"   $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
+            , bench "list-t"    $ nfIO $ runIOLT sourceLT $ \x -> lb x >>= lb >>= lb >>= lb
+            , bench "list-transformer" $ nfIO $ runIOL sourceL $ \x -> l x >>= l >>= l >>= l
+            , bench "logict"    $ nfIO $ getRandom >>= \v -> runIOLG (sourceLG v) $ \x -> lg x >>= lg >>= lg >>= lg
             ]
 
         , let m = M.mapping (subtract 1) M.~> M.filtered (<= value)
@@ -350,11 +349,11 @@ main =
               p = P.map (subtract 1)  P.>-> P.filter (<= value)
               c = C.map (subtract 1)  C.=$= C.filter (<= value)
           in bgroup "map-filter"
-            [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-            , bench "asyncly" $ whnfIO $ drainAIOStream $ \x -> a x & a & a & a
-            , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
+            , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
+            , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
+            , bench "asyncly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
 
         -- Compose multiple ops, all stages letting everything through
@@ -365,11 +364,11 @@ main =
               p = P.filter (<= value)
               c = C.filter (<= value)
           in bgroup "passing-filters"
-            [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-            , bench "asyncly"   $ whnfIO $ drainAIOStream $ \x -> a x & a & a & a
-            , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
+            , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
+            , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
+            , bench "asyncly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
 
           -- how filtering affects the subsequent composition
@@ -379,13 +378,14 @@ main =
               p = P.filter   (> value)
               c = C.filter   (> value)
           in bgroup "blocking-filters"
-            [ bench "machines"  $ whnfIO $ drainMIO $ m M.~> m M.~> m M.~> m
-            , bench "asyncly"   $ whnfIO $ drainAIOStream $ \x -> a x & a & a & a
-            , bench "streaming" $ whnfIO $ drainSIO $ \x -> s x & s & s & s
-            , bench "pipes"     $ whnfIO $ drainPIO $ p P.>-> p P.>-> p P.>-> p
-            , bench "conduit"   $ whnfIO $ drainCIO $ c C.=$= c C.=$= c C.=$= c
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
+            , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
+            , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
+            , bench "asyncly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
         ]
+    {-
     , bgroup "compose-Identity"
         [
           let m = M.autoM return
@@ -440,46 +440,47 @@ main =
             , bench "conduit"   $ whnf drainC $ c C.=$= c C.=$= c C.=$= c
             ]
         ]
-
+    -}
     , bgroup "compose-study"
         [
         -- Scaling with same operation in sequence
-          let f = M.filtered (<= value)
+          let f = M.filtered (<= maxValue)
           in bgroup "machines-filters"
-            [ bench "1" $ whnf drainM f
-            , bench "2" $ whnf drainM $ f M.~> f
-            , bench "3" $ whnf drainM $ f M.~> f M.~> f
-            , bench "4" $ whnf drainM $ f M.~> f M.~> f M.~> f
+            [ bench "1" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) f
+            , bench "2" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ f M.~> f
+            , bench "3" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ f M.~> f M.~> f
+            , bench "4" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ f M.~> f M.~> f M.~> f
             ]
-        , let f = A.filter (<= value)
+        , let f = A.filter (<= maxValue)
           in bgroup "asyncly-filters"
-            [ bench "1" $ whnf drainA (\x -> f x)
-            , bench "2" $ whnf drainA $ \x -> f x & f
-            , bench "3" $ whnf drainA $ \x -> f x & f & f
-            , bench "4" $ whnf drainA $ \x -> f x & f & f & f
+            [ bench "1" $ nfIO $ runIOA sourceA (\x -> f x)
+            , bench "2" $ nfIO $ runIOA sourceA $ \x -> f x & f
+            , bench "3" $ nfIO $ runIOA sourceA $ \x -> f x & f & f
+            , bench "4" $ nfIO $ runIOA sourceA $ \x -> f x & f & f & f
             ]
-        , let f = S.filter (<= value)
+        , let f = S.filter (<= maxValue)
           in bgroup "streaming-filters"
-            [ bench "1" $ whnf drainS (\x -> f x)
-            , bench "2" $ whnf drainS $ \x -> f x & f
-            , bench "3" $ whnf drainS $ \x -> f x & f & f
-            , bench "4" $ whnf drainS $ \x -> f x & f & f & f
+            [ bench "1" $ whnfIO $ runIOS sourceS (\x -> f x)
+            , bench "2" $ whnfIO $ runIOS sourceS $ \x -> f x & f
+            , bench "3" $ whnfIO $ runIOS sourceS $ \x -> f x & f & f
+            , bench "4" $ whnfIO $ runIOS sourceS $ \x -> f x & f & f & f
             ]
-        , let f = P.filter (<= value)
+        , let f = P.filter (<= maxValue)
           in bgroup "pipes-filters"
-            [ bench "1" $ whnf drainP f
-            , bench "2" $ whnf drainP $ f P.>-> f
-            , bench "3" $ whnf drainP $ f P.>-> f P.>-> f
-            , bench "4" $ whnf drainP $ f P.>-> f P.>-> f P.>-> f
+            [ bench "1" $ nfIO $ runIOP sourceP f
+            , bench "2" $ nfIO $ runIOP sourceP $ f P.>-> f
+            , bench "3" $ nfIO $ runIOP sourceP $ f P.>-> f P.>-> f
+            , bench "4" $ nfIO $ runIOP sourceP $ f P.>-> f P.>-> f P.>-> f
             ]
-        , let f = C.filter (<= value)
+        , let f = C.filter (<= maxValue)
           in bgroup "conduit-filters"
-            [ bench "1" $ whnf drainC f
-            , bench "2" $ whnf drainC $ f C.=$= f
-            , bench "3" $ whnf drainC $ f C.=$= f C.=$= f
-            , bench "4" $ whnf drainC $ f C.=$= f C.=$= f C.=$= f
+            [ bench "1" $ nfIO $ runIOC sourceC f
+            , bench "2" $ nfIO $ runIOC sourceC $ f C.=$= f
+            , bench "3" $ nfIO $ runIOC sourceC $ f C.=$= f C.=$= f
+            , bench "4" $ nfIO $ runIOC sourceC $ f C.=$= f C.=$= f C.=$= f
             ]
 
+    {-
         , let f = M.mapping (subtract 1) M.~> M.filtered (<= value)
           in bgroup "machines-map-filter"
             [ bench "1" $ whnf drainM f
@@ -551,6 +552,6 @@ main =
             , bench "3" $ whnf drainC $ f C.=$= f C.=$= f
             , bench "4" $ whnf drainC $ f C.=$= f C.=$= f C.=$= f
             ]
-        ]
         -}
+        ]
   ]
