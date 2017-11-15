@@ -95,7 +95,7 @@ sourceC = getRandom >>= \v -> C.enumFromTo v (v + value)
 runC :: C.Producer Identity Int -> C.Conduit Int Identity a -> ()
 runC s t = runIdentity $ s C.$= t C.$$ CC.sinkNull
 
-runIOC :: C.Producer IO Int -> C.Conduit Int IO a -> IO ()
+runIOC :: C.Source IO Int -> C.Conduit Int IO a -> IO ()
 runIOC s t = s C.$= t C.$$ C.mapM_ (\_ -> return ())
 
 -------------------------------------------------------------------------------
@@ -197,26 +197,26 @@ main =
           -- , bench "list-transformer" $ nfIO $ toList sourceL
           ]
     , bgroup "fold"
-        [ bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.fold (+) 0)
-        , bench "asyncly"   $ nfIO   $ A.foldl (+) 0 id sourceA
-        , bench "streaming" $ whnfIO $ S.fold (+) 0 id sourceS
+        [ bench "conduit"   $ nfIO   $ sourceC C.$$ (C.fold (+) 0)
         , bench "pipes"     $ nfIO   $ P.fold (+) 0 id sourceP
-        , bench "conduit"   $ nfIO   $ sourceC C.$$ (C.fold (+) 0)
+        , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.fold (+) 0)
+        , bench "streaming" $ whnfIO $ S.fold (+) 0 id sourceS
+        , bench "asyncly"   $ nfIO   $ A.foldl (+) 0 id sourceA
         , bench "list-transformer" $ nfIO $ L.fold (+) 0 id sourceL
         ]
-        {-
     , bgroup "scan"
-        [ bench "machines" $ whnf drainM (M.scan (+) 0)
-        , bench "streaming" $ whnf drainS (S.scan (+) 0 id)
-        , bench "pipes" $ whnf drainP (P.scan (+) 0 id)
-        , bench "conduit" $ whnf drainC (CC.scanl (+) 0)
+        [ bench "conduit" $ nfIO $ runIOC sourceC (CC.scanl (+) 0)
+        , bench "pipes" $ nfIO $ runIOP sourceP (P.scan (+) 0 id)
+        , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.scan (+) 0)
+        , bench "streaming" $ whnfIO $ runIOS sourceS (S.scan (+) 0 id)
         ]
     , bgroup "last"
-          [ bench "machines" $ whnf drainM (M.final)
-          , bench "asyncly" $ whnf runIdentity $ A.last sourceA
-          -- , bench "streaming" $ whnf runIdentity $ S.last sourceS
-          --, bench "pipes" $ whnf runIdentity $ P.last sourceP
+          [ bench "pipes" $ nfIO $ P.last sourceP
+          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.final)
+          , bench "streaming" $ whnfIO $ S.last sourceS
+          , bench "asyncly" $ nfIO $ A.last sourceA
           ]
+        {-
     , bgroup "concat"
           [ bench "machines" $ whnf drainM (M.mapping (replicate 3) M.~> M.asParts)
           , bench "streaming" $ whnf drainS (S.concat . S.map (replicate 3))
@@ -225,77 +225,73 @@ main =
           ]
           -}
     ]
-    {-
     , bgroup "transformation"
         [ bgroup "map"
-          [ bench "machines" $ nf drainM (M.mapping (+1))
-          , bench "asyncly" $ nf drainA (fmap (+1))
-          , bench "streaming" $ nf drainS (S.map (+1))
-          , bench "pipes" $ nf drainP (P.map (+1))
-          , bench "conduit" $ nf drainC (C.map (+1))
-          -- , bench "simple-conduit" $ whnf drainSC (SC.mapC (+1))
-          , bench "list-transformer" $ nf drainL (lift . return . (+1))
+          [ bench "conduit" $ nfIO $ runIOC sourceC (C.map (+1))
+          , bench "pipes" $ nfIO $ runIOP sourceP (P.map (+1))
+          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.mapping (+1))
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.map (+1))
+          , bench "asyncly" $ nfIO $ runIOA sourceA (fmap (+1))
+          , bench "simple-conduit" $ nfIO $ runIOSC sourceSC (SC.mapC (+1))
+          , bench "list-transformer" $ nfIO $ runIOL sourceL (lift . return . (+1))
           ]
         , bgroup "mapM"
-          [ bench "machines" $ whnf drainM (M.autoM Identity)
-          , bench "asyncly" $ whnf drainA (A.mapM Identity)
-          , bench "streaming" $ whnf drainS (S.mapM Identity)
-          , bench "pipes" $ whnf drainP (P.mapM Identity)
-          , bench "conduit" $ whnf drainC (C.mapM Identity)
+          [ bench "conduit" $ nfIO $ runIOC sourceC (C.mapM return)
+          , bench "pipes" $ nfIO $ runIOP sourceP (P.mapM return)
+          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.autoM return)
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.mapM return)
+          , bench "asyncly" $ nfIO $ runIOA sourceA (A.mapM return)
           ]
         ]
     , bgroup "filtering"
         [ bgroup "filter"
-          [ bench "machines" $ whnf drainM (M.filtered even)
-          , bench "asyncly" $ whnf drainA (A.filter even)
-          , bench "streaming" $ whnf drainS (S.filter even)
-          , bench "pipes" $ whnf drainP (P.filter even)
-          , bench "conduit" $ whnf drainC (C.filter even)
+          [ bench "conduit" $ nfIO $ runIOC sourceC (C.filter even)
+          , bench "pipes" $ nfIO $ runIOP sourceP (P.filter even)
+          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.filtered even)
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.filter even)
+          , bench "asyncly" $ nfIO $ runIOA sourceA (A.filter even)
           ]
+          -- XXX variance need to be fixed, value used is not correct
         , bgroup "take"
-          [ bench "machines" $ whnf drainM (M.taking value)
-          , bench "asyncly" $ whnf drainA (A.take value)
-          , bench "streaming" $ whnf drainS (S.take value)
-          , bench "pipes" $ whnf drainP (P.take value)
-          , bench "conduit" $ whnf drainC (C.isolate value)
-          , bench "list-transformer" $ whnf (runIdentity . L.runListT) (L.take value sourceL :: L.ListT Identity Int)
+          [ bench "conduit" $ nfIO $ runIOC sourceC (C.isolate value)
+          , bench "pipes" $ nfIO $ runIOP sourceP (P.take value)
+          , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.taking value)
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.take value)
+          , bench "asyncly" $ nfIO $ runIOA sourceA (A.take value)
+          -- , bench "list-transformer" $ nfIO $ (runIdentity . L.runListT) (L.take value sourceL :: L.ListT Identity Int)
           ]
         , bgroup "takeWhile"
-          [ bench "machines" $ whnf drainM (M.takingWhile (<= value))
-          , bench "asyncly" $ whnf drainA (A.takeWhile (<= value))
-          , bench "streaming" $ whnf drainS (S.takeWhile (<= value))
-          , bench "pipes" $ whnf drainP (P.takeWhile (<= value))
-          , bench "conduit" $ whnf drainC (CC.takeWhile (<= value))
+          [ bench "conduit"   $ nfIO $ runIOC sourceC (CC.takeWhile (<= value))
+          , bench "pipes"     $ nfIO $ runIOP sourceP (P.takeWhile (<= value))
+          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.takingWhile (<= value))
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.takeWhile (<= value))
+          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.takeWhile (<= value))
           ]
         , bgroup "drop"
-          [ bench "machines" $ whnf drainM (M.dropping value)
-          , bench "asyncly" $ whnf drainA (A.drop value)
-          , bench "streaming" $ whnf drainS (S.drop value)
-          , bench "pipes" $ whnf drainP (P.drop value)
-          , bench "conduit" $ whnf drainC (C.drop value)
+          [ bench "conduit"   $ nfIO $ runIOC sourceC (C.drop value)
+          , bench "pipes"     $ nfIO $ runIOP sourceP (P.drop value)
+          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.dropping value)
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.drop value)
+          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.drop value)
           -- , bench "simple-conduit" $ whnf drainSC (SC.dropC value)
           --, bench "list-transformer" $ whnf (runIdentity . L.runListT) (L.drop value sourceL :: L.ListT Identity Int)
           ]
         , bgroup "dropWhile"
-          [ bench "machines" $ whnf drainM (M.droppingWhile (<= value))
-          , bench "asyncly" $ whnf drainA (A.dropWhile (<= value))
-          , bench "streaming" $ whnf drainS (S.dropWhile (<= value))
-          , bench "pipes" $ whnf drainP (P.dropWhile (<= value))
-          , bench "conduit" $ whnf drainC (CC.dropWhile (<= value))
+          [ bench "conduit"   $ nfIO $ runIOC sourceC (CC.dropWhile (<= value))
+          , bench "pipes"     $ nfIO $ runIOP sourceP (P.dropWhile (<= value))
+          , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.droppingWhile (<= value))
+          , bench "streaming" $ whnfIO $ runIOS sourceS (S.dropWhile (<= value))
+          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.dropWhile (<= value))
           ]
         ]
     , bgroup "zip"
-        [ bench "machines" $ whnf (\x -> runIdentity $ M.runT_ x)
-            (M.capT sourceM sourceM M.zipping)
-        , bench "asyncly" $ whnf (\x -> runIdentity $ A.runStreamT $ x)
-            (A.zipWith (,) sourceA sourceA)
-        , bench "streaming" $ whnf (\x -> runIdentity $ S.effects $ x)
-            (S.zip sourceS sourceS)
-        , bench "pipes" $ whnf (\x -> runIdentity $ P.runEffect $ P.for x P.discard)
-            (P.zip sourceP sourceP)
-        , bench "conduit" $ whnf (\x -> runIdentity $ x C.$$ C.sinkNull)
-            (C.getZipSource $ (,) <$> C.ZipSource sourceC <*> C.ZipSource sourceC)
+        [ bench "conduit" $ nfIO $ (C.getZipSource $ (,) <$> C.ZipSource sourceC <*> C.ZipSource sourceC) C.$$ C.sinkNull
+        , bench "pipes" $ nfIO $ P.runEffect $ P.for (P.zip sourceP sourceP) P.discard
+        , bench "machines" $ nfIO $ getRandom >>= \v1 -> getRandom >>= \v2 -> M.runT_ (M.capT (sourceM v1) (sourceM v2) M.zipping)
+        , bench "streaming" $ whnfIO $ S.effects (S.zip sourceS sourceS)
+        , bench "asyncly" $ nfIO $ A.runStreamT $ (A.zipWith (,) sourceA sourceA)
         ]
+    {-
     -- Composing multiple stages of a pipeline
     , bgroup "compose-IO"
         [
