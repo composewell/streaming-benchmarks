@@ -35,7 +35,7 @@ benchmark benchmarks
     random              >= 1.0   && < 2,
     transformers,
 
-    asyncly,
+    streamly,
     conduit             >= 1.0   && < 1.3,
     conduit-combinators >= 0.2.5 && < 1.2,
     list-transformer    >= 1.0.2 && < 1.1,

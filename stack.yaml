@@ -1,14 +1,14 @@
-#resolver: lts-9.12
-resolver: nightly-2017-09-07
+resolver: lts-10.0
+#resolver: nightly-2017-09-07
 packages:
 - '.'
-- location: ../asyncly-lazy
+- location: ../streamly
   extra-dep: true
 - location: ../../github/hs-gauge
   extra-dep: true
 extra-deps:
-- gauge-0.1.0
-- basement-0.0.3
+  #- gauge-0.1.0
+- basement-0.0.4
 - list-transformer-1.0.2
 - lockfree-queue-0.2.3.1
 - simple-conduit-0.6.0

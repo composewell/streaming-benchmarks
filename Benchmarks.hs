@@ -11,8 +11,8 @@ import Data.Function ((&))
 --import System.Random (randomIO)
 import System.Random (randomRIO)
 
-import qualified Asyncly           as A
-import qualified Asyncly.Prelude   as A
+import qualified Streamly          as A
+import qualified Streamly.Prelude  as A
 import qualified Data.Conduit      as C
 import qualified Data.Conduit.Combinators as CC
 import qualified Data.Conduit.List as C
@@ -33,7 +33,7 @@ value = 1000000
 maxValue = value + 1000
 
 -------------------------------------------------------------------------------
--- Asyncly
+-- Streamly
 -------------------------------------------------------------------------------
 
 sourceA :: MonadIO m => A.StreamT m Int
@@ -145,7 +145,7 @@ main =
         , bench "pipes"            $ nfIO $ P.runEffect $ sourceP P.>-> P.mapM_ (\_ -> return ())
         , bench "machines"         $ nfIO $ getRandom >>= \v -> M.runT_ (sourceM v)
         , bench "streaming"        $ nfIO $ runIOS sourceS id
-        , bench "asyncly"          $ nfIO $ runIOA sourceA id
+        , bench "streamly"         $ nfIO $ runIOA sourceA id
         , bench "simple-conduit"   $ nfIO $ sourceSC SC.$$ SC.mapM_C (\_ -> return ())
         , bench "logict"           $ nfIO $ getRandom >>= \v -> LG.observeAllT (sourceLG v) >> return ()
         , bench "list-t"           $ nfIO $ LT.traverse_ (\_ -> return ()) sourceLT
@@ -157,7 +157,7 @@ main =
           , bench "pipes"     $ nfIO $ P.toListM sourceP
           , bench "machines"  $ nfIO $ getRandom >>= \v -> M.runT (sourceM v)
           , bench "streaming" $ whnfIO $ S.toList sourceS
-          , bench "asyncly"   $ nfIO $ A.toList sourceA
+          , bench "streamly"    $ nfIO $ A.toList sourceA
           , bench "simple-conduit" $ nfIO $ sourceSC SC.$$ SC.sinkList
           , bench "logict"         $ nfIO $ getRandom >>= \v -> LG.observeAllT (sourceLG v) >> return ()
           , bench "list-t"         $ nfIO $ LT.toList sourceLT
@@ -168,7 +168,7 @@ main =
         , bench "pipes"     $ nfIO   $ P.fold (+) 0 id sourceP
         , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.fold (+) 0)
         , bench "streaming" $ whnfIO $ S.fold (+) 0 id sourceS
-        , bench "asyncly"   $ nfIO   $ A.foldl (+) 0 id sourceA
+        , bench "streamly"  $ nfIO   $ A.foldl (+) 0 id sourceA
         , bench "list-transformer" $ nfIO $ L.fold (+) 0 id sourceL
         ]
     , bgroup "scan"
@@ -181,7 +181,7 @@ main =
           [ bench "pipes" $ nfIO $ P.last sourceP
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.final)
           , bench "streaming" $ whnfIO $ S.last sourceS
-          , bench "asyncly" $ nfIO $ A.last sourceA
+          , bench "streamly"  $ nfIO $ A.last sourceA
           ]
     , bgroup "concat"
           [ bench "conduit" $ nfIO $ runIOC sourceC (C.map (replicate 3) C.$= C.concat)
@@ -196,7 +196,7 @@ main =
           , bench "pipes" $ nfIO $ runIOP sourceP (P.map (+1))
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.mapping (+1))
           , bench "streaming" $ whnfIO $ runIOS sourceS (S.map (+1))
-          , bench "asyncly" $ nfIO $ runIOA sourceA (fmap (+1))
+          , bench "streamly" $ nfIO $ runIOA sourceA (fmap (+1))
           , bench "simple-conduit" $ nfIO $ runIOSC sourceSC (SC.mapC (+1))
           , bench "list-transformer" $ nfIO $ runIOL sourceL (lift . return . (+1))
           ]
@@ -205,7 +205,7 @@ main =
           , bench "pipes" $ nfIO $ runIOP sourceP (P.mapM return)
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.autoM return)
           , bench "streaming" $ whnfIO $ runIOS sourceS (S.mapM return)
-          , bench "asyncly" $ nfIO $ runIOA sourceA (A.mapM return)
+          , bench "streamly" $ nfIO $ runIOA sourceA (A.mapM return)
           ]
         ]
     , bgroup "filtering"
@@ -214,7 +214,7 @@ main =
           , bench "pipes" $ nfIO $ runIOP sourceP (P.filter even)
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.filtered even)
           , bench "streaming" $ whnfIO $ runIOS sourceS (S.filter even)
-          , bench "asyncly" $ nfIO $ runIOA sourceA (A.filter even)
+          , bench "streamly" $ nfIO $ runIOA sourceA (A.filter even)
           ]
           -- XXX variance need to be fixed, value used is not correct
         , bgroup "take"
@@ -222,7 +222,7 @@ main =
           , bench "pipes" $ nfIO $ runIOP sourceP (P.take maxValue)
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.taking maxValue)
           , bench "streaming" $ whnfIO $ runIOS sourceS (S.take maxValue)
-          , bench "asyncly" $ nfIO $ runIOA sourceA (A.take maxValue)
+          , bench "streamly" $ nfIO $ runIOA sourceA (A.take maxValue)
           -- , bench "list-transformer" $ nfIO $ (runIdentity . L.runListT) (L.take value sourceL :: L.ListT Identity Int)
           ]
         , bgroup "takeWhile"
@@ -230,14 +230,14 @@ main =
           , bench "pipes"     $ nfIO $ runIOP sourceP (P.takeWhile (<= maxValue))
           , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.takingWhile (<= maxValue))
           , bench "streaming" $ whnfIO $ runIOS sourceS (S.takeWhile (<= maxValue))
-          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.takeWhile (<= maxValue))
+          , bench "streamly"   $ nfIO $ runIOA sourceA (A.takeWhile (<= maxValue))
           ]
         , bgroup "drop"
           [ bench "conduit"   $ nfIO $ runIOC sourceC (C.drop maxValue)
           , bench "pipes"     $ nfIO $ runIOP sourceP (P.drop maxValue)
           , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.dropping maxValue)
           , bench "streaming" $ whnfIO $ runIOS sourceS (S.drop maxValue)
-          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.drop maxValue)
+          , bench "streamly"   $ nfIO $ runIOA sourceA (A.drop maxValue)
           -- , bench "simple-conduit" $ whnf drainSC (SC.dropC value)
           --, bench "list-transformer" $ whnf (runIdentity . L.runListT) (L.drop value sourceL :: L.ListT Identity Int)
           ]
@@ -246,7 +246,7 @@ main =
           , bench "pipes"     $ nfIO $ runIOP sourceP (P.dropWhile (<= maxValue))
           , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.droppingWhile (<= maxValue))
           , bench "streaming" $ whnfIO $ runIOS sourceS (S.dropWhile (<= maxValue))
-          , bench "asyncly"   $ nfIO $ runIOA sourceA (A.dropWhile (<= maxValue))
+          , bench "streamly"   $ nfIO $ runIOA sourceA (A.dropWhile (<= maxValue))
           ]
         ]
     , bgroup "zip"
@@ -254,7 +254,7 @@ main =
         , bench "pipes" $ nfIO $ P.runEffect $ P.for (P.zip sourceP sourceP) P.discard
         , bench "machines" $ nfIO $ getRandom >>= \v1 -> getRandom >>= \v2 -> M.runT_ (M.capT (sourceM v1) (sourceM v2) M.zipping)
         , bench "streaming" $ whnfIO $ S.effects (S.zip sourceS sourceS)
-        , bench "asyncly" $ nfIO $ A.runStreamT $ (A.zipWith (,) sourceA sourceA)
+        , bench "streamly" $ nfIO $ A.runStreamT $ (A.zipWith (,) sourceA sourceA)
         ]
     -- Composing multiple stages of a pipeline
     , bgroup "compose"
@@ -280,7 +280,7 @@ main =
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
-            , bench "asyncly"   $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
+            , bench "streamly"   $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             , bench "list-t"    $ nfIO $ runIOLT sourceLT $ \x -> lb x >>= lb >>= lb >>= lb
             , bench "list-transformer" $ nfIO $ runIOL sourceL $ \x -> l x >>= l >>= l >>= l
             , bench "logict"    $ nfIO $ getRandom >>= \v -> runIOLG (sourceLG v) $ \x -> lg x >>= lg >>= lg >>= lg
@@ -296,7 +296,7 @@ main =
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
-            , bench "asyncly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
+            , bench "streamly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
 
         -- Compose multiple ops, all stages letting everything through
@@ -311,7 +311,7 @@ main =
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
-            , bench "asyncly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
+            , bench "streamly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
 
           -- how filtering affects the subsequent composition
@@ -325,7 +325,7 @@ main =
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ whnfIO $ runIOS sourceS $ \x -> s x & s & s & s
-            , bench "asyncly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
+            , bench "streamly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
         ]
     , bgroup "compose-scaling"
@@ -339,7 +339,7 @@ main =
             , bench "4" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ f M.~> f M.~> f M.~> f
             ]
         , let f = A.filter (<= maxValue)
-          in bgroup "asyncly-filters"
+          in bgroup "streamly-filters"
             [ bench "1" $ nfIO $ runIOA sourceA (\x -> f x)
             , bench "2" $ nfIO $ runIOA sourceA $ \x -> f x & f
             , bench "3" $ nfIO $ runIOA sourceA $ \x -> f x & f & f
