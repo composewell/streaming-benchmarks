@@ -11,7 +11,19 @@ How to Run
 
 ::
 
-  stack bench
+  ./run.sh
+
+Diagnostics
+~~~~~~~~~~~
+
+If ``run.sh`` fails with an error like this:
+
+```
+callProcess: runInteractiveProcess: exec: does not exist (No such file or directory)
+```
+
+it means that it cannot find the path to benchmarking executable. You will have
+to find it manually and edit it in ``run.sh``. See the comments in ``run.sh``.
 
 Results
 -------
@@ -31,6 +43,11 @@ interaction across benchmarks, the results of benchmarks running later in the
 sequence were sometimes totally off the mark. We fixed that by running each
 benchmark in a separate process in guage. Another bug caused criterion to
 report wrong mean.
+
+``Iterations:`` We pass a million elements through the streaming pipelines. We
+do not rely on the benchmarking tool for this, it is explicitly done by the
+benchmarking code and the benchmarking tool is asked to perform just one
+iteration. We added fine grained control in `gauge` to be able to do this.
 
 ``Effects of Optimizations:`` In some cases fusion or other optimizations can
 just optimize out everything and produce ridiculously low results. To avoid
