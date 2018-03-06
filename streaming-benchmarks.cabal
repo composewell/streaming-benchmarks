@@ -1,23 +1,25 @@
 name:          streaming-benchmarks
 category:      Benchmark
 version:       0.1
-license:       BSD3
+license:       MIT
 cabal-version: >= 1.10
 license-file:  LICENSE
-author:        Harendra Kumar, Authors of 'machines' package
+author:        Harendra Kumar
 maintainer:    Harendra Kumar
 stability:     provisional
-homepage:      http://github.com/harendra-kumar/streaming-benchmarks
-bug-reports:   http://github.com/harendra-kumar/streaming-benchmarks/issues
-copyright:     Copyright (C) 2017 Harendra Kumar, 2012-2015 Edward A. Kmett
+homepage:      http://github.com/composewell/streaming-benchmarks
+bug-reports:   http://github.com/composewell/streaming-benchmarks/issues
+copyright:     Copyright (c) 2017 Harendra Kumar
 synopsis:      Benchmarks to compare streaming packages
 description:   Benchmarks to compare streaming packages
 build-type:    Simple
 extra-source-files:
+  licenses/Readme.txt
+  licenses/LICENSE.machines
 
 source-repository head
   type: git
-  location: git://github.com/harendra-kumar/streaming-benchmarks.git
+  location: git://github.com/composewell/streaming-benchmarks.git
 
 benchmark benchmarks
   default-language: Haskell2010

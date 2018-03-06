@@ -39,6 +39,9 @@ maxValue = value + 1000
 sourceA :: MonadIO m => A.StreamT m Int
 sourceA = getRandom >>= \v -> A.each [v..v+value]
 
+-- Note, streamly provides two different ways to compose, i.e. category style
+-- composition and monadic compostion.
+
 -- Category composition
 runIOA :: A.StreamT IO Int -> (A.StreamT IO Int -> A.StreamT IO Int) -> IO ()
 runIOA s t = A.runStreamT $ s & t
@@ -286,6 +289,7 @@ main =
             , bench "logict"    $ nfIO $ getRandom >>= \v -> runIOLG (sourceLG v) $ \x -> lg x >>= lg >>= lg >>= lg
             ]
 
+        -- XXX should we use a monadic mapM instead?
         , let m = M.mapping (subtract 1) M.~> M.filtered (<= maxValue)
               s = S.filter (<= maxValue) . S.map (subtract 1)
               a = A.filter (<= maxValue) . fmap (subtract 1)
@@ -299,8 +303,8 @@ main =
             , bench "streamly" $ nfIO $ runIOA sourceA $ \x -> a x & a & a & a
             ]
 
-        -- Compose multiple ops, all stages letting everything through
-        -- IO monad makes a big difference especially for machines
+        -- Compose multiple ops, all stages letting everything through.
+        -- Note, IO monad makes a big difference especially for machines.
         , let m = M.filtered (<= maxValue)
               a = A.filter (<= maxValue)
               s = S.filter (<= maxValue)
