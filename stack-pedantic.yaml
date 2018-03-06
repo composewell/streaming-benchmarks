@@ -1,0 +1,14 @@
+resolver: lts-10.3
+packages:
+- '.'
+extra-deps:
+- gauge-0.2.1
+- basement-0.0.4
+- list-transformer-1.0.2
+- lockfree-queue-0.2.3.1
+- simple-conduit-0.6.0
+- streaming-0.1.4.5
+- mmorph-1.0.9
+
+ghc-options:
+    "$everything": -O2

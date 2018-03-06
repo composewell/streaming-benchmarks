@@ -3,8 +3,9 @@ Streaming Benchmarks
 
 Comprehensive, carefully crafted benchmarks for streaming operations and their
 comparisons across notable Haskell streaming libraries including `streaming`,
-`machines`, `pipes`, `conduit` and `streamly`, the new library that we
-published.
+`machines`, `pipes`, `conduit` and `streamly` - the brand new streaming library
+that we published. We go to great lenghts to make sure that the benchmarks are
+correct, fair and reproducible.
 
 How to Run
 ----------
@@ -12,6 +13,15 @@ How to Run
 ::
 
   ./run.sh
+
+Note that if different optimization flags are used on different packages
+performance can badly suffer because of GHC inlining and specialization not
+working optimally.  If you  want to be aboslutely sure that all packages and
+dependencies are compiled with the same optimization flags (``-O2``) use
+``run.sh --pedantic``, it will install the stack snapshots in a private
+directory under the current directory and build them fresh with the ghc flags
+specified in stack.yaml. BE AWARE THAT THIS WILL REQUIRE 1-2 GB EXTRA DISK
+SPACE.
 
 Diagnostics
 ~~~~~~~~~~~
@@ -57,7 +67,8 @@ pipeline rather than using some constant or predictable source.
 ``GHC Optimization Flags:`` To make sure we are comparing fairly we make sure
 that we compile the benchmarking code, the library code as well as all
 dependencies using exactly the same GHC flags. GHC inlining and specialization
-optimizations can make the code unpredictable if mixed flags are used.
+optimizations can make the code unpredictable if mixed flags are used. See the
+``--pedantic`` option of the ``run.sh`` script.
 
 ``Benchmark Categories:`` We have two categories of benchmarks, one to measure
 the performance of individual operations in isolation and the other to measure

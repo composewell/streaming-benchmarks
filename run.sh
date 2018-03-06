@@ -1,14 +1,14 @@
 #!/bin/bash
 
+print_help () {
+  echo "Usage: $0 [--quick] [--pedantic] <benchmark-name or prefix> [min-samples]"
+  exit
+}
+
 # $1: message
 die () {
   >&2 echo -e "Error: $1"
   exit 1
-}
-
-print_help () {
-  echo "Usage: $0 [--quick] <benchmark-name or prefix> [min-samples]"
-  exit
 }
 
 while test -n "$1"
@@ -16,6 +16,7 @@ do
   case $1 in
     -h|--help|help) print_help ;;
     --quick) QUICK=1; shift ;;
+    --pedantic) PEDANTIC=1; shift ;;
     *) break ;;
   esac
 done
@@ -68,7 +69,16 @@ then
   ARGS="--quick"
 fi
 
-stack bench --benchmark-arguments "$ARGS \
+if test "$PEDANTIC" = "1"
+then
+  GHC_PATH=`stack path --compiler-bin`
+  export PATH=$GHC_PATH:$PATH
+  mkdir -p .stack-root
+  export STACK_ROOT=`pwd`/.stack-root
+  STACK_OPTIONS="--system-ghc --stack-yaml stack-pedantic.yaml"
+fi
+
+stack $STACK_OPTIONS bench --benchmark-arguments "$ARGS \
   --include-first-iter \
   --min-duration 0 \
   --min-samples $MIN_SAMPLES \
