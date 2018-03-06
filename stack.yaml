@@ -1,19 +1,11 @@
-resolver: lts-10.0
-#resolver: nightly-2017-09-07
+resolver: lts-10.3
 packages:
 - '.'
-- location: ../streamly
-  extra-dep: true
-- location: ../../github/hs-gauge
-  extra-dep: true
 extra-deps:
-  #- gauge-0.1.0
+- gauge-0.2.1
 - basement-0.0.4
 - list-transformer-1.0.2
 - lockfree-queue-0.2.3.1
 - simple-conduit-0.6.0
 - streaming-0.1.4.5
 - mmorph-1.0.9
-flags: {}
-extra-package-dbs: []
-pvp-bounds: both
