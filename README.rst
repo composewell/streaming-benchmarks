@@ -17,6 +17,10 @@ How to Run
 
   ./run.sh
 
+After running you can find the charts generated in the ``charts`` directory. If
+you are impatient use ``./run.sh --quick`` and you will get the results much
+sooner though a tiny bit less precise.
+
 Note that if different optimization flags are used on different packages,
 performance can sometimes badly suffer because of GHC inlining and
 specialization not working optimally.  If you  want to be aboslutely sure that

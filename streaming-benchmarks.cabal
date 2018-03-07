@@ -75,9 +75,3 @@ executable makecharts
     , split             >= 0.2   && < 0.3
     , text              >= 1.1.1 && < 1.3
     , typed-process     >= 0.2   && < 0.3
-
-library
-    hs-source-dirs:    .
-    exposed-modules:   Lib
-    build-depends:
-      base              == 4.*
