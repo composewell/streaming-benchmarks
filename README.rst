@@ -22,6 +22,72 @@ primary motivation for these benchmarks. We go to great lengths to make sure
 that the benchmarks are correct, fair and reproducible. Please report if you
 find something that is not right.
 
+Benchmarks & Results
+--------------------
+
+Individual Operations
+~~~~~~~~~~~~~~~~~~~~~
+
+Elimination
+^^^^^^^^^^^
+
+* `null:` This is the simplest of all benchmarks. It compares creating a
+  source and immediately composing it with a sink without any processing in
+  between.
+
+* `toList:` This is just like `null` except that instead of sending the
+  stream to a sink it collects it in a list.
+
+* `fold`, `scan`, `last`, `concat` are other elimination operations that we
+  benchmark.
+
+.. image:: charts/Elimination.svg
+  :alt: Elimination Benchmark Results
+
+Transformation
+^^^^^^^^^^^^^^
+
+The operations in this category are the standard `map` and `mapM`.
+
+Filtering
+^^^^^^^^^
+
+This category includes the standard `filter`, `take`, `takeWhile` and `drop`
+operations.
+
+Zipping
+^^^^^^^
+
+Zipping two streams together.
+
+Composing Multiple Pipeline Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This category measures the performance when multiple operations are composed in
+a pipeline.
+
+The `mapM` benchmark introduces four stages of `mapM` between the source and
+the sink.
+
+`passing-filters` composes four stages of a `filter` operation that passes all
+the items through.  Note that passing or blocking nature of the filter may
+impact the results. Some libraries can do blocking more optimally by short
+circuiting.
+
+`blocking-filters` composes four stages of a `filter` operation that `blocks`
+all the items i.e. does not let anything pass through.
+
+The `map-filter` benchmark introduces four identical stages between the source
+and the sink where each stage performs a simple map operation followed by a
+filter that passes all the items through.
+
+Studying the Scaling of Composition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This category of benchmarks studies the effect of adding more stages in a
+composition pipeline. For each library it displays the results when 1, 2, 3 or
+4 pipeline stages are used.
+
 How to Run
 ----------
 
@@ -54,9 +120,6 @@ callProcess: runInteractiveProcess: exec: does not exist (No such file or direct
 it means that it cannot find the path to the benchmarking executable. You will
 have to find it manually and edit it in ``run.sh``. See the comments in
 ``run.sh``.
-
-Results
--------
 
 Important Points about Benchmarking Methodology
 -----------------------------------------------
@@ -96,70 +159,6 @@ optimizations can make the code unpredictable if mixed flags are used. See the
 the performance of individual operations in isolation and the other to measure
 the performance when multiple similar or different operations are composed
 together in a pipeline.
-
-Benchmarks
-----------
-
-Individual Operations
-~~~~~~~~~~~~~~~~~~~~~
-
-Elimination
-^^^^^^^^^^^
-
-* `null:` This is the simplest of all benchmarks. It compares creating a
-  source and immediately composing it with a sink without any processing in
-  between.
-
-* `toList:` This is just like `null` except that instead of sending the
-  stream to a sink it collects it in a list.
-
-* `fold`, `scan`, `last`, `concat` are other elimination operations that we
-  benchmark.
-
-Transformation
-^^^^^^^^^^^^^^
-
-The operations in this category are the standard `map` and `mapM`.
-
-Filtering
-^^^^^^^^^
-
-This category includes the standard `filter`, `take`, `takeWhile`, `drop` and
-`dropWhile` operations.
-
-Zipping
-^^^^^^^
-
-Zipping two streams together.
-
-Composing Multiple Pipeline Stages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This category measures the performance when multiple operations are composed in
-a pipeline.
-
-The `mapM` benchmark introduces four stages of `mapM` between the source and
-the sink.
-
-`passing-filters` composes four stages of a `filter` operation that passes all
-the items through.  Note that passing or blocking nature of the filter may
-impact the results. Some libraries can do blocking more optimally by short
-circuiting.
-
-`blocking-filters` composes four stages of a `filter` operation that `blocks`
-all the items i.e. does not let anything pass through.
-
-The `map-filter` benchmark introduces four identical stages between the source
-and the sink where each stage performs a simple map operation followed by a
-filter that passes all the items through.
-
-
-Studying the Scaling of Composition
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This category of benchmarks studies the effect of adding more stages in a
-composition pipeline. For each library it displays the results when 1, 2, 3 or
-4 pipeline stages are used.
 
 Benchmarking Errors
 -------------------
