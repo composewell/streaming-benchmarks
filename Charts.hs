@@ -1,6 +1,7 @@
 import Data.List.Split (splitOn)
 import Data.Maybe (maybe, catMaybes, fromJust)
 import Debug.Trace (trace)
+import System.Directory (createDirectoryIfMissing)
 import System.Environment (getArgs)
 import System.Process.Typed (readProcess_)
 import Text.CSV (CSV, parseCSVFromFile)
@@ -117,6 +118,8 @@ genGraphs csvData pkginfo = mapM_ (genOneGraph csvData pkginfo) bmGroups
 main :: IO ()
 main = do
     args <- getArgs
+
+    createDirectoryIfMissing True outputDir
 
     (out, _) <- readProcess_ "stack --system-ghc list-dependencies --bench"
 
