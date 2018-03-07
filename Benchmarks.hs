@@ -190,7 +190,8 @@ main =
           [ bench "conduit" $ nfIO $ runIOC sourceC (C.map (replicate 3) C.$= C.concat)
           , bench "pipes" $ nfIO $ runIOP sourceP (P.map (replicate 3) P.>-> P.concat)
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.mapping (replicate 3) M.~> M.asParts)
-          , bench "streaming" $ nfIO $ runIOS sourceS (S.concat . S.map (replicate 3))
+          -- XXX This hangs indefinitely
+          -- , bench "streaming" $ nfIO $ runIOS sourceS (S.concat . S.map (replicate 3))
           ]
     ]
     , bgroup "transformation"
