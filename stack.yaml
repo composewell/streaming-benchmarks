@@ -5,3 +5,4 @@ extra-deps:
   - gauge-0.2.1
   - list-transformer-1.0.3
   - simple-conduit-0.6.0
+  - streamly-0.1.0
