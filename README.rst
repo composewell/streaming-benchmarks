@@ -4,11 +4,11 @@ Streaming Benchmarks
 Comprehensive, carefully crafted benchmarks for streaming operations and their
 comparisons across notable Haskell streaming libraries including `streaming`,
 `machines`, `pipes`, `conduit` and `streamly`. `Streamly
-<https://github.com/composewell/streamly>`_ is a brand new
-streaming library with natural concurrency built-in and the primary motivation
-for these benchmarks. We go to great lengths to make sure that the benchmarks
-are correct, fair and reproducible. Please report if you find something that is
-not right.
+<https://github.com/composewell/streamly>`_ is a brand new streaming library
+with beautiful high level and composable concurrency built-in, it is the
+primary motivation for these benchmarks. We go to great lengths to make sure
+that the benchmarks are correct, fair and reproducible. Please report if you
+find something that is not right.
 
 How to Run
 ----------
