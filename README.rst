@@ -3,7 +3,7 @@
   :alt: Hackage
 
 .. image:: https://travis-ci.org/composewell/streaming-benchmarks.svg?branch=master
-  :target: https://travis-ci.org/composewell/streamly
+  :target: https://travis-ci.org/composewell/streaming-benchmarks
   :alt: Unix Build Status
 
 .. image:: https://ci.appveyor.com/api/projects/status/8d1kgrrw9mmxv5xt?svg=true
