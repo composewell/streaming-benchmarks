@@ -3,9 +3,12 @@ Streaming Benchmarks
 
 Comprehensive, carefully crafted benchmarks for streaming operations and their
 comparisons across notable Haskell streaming libraries including `streaming`,
-`machines`, `pipes`, `conduit` and `streamly` - the brand new streaming library
-that we published. We go to great lenghts to make sure that the benchmarks are
-correct, fair and reproducible.
+`machines`, `pipes`, `conduit` and `streamly`. `Streamly
+<https://github.com/composewell/streamly>`_ is a brand new
+streaming library with natural concurrency built-in and the primary motivation
+for these benchmarks. We go to great lengths to make sure that the benchmarks
+are correct, fair and reproducible. Please report if you find something that is
+not right.
 
 How to Run
 ----------
@@ -14,26 +17,27 @@ How to Run
 
   ./run.sh
 
-Note that if different optimization flags are used on different packages
-performance can badly suffer because of GHC inlining and specialization not
-working optimally.  If you  want to be aboslutely sure that all packages and
-dependencies are compiled with the same optimization flags (``-O2``) use
-``run.sh --pedantic``, it will install the stack snapshots in a private
-directory under the current directory and build them fresh with the ghc flags
-specified in stack.yaml. BE AWARE THAT THIS WILL REQUIRE 1-2 GB EXTRA DISK
-SPACE.
+Note that if different optimization flags are used on different packages,
+performance can sometimes badly suffer because of GHC inlining and
+specialization not working optimally.  If you  want to be aboslutely sure that
+all packages and dependencies are compiled with the same optimization flags
+(``-O2``) use ``run.sh --pedantic``, it will install the stack snapshot in a
+private directory under the current directory and build them fresh with the ghc
+flags specified in ``stack-pedantic.yaml``. Be aware that this will require 1-2
+GB extra disk space.
 
 Diagnostics
 ~~~~~~~~~~~
 
-If ``run.sh`` fails with an error like this:
+If for some reason ``run.sh`` fails with an error like this:
 
 ```
 callProcess: runInteractiveProcess: exec: does not exist (No such file or directory)
 ```
 
-it means that it cannot find the path to benchmarking executable. You will have
-to find it manually and edit it in ``run.sh``. See the comments in ``run.sh``.
+it means that it cannot find the path to the benchmarking executable. You will
+have to find it manually and edit it in ``run.sh``. See the comments in
+``run.sh``.
 
 Results
 -------
@@ -45,7 +49,8 @@ Important Points about Benchmarking Methodology
 real life usage. Note that most existing streaming benchmarks use pure code or
 Identity monad which may produce entirely different results.
 
-``Benchmarking Tool:`` We use the ``gauge`` package instead of criterion.  We
+``Benchmarking Tool:`` We use the `gauge
+<https://github.com/vincenthz/hs-gauge>`_ package instead of criterion.  We
 spent a lot of time figuring out why benchmarking was not producing accurate
 results. Criterion had several bugs due to which results were not reliable. We
 fixed those bugs in ``gauge``. For example due to GC or CAF evaluation
@@ -57,7 +62,8 @@ report wrong mean.
 ``Iterations:`` We pass a million elements through the streaming pipelines. We
 do not rely on the benchmarking tool for this, it is explicitly done by the
 benchmarking code and the benchmarking tool is asked to perform just one
-iteration. We added fine grained control in `gauge` to be able to do this.
+iteration. We added fine grained control in `gauge
+<https://github.com/vincenthz/hs-gauge>`_ to be able to do this.
 
 ``Effects of Optimizations:`` In some cases fusion or other optimizations can
 just optimize out everything and produce ridiculously low results. To avoid

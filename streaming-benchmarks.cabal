@@ -2,7 +2,6 @@ name:          streaming-benchmarks
 category:      Benchmark
 version:       0.1
 license:       MIT
-cabal-version: >= 1.10
 license-file:  LICENSE
 author:        Harendra Kumar
 maintainer:    Harendra Kumar
@@ -12,10 +11,15 @@ bug-reports:   http://github.com/composewell/streaming-benchmarks/issues
 copyright:     Copyright (c) 2017 Harendra Kumar
 synopsis:      Benchmarks to compare streaming packages
 description:   Benchmarks to compare streaming packages
+cabal-version: >= 1.10
 build-type:    Simple
 extra-source-files:
+  run.sh
+  README.rst
   licenses/Readme.txt
   licenses/LICENSE.machines
+  stack.yaml
+  stack-pedantic.yaml
 
 source-repository head
   type: git
@@ -30,21 +34,21 @@ benchmark benchmarks
 
   build-depends:
     base                == 4.*,
-    gauge,
+    gauge               >= 0.2.1 && < 0.3,
     mtl                 >= 2     && < 2.3,
-    random              >= 1.0   && < 2,
-    transformers,
+    random              >= 1.0   && < 2.0,
+    transformers        >= 0.4   && < 0.6,
 
-    streamly,
-    conduit             >= 1.0   && < 1.3,
-    conduit-combinators >= 0.2.5 && < 1.2,
+    conduit             >= 1.0   && < 1.4,
+    conduit-combinators >= 0.2.5 && < 1.4,
     list-transformer    >= 1.0.2 && < 1.1,
-    list-t,
-    logict,
-    machines            >= 0.6.2 && < 0.7,
+    list-t              >= 0.4.6 && < 1.1,
+    logict              >= 0.5.0 && < 0.7,
+    machines            >= 0.6.0 && < 0.7,
     pipes               >= 4     && < 4.4,
-    streaming,
-    simple-conduit
+    simple-conduit      >= 0.4.0 && < 0.7,
+    streaming           >= 0.1.4 && < 0.3,
+    streamly            >= 0.1.0 && < 0.2
 
 executable makecharts
   default-language: Haskell2010
@@ -54,11 +58,11 @@ executable makecharts
   ghc-options: -Wall
 
   build-depends:
-      base == 4.*
-    , bytestring
-    , Chart
-    , Chart-diagrams
-    , csv
-    , split
-    , text
-    , typed-process
+      base              == 4.*
+    , bytestring        >= 0.9   && < 0.11
+    , Chart             >= 1.7   && < 1.9
+    , Chart-diagrams    >= 1.7   && < 1.9
+    , csv               >= 0.1   && < 0.2
+    , split             >= 0.2   && < 0.3
+    , text              >= 1.1.1 && < 1.3
+    , typed-process     >= 0.2   && < 0.3
