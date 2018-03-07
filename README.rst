@@ -1,3 +1,15 @@
+.. image:: https://img.shields.io/hackage/v/streaming-benchmarks.svg?style=flat
+  :target: https://hackage.haskell.org/package/streaming-benchmarks
+  :alt: Hackage
+
+.. image:: https://travis-ci.org/composewell/streaming-benchmarks.svg?branch=master
+  :target: https://travis-ci.org/composewell/streamly
+  :alt: Unix Build Status
+
+.. image:: https://ci.appveyor.com/api/projects/status/8d1kgrrw9mmxv5xt?svg=true
+  :target: https://ci.appveyor.com/project/harendra-kumar/streaming-benchmarks
+  :alt: Windows Build status
+
 Streaming Benchmarks
 --------------------
 
