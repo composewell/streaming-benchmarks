@@ -45,3 +45,20 @@ benchmark benchmarks
     pipes               >= 4     && < 4.4,
     streaming,
     simple-conduit
+
+executable makecharts
+  default-language: Haskell2010
+  default-extensions: OverloadedStrings
+  hs-source-dirs:   .
+  main-is: Charts.hs
+  ghc-options: -Wall
+
+  build-depends:
+      base == 4.*
+    , bytestring
+    , Chart
+    , Chart-diagrams
+    , csv
+    , split
+    , text
+    , typed-process

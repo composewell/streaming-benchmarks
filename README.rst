@@ -121,7 +121,8 @@ the sink.
 
 `passing-filters` composes four stages of a `filter` operation that passes all
 the items through.  Note that passing or blocking nature of the filter may
-impact the results.
+impact the results. Some libraries can do blocking more optimally by short
+circuiting.
 
 `blocking-filters` composes four stages of a `filter` operation that `blocks`
 all the items i.e. does not let anything pass through.

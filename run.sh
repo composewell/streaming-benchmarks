@@ -78,9 +78,15 @@ then
   STACK_OPTIONS="--system-ghc --stack-yaml stack-pedantic.yaml"
 fi
 
+stack $STACK_OPTIONS build
 stack $STACK_OPTIONS bench --benchmark-arguments "$ARGS \
   --include-first-iter \
   --min-duration 0 \
   --min-samples $MIN_SAMPLES \
+  --csv=results.csv \
   -v 2 \
   $PROG $1"
+
+echo
+echo "Generating charts from results.csv..."
+stack $STACK_OPTIONS exec makecharts results.csv
