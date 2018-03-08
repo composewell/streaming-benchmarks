@@ -25,68 +25,120 @@ find something that is not right.
 Benchmarks & Results
 --------------------
 
+In all the benchmarks we work on a stream of a million consecutive numbers. We
+start the sequence using a random number between 1 and 1000 and enumerate it to
+make a total of a million elements using the streaming library's native
+sequence enumeration API. Note that the efficiency of this sequence generation
+may affect all performance numbers of the library because this is a constant
+cost involved in all the benchmarks.
+
 Individual Operations
 ~~~~~~~~~~~~~~~~~~~~~
 
-Elimination
-^^^^^^^^^^^
+This chart shows microbenchmarks for all individual streaming operations for a
+quick comparison. Operations are ordered more or less by increasing cost for
+better visualization. If an operation is not present in a library then an empty
+space is displayed instead of a colored bar in its slot. See the following
+sections for details about what the benchmarks do.
 
-* `null:` This is the simplest of all benchmarks. It compares creating a
-  source and immediately composing it with a sink without any processing in
-  between.
+.. image:: charts/All Operations at a Glance.svg
+  :alt: All Operations at a Glance
 
-* `toList:` This is just like `null` except that instead of sending the
-  stream to a sink it collects it in a list.
+Discarding and Folding
+^^^^^^^^^^^^^^^^^^^^^^
 
-* `fold`, `scan`, `last`, `concat` are other elimination operations that we
-  benchmark.
+This chart shows the cheapest of all operations, they include operations that
+iterate over the stream and either discard all the elements or fold them to a
+single value. They all do similar stuff and are generally expected to have
+similar cost.  Benchmarks include:
 
-.. image:: charts/Elimination.svg
-  :alt: Elimination Benchmark Results
+* `null:` Just discards all the elements in the stream.
+* `drop-all`: drops ``n`` elements from the stream where ``n`` is set to the
+  length of the stream.
+* `last`: drops all the elements except the last one.
+* `fold`: adds all the elements in the stream to produces the sum.
 
-Transformation
+.. image:: charts/Discarding and Folding.svg
+  :alt: Discarding and Folding
+
+Pure Transformation and Filtering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is the next category which is a bit costlier than the previous one. Unlike
+previous category these operations inspect the elements in the stream and
+form a transformed stream based on a function on the value. Benchmarks include:
+
+* `filter-all-out`: A filter that discards all the elements in the stream.
+* `filter-all-in`: A filter that retains all the elements in the stream.
+* `take-all`: take `n` elements from the stream where `n` is set to the length
+  of the stream. Effectively iterates through the stream and retains all of it.
+* `takeWhile-true`: retains all elements of the stream using a condition that
+  always wvaluates to true.
+* `map`: A pure transformation that increments each element by 1.
+* `filter-even`: A filter that passes even elements in the stream i.e. half the
+  elements are kept and the other half discarded.
+* `scan`: scans the stream using ``+`` operation.
+
+.. image:: charts/Pure Transformation and Filtering.svg
+  :alt: Pure Transformation and Filtering
+
+Monadic Transformation
+^^^^^^^^^^^^^^^^^^^^^^
+
+This benchmark compares the monadic transformation of the stream using
+``mapM``.
+
+.. image:: charts/Monadic Transformation.svg
+  :alt: Monadic Transformation
+
+Folding to List
+^^^^^^^^^^^^^^^
+
+This benchmark compares folding the stream to a list.
+
+.. image:: charts/Folding to List.svg
+  :alt: Folding to List
+
+Zip and Concat
 ^^^^^^^^^^^^^^
 
-The operations in this category are the standard `map` and `mapM`.
+These benchmarks work with the whole streams, zipping corresponding elements of
+the streams together or concatenating two streams one after another.
 
-Filtering
-^^^^^^^^^
+.. image:: charts/Zipping and Concating Streams.svg
+  :alt: Zipping and Concating Streams
 
-This category includes the standard `filter`, `take`, `takeWhile` and `drop`
-operations.
+Composing Pipeline Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Zipping
-^^^^^^^
-
-Zipping two streams together.
-
-Composing Multiple Pipeline Stages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This category measures the performance when multiple operations are composed in
-a pipeline.
+These benchmarks compare the performance when multiple operations are composed
+serially in a pipeline.
 
 The `mapM` benchmark introduces four stages of `mapM` between the source and
 the sink.
 
-`passing-filters` composes four stages of a `filter` operation that passes all
+`all-in-filters` composes four stages of a `filter` operation that passes all
 the items through.  Note that passing or blocking nature of the filter may
 impact the results. Some libraries can do blocking more optimally by short
 circuiting.
 
-`blocking-filters` composes four stages of a `filter` operation that `blocks`
+`all-out-filters` composes four stages of a `filter` operation that `blocks`
 all the items i.e. does not let anything pass through.
 
-The `map-filter` benchmark introduces four identical stages between the source
-and the sink where each stage performs a simple map operation followed by a
-filter that passes all the items through.
+The `map-with-all-in-filter` benchmark introduces four identical stages between
+the source and the sink where each stage performs a simple `map` operation
+followed by a `filter` operation that passes all the items through.
+
+.. image:: charts/Composing Pipeline Stages.svg
+  :alt: Composing Pipeline Stages
 
 Studying the Scaling of Composition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This category of benchmarks studies the effect of adding more stages in a
 composition pipeline. For each library it displays the results when 1, 2, 3 or
-4 pipeline stages are used.
+4 pipeline stages are used. There are no graphs you can see the results in the
+benchmark output.
 
 How to Run
 ----------
@@ -97,7 +149,8 @@ How to Run
 
 After running you can find the charts generated in the ``charts`` directory. If
 you are impatient use ``./run.sh --quick`` and you will get the results much
-sooner though a tiny bit less precise.
+sooner though a tiny bit less precise. Note that quick mode won't generate the
+graphs unless the latest ``gauge`` is used from github repo.
 
 Note that if different optimization flags are used on different packages,
 performance can sometimes badly suffer because of GHC inlining and

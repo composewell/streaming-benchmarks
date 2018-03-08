@@ -82,6 +82,11 @@ then
   ARGS="--quick"
 fi
 
+if test -e results.csv
+then
+  mv -f -v results.csv results.csv.prev
+fi
+
 $STACK bench --benchmark-arguments "$ARGS \
   --include-first-iter \
   --min-duration 0 \
@@ -90,6 +95,9 @@ $STACK bench --benchmark-arguments "$ARGS \
   -v 2 \
   $BENCH_PROG $1" || die "Benchmarking failed"
 
-echo
-echo "Generating charts from results.csv..."
-$STACK exec makecharts results.csv
+if test "$QUICK" != "1"
+then
+  echo
+  echo "Generating charts from results.csv..."
+  $STACK exec makecharts results.csv
+fi

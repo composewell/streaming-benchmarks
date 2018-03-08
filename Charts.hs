@@ -30,16 +30,18 @@ bmGroups =
       -- Operations are listed in increasing cost order
       ( "All Operations at a Glance"
       , [
-          "filtering/drop"
-        , "elimination/null"
+        -- "filtering/take-one"
+          "elimination/null"
+        , "filtering/drop-all"
         , "elimination/last"
         , "elimination/fold"
 
+        , "filtering/filter-all-out"
+        , "filtering/take-all"
+        , "filtering/filter-all-in"
+        , "filtering/takeWhile-true"
         , "transformation/map"
-        , "filtering/take"          -- take all? we should have take 1 and take all
-        , "filtering/takeWhile"
 
-        , "filtering/filter"
         , "elimination/scan"
         , "transformation/mapM"
         ,  "zip"
@@ -50,24 +52,32 @@ bmGroups =
       )
     , ( "Discarding and Folding"
       , [
-          "filtering/drop"
-        , "elimination/null"
+        -- "filtering/take-one"
+          "elimination/null"
+        , "filtering/drop-all"
         , "elimination/last"
         , "elimination/fold"
         ]
       )
     , ( "Pure Transformation and Filtering"
-      , [ "transformation/map"
-        , "filtering/take"          -- take all? we should have take 1 and take all
-        , "filtering/takeWhile"
-        , "filtering/filter"
-        , "elimination/scan"       -- transform and fold
+      , [
+          "filtering/filter-all-out"
+        , "filtering/take-all"
+        , "filtering/filter-all-in"
+        , "filtering/takeWhile-true"
+        , "transformation/map"
+        , "filtering/filter-even"
+        , "elimination/scan"
         ]
       )
-    , ( "Monadic Transformation and Folding to List"
+    , ( "Monadic Transformation"
       , [
           "transformation/mapM"
-        , "elimination/toList"
+        ]
+      )
+    , ( "Folding to List"
+      , [
+          "elimination/toList"
         ]
       )
     , ( "Zipping and Concating Streams"
@@ -77,9 +87,9 @@ bmGroups =
       )
     , ( "Composing Pipeline Stages"
       , [
-          "compose/blocking-filters"
-        , "compose/passing-filters"
-        , "compose/map-filter"
+          "compose/all-out-filters"
+        , "compose/all-in-filters"
+        , "compose/map-with-all-in-filter"
         , "compose/mapM"
         ]
       )
@@ -116,7 +126,7 @@ getResultsForPackage csvData pkgname bmPrefixes =
             [] -> trace
                 ("Warning! Benchmark [" ++ bmname ++"] not found in csv data")
                 Nothing
-            xs -> Just (read ((last xs) !! 2))
+            xs -> Just (read ((last xs) !! 1))
 
 genOneGraph :: CSV -> [(String, String)] -> (String, [String]) -> IO ()
 genOneGraph csvData pkginfo (bmGroupTitle, prefixes) =
