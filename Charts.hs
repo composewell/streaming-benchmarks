@@ -1,3 +1,4 @@
+import Data.Char (isSpace)
 import Data.List.Split (splitOn)
 import Data.Maybe (maybe, catMaybes, fromJust)
 import Debug.Trace (trace)
@@ -100,7 +101,11 @@ bmGroups =
 -- "values" has results for each package for each title in bmTitles
 genGroupGraph :: String -> [String] -> [(String, [Maybe Double])] -> IO ()
 genGroupGraph bmGroupName bmTitles values =
-    toFile def (outputDir ++ "/" ++ bmGroupName ++ ".svg") $ do
+    toFile def (outputDir
+                ++ "/"
+                -- links in README.rst eat up the space so we match the same
+                ++ (filter (not . isSpace) bmGroupName)
+                ++ ".svg") $ do
         layout_title .= bmGroupName
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
