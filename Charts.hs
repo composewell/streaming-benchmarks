@@ -20,43 +20,67 @@ outputDir :: String
 outputDir = "charts"
 
 packages :: [String]
-packages = ["streamly", "streaming", "conduit", "pipes", "machines"]
+packages = ["streaming", "streamly", "pipes", "conduit", "machines"]
 
 -- pairs of benchmark group titles and corresponding list of benchmark
 -- prefixes i.e. without the package name at the end.
 bmGroups :: [(String, [String])]
 bmGroups =
     [
-      ( "Elimination"
-      , [ "elimination/null"
-        , "elimination/toList"
-        , "elimination/fold"
-        , "elimination/scan"
+      -- Operations are listed in increasing cost order
+      ( "All Operations at a Glance"
+      , [
+          "filtering/drop"
+        , "elimination/null"
         , "elimination/last"
+        , "elimination/fold"
+
+        , "transformation/map"
+        , "filtering/take"          -- take all? we should have take 1 and take all
+        , "filtering/takeWhile"
+
+        , "filtering/filter"
+        , "elimination/scan"
+        , "transformation/mapM"
+        ,  "zip"
+
+        , "elimination/toList"
         , "elimination/concat"
         ]
       )
-    , ( "Transformation"
+    , ( "Discarding and Folding"
+      , [
+          "filtering/drop"
+        , "elimination/null"
+        , "elimination/last"
+        , "elimination/fold"
+        ]
+      )
+    , ( "Pure Transformation and Filtering"
       , [ "transformation/map"
-        , "transformation/mapM"
-        ]
-      )
-    , ( "Filtering"
-      , [ "filtering/filter"
-        , "filtering/take"
+        , "filtering/take"          -- take all? we should have take 1 and take all
         , "filtering/takeWhile"
-        , "filtering/drop"
+        , "filtering/filter"
+        , "elimination/scan"       -- transform and fold
         ]
       )
-    , ( "Zipping"
+    , ( "Monadic Transformation and Folding to List"
+      , [
+          "transformation/mapM"
+        , "elimination/toList"
+        ]
+      )
+    , ( "Zipping and Concating Streams"
       , [ "zip"
+        , "elimination/concat"
         ]
       )
-    , ( "Composition"
-      , [ "compose/mapM"
+    , ( "Composing Pipeline Stages"
+      , [
+          "compose/blocking-filters"
         , "compose/passing-filters"
-        , "compose/blocking-filters"
         , "compose/map-filter"
+        , "compose/mapM"
         ]
       )
     ]
@@ -70,6 +94,7 @@ genGroupGraph bmGroupName bmTitles values =
         layout_title .= bmGroupName
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
+        layout_x_axis . laxis_style . axis_label_style . font_size .= 12
         -- XXX We are mapping a missing value to 0, can we label it missing
         -- instead?
         let getVal x = map (maybe 0 id) (snd x)
@@ -115,6 +140,10 @@ genOneGraph csvData pkginfo (bmGroupTitle, prefixes) =
 genGraphs :: CSV -> [(String, String)] -> IO ()
 genGraphs csvData pkginfo = mapM_ (genOneGraph csvData pkginfo) bmGroups
 
+-- XXX display GHC version as well
+-- XXX display the OS/arch
+-- XXX fix the y axis labels
+-- XXX fix the legend position
 main :: IO ()
 main = do
     args <- getArgs
