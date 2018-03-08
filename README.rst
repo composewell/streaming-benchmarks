@@ -108,19 +108,6 @@ private directory under the current directory and build them fresh with the ghc
 flags specified in ``stack-pedantic.yaml``. Be aware that this will require 1-2
 GB extra disk space.
 
-Diagnostics
-~~~~~~~~~~~
-
-If for some reason ``run.sh`` fails with an error like this:
-
-```
-callProcess: runInteractiveProcess: exec: does not exist (No such file or directory)
-```
-
-it means that it cannot find the path to the benchmarking executable. You will
-have to find it manually and edit it in ``run.sh``. See the comments in
-``run.sh``.
-
 Important Points about Benchmarking Methodology
 -----------------------------------------------
 

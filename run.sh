@@ -27,6 +27,19 @@ then
   MIN_SAMPLES=$2
 fi
 
+STACK=stack
+if test "$PEDANTIC" = "1"
+then
+  GHC_PATH=`$STACK path --compiler-bin`
+  export PATH=$GHC_PATH:$PATH
+  mkdir -p .stack-root
+  export STACK_ROOT=`pwd`/.stack-root
+  STACK="$STACK --system-ghc --stack-yaml stack-pedantic.yaml"
+fi
+
+echo "Using stack command [$STACK]"
+$STACK build --bench --no-run-benchmarks || die "build failed"
+
 # We run the benchmarks in isolation in a separate process so that different
 # benchmarks do not interfere with other. To enable that we need to pass the
 # benchmark exe path to guage as an argument. Unfortunately it cannot find its
@@ -36,20 +49,20 @@ fi
 # Use this command to find the exe if this script fails with an error:
 # find .stack-work/ -type f -name "benchmarks"
 
-os=$(uname)
-case "$os" in
-  Linux)
-    BENCH_EXE=.stack-work/dist/x86_64-linux-nopie/Cabal-2.0.1.0/build/benchmarks/benchmarks
-    ;;
-  Darwin)
-    BENCH_EXE=.stack-work/dist/x86_64-osx/Cabal-2.0.1.0/build/benchmarks/benchmarks
-    ;;
-  MINGW*)
-    die "OS: Windows (MINGW). Please edit this script to set the correct path of the benchmark executable here" ;;
-  *) die "OS: Unknown OS [$os]" ;;
-esac
+enable_isolated () {
+  local PROG=`$STACK path --dist-dir`/build/benchmarks/benchmarks
+  if test -x "$PROG"
+  then
+    BENCH_PROG="--measure-with $PROG"
+  else
+    echo
+    echo "WARNING! benchmark binary [$PROG] not found or not executable"
+    echo "WARNING! not using isolated measurement."
+    echo
+  fi
+}
 
-PROG="--measure-with $BENCH_EXE"
+enable_isolated
 
 # --min-duration 0 means exactly one iteration per sample. We use a million
 # iterations in the benchmarking code explicitly and do not use the iterations
@@ -69,24 +82,14 @@ then
   ARGS="--quick"
 fi
 
-if test "$PEDANTIC" = "1"
-then
-  GHC_PATH=`stack path --compiler-bin`
-  export PATH=$GHC_PATH:$PATH
-  mkdir -p .stack-root
-  export STACK_ROOT=`pwd`/.stack-root
-  STACK_OPTIONS="--system-ghc --stack-yaml stack-pedantic.yaml"
-fi
-
-stack $STACK_OPTIONS build
-stack $STACK_OPTIONS bench --benchmark-arguments "$ARGS \
+$STACK bench --benchmark-arguments "$ARGS \
   --include-first-iter \
   --min-duration 0 \
   --min-samples $MIN_SAMPLES \
   --csv=results.csv \
   -v 2 \
-  $PROG $1"
+  $BENCH_PROG $1" || die "Benchmarking failed"
 
 echo
 echo "Generating charts from results.csv..."
-stack $STACK_OPTIONS exec makecharts results.csv
+$STACK exec makecharts results.csv
