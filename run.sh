@@ -17,6 +17,7 @@ do
     -h|--help|help) print_help ;;
     --quick) QUICK=1; shift ;;
     --pedantic) PEDANTIC=1; shift ;;
+    --no-graph) GRAPH=0; shift ;;
     *) break ;;
   esac
 done
@@ -95,7 +96,7 @@ $STACK bench --benchmark-arguments "$ARGS \
   -v 2 \
   $BENCH_PROG $1" || die "Benchmarking failed"
 
-if test "$QUICK" != "1"
+if test "$GRAPH" != "0"
 then
   echo
   echo "Generating charts from results.csv..."
