@@ -38,8 +38,9 @@ bmGroups =
         , "elimination/fold"
 
         , "filtering/filter-all-out"
-        , "filtering/take-all"
+        , "filtering/dropWhile-true"
         , "filtering/filter-all-in"
+        , "filtering/take-all"
         , "filtering/takeWhile-true"
         , "transformation/map"
 
@@ -63,8 +64,9 @@ bmGroups =
     , ( "Pure Transformation and Filtering"
       , [
           "filtering/filter-all-out"
-        , "filtering/take-all"
+        , "filtering/dropWhile-true"
         , "filtering/filter-all-in"
+        , "filtering/take-all"
         , "filtering/takeWhile-true"
         , "transformation/map"
         , "filtering/filter-even"
