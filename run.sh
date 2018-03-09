@@ -18,6 +18,7 @@ do
     --quick) QUICK=1; shift ;;
     --pedantic) PEDANTIC=1; shift ;;
     --no-graph) GRAPH=0; shift ;;
+    --no-measure) MEASURE=0; shift ;;
     *) break ;;
   esac
 done
@@ -83,18 +84,21 @@ then
   ARGS="--quick"
 fi
 
-if test -e results.csv
-then
-  mv -f -v results.csv results.csv.prev
-fi
+if test "$MEASURE" != "0"
+  then
+  if test -e results.csv
+  then
+    mv -f -v results.csv results.csv.prev
+  fi
 
-$STACK bench --benchmark-arguments "$ARGS \
-  --include-first-iter \
-  --min-duration 0 \
-  --min-samples $MIN_SAMPLES \
-  --csv=results.csv \
-  -v 2 \
-  $BENCH_PROG $1" || die "Benchmarking failed"
+  $STACK bench --benchmark-arguments "$ARGS \
+    --include-first-iter \
+    --min-duration 0 \
+    --min-samples $MIN_SAMPLES \
+    --csv=results.csv \
+    -v 2 \
+    $BENCH_PROG $1" || die "Benchmarking failed"
+fi
 
 if test "$GRAPH" != "0"
 then
