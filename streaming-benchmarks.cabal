@@ -43,6 +43,7 @@ benchmark benchmarks
 
   build-depends:
     base                == 4.*,
+    deepseq             >= 1.4.0 && < 1.5,
     gauge               >= 0.2.1 && < 0.3,
     mtl                 >= 2     && < 2.3,
     random              >= 1.0   && < 2.0,
