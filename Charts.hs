@@ -1,6 +1,6 @@
 import Data.Char (isSpace)
 import Data.List.Split (splitOn)
-import Data.Maybe (maybe, catMaybes, fromJust)
+import Data.Maybe (fromMaybe, catMaybes, fromJust)
 import Debug.Trace (trace)
 import System.Directory (createDirectoryIfMissing)
 import System.Environment (getArgs)
@@ -112,9 +112,10 @@ genGroupGraph bmGroupName bmTitles values =
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
         layout_x_axis . laxis_style . axis_label_style . font_size .= 12
+        layout_y_axis . laxis_override .= axisGridAtTicks
         -- XXX We are mapping a missing value to 0, can we label it missing
         -- instead?
-        let getVal x = map (maybe 0 id) (snd x)
+        let getVal x = map (fromMaybe 0) (snd x)
         plot $ fmap plotBars $ bars bmTitles (addIndexes (map getVal values))
 
 -- Given a package name (e.g. streaming) and benchmark prefixes (e.g.
