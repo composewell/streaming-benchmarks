@@ -25,7 +25,8 @@ import qualified Data.Machine      as M
 import qualified Pipes             as P
 import qualified Pipes.Prelude     as P
 import qualified Streaming.Prelude as S
-import qualified Conduit.Simple    as SC
+-- import qualified Conduit.Simple    as SC
+--
 
 -- Orphan instance to use nfIO on streaming
 instance (NFData a, NFData b) => NFData (S.Of a b)
@@ -72,21 +73,23 @@ runIOS s t = s & t & S.mapM_ (\_ -> return ())
 -- simple-conduit
 -------------------------------------------------------------------------------
 
+{-
 sourceSC :: MonadIO m => SC.Source m Int
 sourceSC = getRandom >>= \v -> SC.enumFromToC v (v + value)
 
 runIOSC :: SC.Source IO Int -> SC.Conduit Int IO a -> IO ()
 runIOSC s t = s SC.$= t SC.$$ SC.mapM_C (\_ -> return ())
+-}
 
 -------------------------------------------------------------------------------
 -- conduit
 -------------------------------------------------------------------------------
 
-sourceC :: MonadIO m => C.Source m Int
+sourceC :: MonadIO m => C.ConduitT () Int m ()
 sourceC = getRandom >>= \v -> C.enumFromTo v (v + value)
 
-runIOC :: C.Source IO Int -> C.Conduit Int IO a -> IO ()
-runIOC s t = s C.$= t C.$$ C.mapM_ (\_ -> return ())
+runIOC :: C.ConduitT () Int IO () -> C.ConduitT Int a IO () -> IO ()
+runIOC s t = C.runConduit $ s C..| t C..| C.mapM_ (\_ -> return ())
 
 -------------------------------------------------------------------------------
 -- pipes
@@ -149,24 +152,24 @@ main =
     [
       bgroup "toNull"
         [
-          bench "conduit"          $ nfIO $ sourceC C.$$ C.mapM_ (\_ -> return ())
+          bench "conduit"          $ nfIO $ C.runConduit $ sourceC C..| C.mapM_ (\_ -> return ())
         , bench "pipes"            $ nfIO $ P.runEffect $ sourceP P.>-> P.mapM_ (\_ -> return ())
         , bench "machines"         $ nfIO $ getRandom >>= \v -> M.runT_ (sourceM v)
         , bench "streaming"        $ nfIO $ runIOS sourceS id
         , bench "streamly"         $ nfIO $ runIOA sourceA id
-        , bench "simple-conduit"   $ nfIO $ sourceSC SC.$$ SC.mapM_C (\_ -> return ())
+        -- , bench "simple-conduit"   $ nfIO $ sourceSC SC.$$ SC.mapM_C (\_ -> return ())
         , bench "logict"           $ nfIO $ getRandom >>= \v -> LG.observeAllT (sourceLG v) >> return ()
         , bench "list-t"           $ nfIO $ LT.traverse_ (\_ -> return ()) sourceLT
         , bench "list-transformer" $ nfIO $ L.runListT sourceL
         ]
     , bgroup "toList"
           [
-            bench "conduit"   $ nfIO $ sourceC C.$$ CC.sinkList
+            bench "conduit"   $ nfIO $ C.runConduit $ sourceC C..| CC.sinkList
           , bench "pipes"     $ nfIO $ P.toListM sourceP
           , bench "machines"  $ nfIO $ getRandom >>= \v -> M.runT (sourceM v)
           , bench "streaming" $ nfIO $ S.toList sourceS
           , bench "streamly"  $ nfIO $ A.toList sourceA
-          , bench "simple-conduit" $ nfIO $ sourceSC SC.$$ SC.sinkList
+          -- , bench "simple-conduit" $ nfIO $ sourceSC SC.$$ SC.sinkList
           , bench "logict"         $ nfIO $ getRandom >>= \v -> LG.observeAllT (sourceLG v) >> return ()
           , bench "list-t"         $ nfIO $ LT.toList sourceLT
           -- , bench "list-transformer" $ nfIO $ toList sourceL
@@ -174,7 +177,7 @@ main =
     , bgroup "fold"
         [ bench "streamly"  $ nfIO   $ A.foldl (+) 0 id sourceA
         , bench "streaming" $ nfIO $ S.fold (+) 0 id sourceS
-        , bench "conduit"   $ nfIO   $ sourceC C.$$ (C.fold (+) 0)
+        , bench "conduit"   $ nfIO   $ C.runConduit $ sourceC C..| (C.fold (+) 0)
         , bench "pipes"     $ nfIO   $ P.fold (+) 0 id sourceP
         , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.fold (+) 0)
         , bench "list-transformer" $ nfIO $ L.fold (+) 0 id sourceL
@@ -193,7 +196,7 @@ main =
           , bench "streamly"  $ nfIO $ A.last sourceA
           ]
     , bgroup "concat"
-          [ bench "conduit" $ nfIO $ runIOC sourceC (C.map (replicate 3) C.$= C.concat)
+          [ bench "conduit" $ nfIO $ runIOC sourceC (C.map (replicate 3) C..| C.concat)
           , bench "pipes" $ nfIO $ runIOP sourceP (P.map (replicate 3) P.>-> P.concat)
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.mapping (replicate 3) M.~> M.asParts)
           -- XXX This hangs indefinitely
@@ -207,7 +210,7 @@ main =
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.mapping (+1))
           , bench "streaming" $ nfIO $ runIOS sourceS (S.map (+1))
           , bench "streamly" $ nfIO $ runIOA sourceA (fmap (+1))
-          , bench "simple-conduit" $ nfIO $ runIOSC sourceSC (SC.mapC (+1))
+          -- , bench "simple-conduit" $ nfIO $ runIOSC sourceSC (SC.mapC (+1))
           , bench "list-transformer" $ nfIO $ runIOL sourceL (lift . return . (+1))
           ]
         , bgroup "mapM"
@@ -281,7 +284,7 @@ main =
           ]
         ]
     , bgroup "zip"
-        [ bench "conduit" $ nfIO $ (C.getZipSource $ (,) <$> C.ZipSource sourceC <*> C.ZipSource sourceC) C.$$ C.sinkNull
+        [ bench "conduit" $ nfIO $ C.runConduit $ (C.getZipSource $ (,) <$> C.ZipSource sourceC <*> C.ZipSource sourceC) C..| C.sinkNull
         , bench "pipes" $ nfIO $ P.runEffect $ P.for (P.zip sourceP sourceP) P.discard
         , bench "machines" $ nfIO $ getRandom >>= \v1 -> getRandom >>= \v2 -> M.runT_ (M.capT (sourceM v1) (sourceM v2) M.zipping)
         , bench "streaming" $ nfIO $ S.effects (S.zip sourceS sourceS)
@@ -307,7 +310,7 @@ main =
               l = lift . f
               lg = lift . f
           in bgroup "mapM"
-            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C..| c C..| c C..| c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ nfIO $ runIOS sourceS $ \x -> s x & s & s & s
@@ -322,9 +325,9 @@ main =
               s = S.filter (<= maxValue) . S.map (subtract 1)
               a = A.filter (<= maxValue) . fmap (subtract 1)
               p = P.map (subtract 1)  P.>-> P.filter (<= maxValue)
-              c = C.map (subtract 1)  C.=$= C.filter (<= maxValue)
+              c = C.map (subtract 1)  C..| C.filter (<= maxValue)
           in bgroup "map-with-all-in-filter"
-            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C..| c C..| c C..| c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ nfIO $ runIOS sourceS $ \x -> s x & s & s & s
@@ -339,7 +342,7 @@ main =
               p = P.filter (<= maxValue)
               c = C.filter (<= maxValue)
           in bgroup "all-in-filters"
-            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C..| c C..| c C..| c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ nfIO $ runIOS sourceS $ \x -> s x & s & s & s
@@ -353,7 +356,7 @@ main =
               p = P.filter   (> maxValue)
               c = C.filter   (> maxValue)
           in bgroup "all-out-filters"
-            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C.=$= c C.=$= c C.=$= c
+            [ bench "conduit"   $ nfIO $ runIOC sourceC $ c C..| c C..| c C..| c
             , bench "pipes"     $ nfIO $ runIOP sourceP $ p P.>-> p P.>-> p P.>-> p
             , bench "machines"  $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) $ m M.~> m M.~> m M.~> m
             , bench "streaming" $ nfIO $ runIOS sourceS $ \x -> s x & s & s & s
@@ -394,9 +397,9 @@ main =
         , let f = C.filter (<= maxValue)
           in bgroup "conduit-filters"
             [ bench "1" $ nfIO $ runIOC sourceC f
-            , bench "2" $ nfIO $ runIOC sourceC $ f C.=$= f
-            , bench "3" $ nfIO $ runIOC sourceC $ f C.=$= f C.=$= f
-            , bench "4" $ nfIO $ runIOC sourceC $ f C.=$= f C.=$= f C.=$= f
+            , bench "2" $ nfIO $ runIOC sourceC $ f C..| f
+            , bench "3" $ nfIO $ runIOC sourceC $ f C..| f C..| f
+            , bench "4" $ nfIO $ runIOC sourceC $ f C..| f C..| f C..| f
             ]
         ]
   ]
