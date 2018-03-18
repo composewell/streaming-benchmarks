@@ -184,6 +184,7 @@ main =
         , bench "pipes" $ nfIO $ runIOP sourceP (P.scan (+) 0 id)
         , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.scan (+) 0)
         , bench "streaming" $ nfIO $ runIOS sourceS (S.scan (+) 0 id)
+        , bench "streamly" $ nfIO $ runIOA sourceA (A.scan (+) 0 id)
         ]
     , bgroup "last"
           [ bench "pipes" $ nfIO $ P.last sourceP
