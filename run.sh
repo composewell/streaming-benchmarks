@@ -1,7 +1,7 @@
 #!/bin/bash
 
 print_help () {
-  echo "Usage: $0 [--quick] [--pedantic] <benchmark-name or prefix> [min-samples]"
+  echo "Usage: $0 [--quick] [--pedantic] [--no-graph] [--no-measure] <benchmark-name or prefix> [min-samples]"
   exit
 }
 
@@ -19,6 +19,7 @@ do
     --pedantic) PEDANTIC=1; shift ;;
     --no-graph) GRAPH=0; shift ;;
     --no-measure) MEASURE=0; shift ;;
+    -*|--*) print_help ;;
     *) break ;;
   esac
 done
