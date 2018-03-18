@@ -102,8 +102,8 @@ This benchmark compares folding the stream to a list.
 Zip and Concat
 ^^^^^^^^^^^^^^
 
-These benchmarks work with the whole streams, zipping corresponding elements of
-the streams together or concatenating two streams one after another.
+Zip combines corresponding elements of the two streams together. Concat turns a
+stream of containers into a stream of their elements.
 
 .. image:: charts/Zipping and Concating Streams.svg
   :alt: Zipping and Concating Streams
