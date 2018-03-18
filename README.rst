@@ -52,7 +52,7 @@ iterate over the stream and either discard all the elements or fold them to a
 single value. They all do similar stuff and are generally expected to have
 similar cost.  Benchmarks include:
 
-* `null:` Just discards all the elements in the stream.
+* `toNull:` Just discards all the elements in the stream.
 * `drop-all`: drops ``n`` elements from the stream where ``n`` is set to the
   length of the stream.
 * `last`: drops all the elements except the last one.

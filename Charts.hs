@@ -32,7 +32,7 @@ bmGroups =
       ( "All Operations at a Glance"
       , [
         -- "filtering/take-one"
-          "elimination/null"
+          "elimination/toNull"
         , "filtering/drop-all"
         , "elimination/last"
         , "elimination/fold"
@@ -55,7 +55,7 @@ bmGroups =
     , ( "Discarding and Folding"
       , [
         -- "filtering/take-one"
-          "elimination/null"
+          "elimination/toNull"
         , "filtering/drop-all"
         , "elimination/last"
         , "elimination/fold"

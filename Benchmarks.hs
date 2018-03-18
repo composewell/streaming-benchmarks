@@ -147,7 +147,7 @@ main =
   defaultMain
   [ bgroup "elimination"
     [
-      bgroup "null"
+      bgroup "toNull"
         [
           bench "conduit"          $ nfIO $ sourceC C.$$ C.mapM_ (\_ -> return ())
         , bench "pipes"            $ nfIO $ P.runEffect $ sourceP P.>-> P.mapM_ (\_ -> return ())
