@@ -57,7 +57,7 @@ matrix:
   - env: BUILD=stack CABALVER=1.24 GHCVER=8.0.2 RESOLVER=lts-9
     addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack CABALVER=2.0 GHCVER=8.2.2 RESOLVER=lts-10
+  - env: BUILD=stack CABALVER=2.0 GHCVER=8.2.2 RESOLVER=lts-11
     addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
 
   # Nightly
@@ -97,7 +97,7 @@ matrix:
   #  os: osx
 
   # GHC 8.2.2/stack
-  - env: BUILD=stack RESOLVER=lts-10
+  - env: BUILD=stack RESOLVER=lts-11
     os: osx
 
   # --------------------------------------------------------------------------
