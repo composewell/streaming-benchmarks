@@ -14,11 +14,19 @@ description:
   Comprehensive, carefully crafted benchmarks for streaming operations and
   their comparisons across notable Haskell streaming libraries including
   `streaming`, `machines`, `pipes`, `conduit` and `streamly`.
-  <http://hackage.haskell.org/package/streamly Streamly> is a brand new
-  streaming library with beautiful high level and composable concurrency
-  built-in, it is the primary motivation for these benchmarks. We go to great
-  lengths to make sure that the benchmarks are correct, fair and reproducible.
-  Please report if you find something that is not right.
+  <http://hackage.haskell.org/package/streamly Streamly> is a new
+  streaming library with high level and composable concurrency built-in, it is
+  the primary motivation for these benchmarks. We have put a lot of effort to
+  make sure that the benchmarks are correct, fair and reproducible.  Please
+  report if you find something that is not right.
+  .
+  If you are using @stack@ then use @./run.sh@ to run the benchmarks;
+  charts will be generated in the `charts` directory.
+  .
+  With any build tool you can build and run the benchmarks with
+  @--csv=results.csv@ as arguments and then use @makecharts results.csv@ to
+  create the charts. In case you want to be pedantic about accurate results
+  then you can run the benchmarks in the same way as @run.sh@ invokes them.
 
 cabal-version: >= 1.10
 build-type:    Simple
