@@ -21,7 +21,7 @@ outputDir :: String
 outputDir = "charts"
 
 packages :: [String]
-packages = ["streaming", "streamly", "pipes", "conduit", "machines"]
+packages = ["streamly", "streaming", "pipes", "conduit", "machines"]
 
 -- pairs of benchmark group titles and corresponding list of benchmark
 -- prefixes i.e. without the package name at the end.
@@ -39,10 +39,11 @@ bmGroups =
 
         , "filtering/filter-all-out"
         , "filtering/dropWhile-true"
-        , "filtering/filter-all-in"
         , "filtering/take-all"
         , "filtering/takeWhile-true"
         , "transformation/map"
+        , "filtering/filter-all-in"
+        , "filtering/filter-even"
 
         , "elimination/scan"
         , "transformation/mapM"
@@ -65,10 +66,10 @@ bmGroups =
       , [
           "filtering/filter-all-out"
         , "filtering/dropWhile-true"
-        , "filtering/filter-all-in"
         , "filtering/take-all"
         , "filtering/takeWhile-true"
         , "transformation/map"
+        , "filtering/filter-all-in"
         , "filtering/filter-even"
         , "elimination/scan"
         ]
