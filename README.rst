@@ -32,6 +32,31 @@ sequence enumeration API. Note that the efficiency of this sequence generation
 may affect all performance numbers of the library because this is a constant
 cost involved in all the benchmarks.
 
+Composing Pipeline Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These benchmarks compare the performance when multiple operations are composed
+serially in a pipeline. This is how the streaming libraries are supposed to be
+used in real applications.
+
+The `mapM` benchmark introduces four stages of `mapM` between the source and
+the sink.
+
+`all-in-filters` composes four stages of a `filter` operation that passes all
+the items through.  Note that passing or blocking nature of the filter may
+impact the results. Some libraries can do blocking more optimally by short
+circuiting.
+
+`all-out-filters` composes four stages of a `filter` operation that `blocks`
+all the items i.e. does not let anything pass through.
+
+The `map-with-all-in-filter` benchmark introduces four identical stages between
+the source and the sink where each stage performs a simple `map` operation
+followed by a `filter` operation that passes all the items through.
+
+.. image:: charts/Composing Pipeline Stages.svg
+  :alt: Composing Pipeline Stages
+
 Individual Operations
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -107,30 +132,6 @@ stream of containers into a stream of their elements.
 
 .. image:: charts/Zipping and Concating Streams.svg
   :alt: Zipping and Concating Streams
-
-Composing Pipeline Stages
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These benchmarks compare the performance when multiple operations are composed
-serially in a pipeline.
-
-The `mapM` benchmark introduces four stages of `mapM` between the source and
-the sink.
-
-`all-in-filters` composes four stages of a `filter` operation that passes all
-the items through.  Note that passing or blocking nature of the filter may
-impact the results. Some libraries can do blocking more optimally by short
-circuiting.
-
-`all-out-filters` composes four stages of a `filter` operation that `blocks`
-all the items i.e. does not let anything pass through.
-
-The `map-with-all-in-filter` benchmark introduces four identical stages between
-the source and the sink where each stage performs a simple `map` operation
-followed by a `filter` operation that passes all the items through.
-
-.. image:: charts/Composing Pipeline Stages.svg
-  :alt: Composing Pipeline Stages
 
 Studying the Scaling of Composition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
