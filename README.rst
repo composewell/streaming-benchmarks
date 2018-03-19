@@ -32,6 +32,13 @@ sequence enumeration API. Note that the efficiency of this sequence generation
 may affect all performance numbers of the library because this is a constant
 cost involved in all the benchmarks.
 
+Note that, these benchmarks show results for conduit-1.3.0 which is a recently
+released major version, it perhaps requires some work to get at par with the
+earlier version i.e.
+conduit-1.2.13.1 `which showed significantly better performance
+<https://github.com/composewell/streaming-benchmarks/blob/269ac94fc59c76267b89b07690d9ea290096b95b/charts/AllOperationsataGlance.svg>`_
+compared to the newer version.
+
 Composing Pipeline Stages
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
