@@ -1,3 +1,4 @@
+import Control.Arrow (second)
 import Data.Char (isSpace)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe, catMaybes, fromJust)
@@ -113,11 +114,16 @@ genGroupGraph bmGroupName bmTitles values =
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
         layout_x_axis . laxis_style . axis_label_style . font_size .= 12
+
         -- layout_y_axis . laxis_override .= axisGridAtTicks
+        let modifyLabels ad = ad {
+                _axis_labels = map (map (second (++ " ms"))) (_axis_labels ad)
+            }
+        layout_y_axis . laxis_override .= modifyLabels
         -- XXX We are mapping a missing value to 0, can we label it missing
         -- instead?
-        let getVal x = map (fromMaybe 0) (snd x)
-        plot $ fmap plotBars $ bars bmTitles (addIndexes (map getVal values))
+        let modifyVal x = map ((*1000) . fromMaybe 0) (snd x)
+        plot $ fmap plotBars $ bars bmTitles (addIndexes (map modifyVal values))
 
 -- Given a package name (e.g. streaming) and benchmark prefixes (e.g.
 -- [elimination/null, elimination/toList]) get the corresponding results e.g.
