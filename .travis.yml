@@ -5,14 +5,23 @@ env:
   # ------------------------------------------------------------------------
   # Global options used for all CI tests
   # ------------------------------------------------------------------------
-  - GHC_OPTIONS="-Werror"
+  # Note - cabal builds apply GHC_OPTIONS on all dependencies
+  # - GHC_OPTIONS="-Werror"
+  - DISABLE_DOCS=y
+  - DISABLE_TEST=y
+
   # ------------------------------------------------------------------------
-  # Options for builds that need stack
+  # Options for builds that need stack (note, cabal builds can use stack)
   # ------------------------------------------------------------------------
+  # Note requiring a specific version of stack using STACKVER may fail due to
+  # github API limit while checking and upgrading/downgrading to the specific
+  # version.
   #- STACKVER="1.6.5"
   - STACK_UPGRADE="y"
+
   # ------------------------------------------------------------------------
   # Other options: Normally you would not need to customize these
+  # Note - these are used by both stack and cabal builds
   # ------------------------------------------------------------------------
   - CABAL_REINIT_CONFIG=y
   - CABAL_CHECK_RELAX=y
@@ -21,6 +30,7 @@ env:
   - TEST_INSTALL=y
   - PATH=/bin:/usr/bin
   - LC_ALL=C.UTF-8
+
   # ------------------------------------------------------------------------
   # Location of packcheck.sh (the shell script invoked to perform CI tests ).
   # ------------------------------------------------------------------------
@@ -32,15 +42,17 @@ env:
   # If you have not committed packcheck.sh in your repo at PACKCHECK_LOCAL_PATH
   # then it is automatically pulled from this URL.
   - PACKCHECK_GITHUB_URL="https://raw.githubusercontent.com/harendra-kumar/packcheck"
-  - PACKCHECK_GITHUB_COMMIT="da9d6da3d18d6250c06617817f0879324c75c224"
+  - PACKCHECK_GITHUB_COMMIT="f0745feb622cc690d7b17cb94781dde58fd91129"
 
 notifications:
-  email: false
+  email:
+    on_success: change
+    on_failure: always
 
-# This matrix has total 11 builds enabled, 4 builds each (3 last major compiler
-# versions and head) for stack and cabal, 2 OSX builds (stack and cabal for
-# latest compiler version), and one hlint build. You may want to comment out
-# some of the builds to be lighter on the CI infrastructure.
+# This matrix has total of 6 builds enabled, we try to cover last three major
+# GHC versions, stack, cabal, Linux and OSX with minimum number of builds
+# possible. You can uncomment other disabled builds or comment out existing
+# ones to your taste.
 #
 # We pre-install the cabal-install package to not incur the penalty of building
 # it the first time in cached builds or every time in uncached builds.
@@ -51,11 +63,12 @@ matrix:
   # (Linux) stack builds
   # --------------------------------------------------------------------------
 
-    #- env: BUILD=stack CABALVER=1.22 GHCVER=7.10.3 RESOLVER=lts-6
-    #addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
+  #- env: BUILD=stack CABALVER=1.22 GHCVER=7.10.3 RESOLVER=lts-6
+  #  addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
 
-  - env: BUILD=stack CABALVER=1.24 GHCVER=8.0.2 RESOLVER=lts-9
-    addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2], sources: [hvr-ghc]}}
+  # Cannot build conduit-1.3.0 with lts-9
+  #- env: BUILD=stack CABALVER=1.24 GHCVER=8.0.2 RESOLVER=lts-9 STACK_YAML=stack-8.0.yaml
+  #  addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2], sources: [hvr-ghc]}}
 
   - env: BUILD=stack CABALVER=2.0 GHCVER=8.2.2 RESOLVER=lts-11
     addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
@@ -68,24 +81,29 @@ matrix:
 
   # You can customize a stack build even without a custom stack-yaml
   # using STACK_OPTIONS, STACK_BUILD_OPTIONS, GHC_OPTIONS etc.
-  #- env: BUILD=stack RESOLVER=lts-10.0 STACK_BUILD_OPTIONS="--flag packcheck:dev"
+  #- env: BUILD=stack RESOLVER=lts-11 STACK_BUILD_OPTIONS="--flag packcheck:dev"
 
   # --------------------------------------------------------------------------
-  # (Linux) cabal builds require pre-installed cabal-install and ghc
+  # (Linux) cabal builds
+  # --------------------------------------------------------------------------
+  # NOTE: If you face problems with "BUILD=cabal-new"
+  # you can try using "BUILD=cabal" for old style cabal builds.
   # --------------------------------------------------------------------------
 
-  # XXX simple-conduit fails to build with cabal
-
-  #- env: BUILD=cabal CABALVER=1.22 GHCVER=7.10.3
+  #- env: BUILD=cabal-new CABALVER=1.22 GHCVER=7.10.3
   #  addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
 
-  #- env: BUILD=cabal CABALVER=1.24 GHCVER=8.0.2
+  #- env: BUILD=cabal-new CABALVER=1.24 GHCVER=8.0.2
   #  addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2], sources: [hvr-ghc]}}
 
-  #- env: BUILD=cabal CABALVER=2.0 GHCVER=8.2.2
+  # Consider that we do an 8.2.2 cabal build for OSX, see below
+  #- env: BUILD=cabal-new CABALVER=2.0 GHCVER=8.2.2
   #  addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
 
-  #- env: BUILD=cabal CABALVER=head GHCVER=head
+  - env: BUILD=cabal-new CABALVER=2.2 GHCVER=8.4.1
+    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.1], sources: [hvr-ghc]}}
+
+  #- env: BUILD=cabal-new CABALVER=head GHCVER=head
   #  addons: {apt: {packages: [cabal-install-head,ghc-head], sources: [hvr-ghc]}}
 
   # --------------------------------------------------------------------------
@@ -93,24 +111,24 @@ matrix:
   # --------------------------------------------------------------------------
 
   # GHC 8.2.2/cabal build via stack
-  #- env: BUILD=cabal RESOLVER=lts-10
-  #  os: osx
+  - env: BUILD=cabal-new RESOLVER=lts-11
+    os: osx
 
   # GHC 8.2.2/stack
-  - env: BUILD=stack RESOLVER=lts-11
-    os: osx
+  #- env: BUILD=stack RESOLVER=lts-11
+  #  os: osx
 
   # --------------------------------------------------------------------------
   # Lint
   # --------------------------------------------------------------------------
 
-  - env: BUILD=stack RESOLVER=lts-10 HLINT_COMMANDS="hlint lint ."
+  #- env: BUILD=stack RESOLVER=lts-11 HLINT_COMMANDS="hlint lint ."
 
   # --------------------------------------------------------------------------
   # Build and send coverage report to coveralls.io using hpc-coveralls
   # --------------------------------------------------------------------------
 
-  # Note COVERALLS (hpc-coveralls) works only with cabal build.
+  # Note COVERALLS_OPTIONS (hpc-coveralls) works only with old cabal build.
   # For this to succeed you have to add your project to coveralls.io first
   #- env: BUILD=cabal CABALVER=2.0 GHCVER=8.2.2 COVERALLS_OPTIONS="--coverage-mode=StrictlyFullLines --exclude-dir=test test"
   #  addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
@@ -121,8 +139,9 @@ matrix:
 
   allow_failures:
   - env: BUILD=stack RESOLVER=nightly
-  - env: BUILD=cabal CABALVER=head GHCVER=head
-  - env: BUILD=stack RESOLVER=lts-10 HLINT_COMMANDS="hlint lint ."
+  - env: BUILD=cabal-new CABALVER=2.2 GHCVER=8.4.1
+  - env: BUILD=cabal-new CABALVER=head GHCVER=head
+  - env: BUILD=stack RESOLVER=lts-11 HLINT_COMMANDS="hlint lint ."
 
 # ------------------------------------------------------------------------
 #  Settings beyond this point are advanced and normally not tweaked
@@ -157,6 +176,7 @@ script:
     if test ! -e "$PACKCHECK_LOCAL_PATH"; then $CURL -sL -o "$PACKCHECK_LOCAL_PATH" $PACKCHECK_URL; fi;
     chmod +x $PACKCHECK_LOCAL_PATH
 
+    export PATH=/bin:/usr/bin
     add_path GHCVER   ghc
     add_path CABALVER cabal
 

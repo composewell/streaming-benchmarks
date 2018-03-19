@@ -4,11 +4,7 @@ packages:
 extra-deps:
   - gauge-0.2.1
   - list-transformer-1.0.3
-  - simple-conduit-0.6.0
   - streamly-0.1.1
-
-  # dependencies for ghc 8.0 builds
-  - lockfree-queue-0.2.3.1
 
   # for lts-11.0
   - Chart-diagrams-1.8.3
@@ -22,22 +18,5 @@ extra-deps:
   - lens-4.15.4
   - free-4.12.4
 
-  # for nightly
-  #- Chart-1.8.3
-  #- active-0.2.0.13
-  #- fsnotify-0.2.1.1
-  #- monoid-extras-0.4.2
-  #- prelude-extras-0.4.0.3
-  #- statestack-0.2.0.5
-  #- svg-builder-0.1.0.2
-  #- tuple-0.3.0.2
-
-  #- OneTuple-0.2.1
-  #- groups-0.4.1.0
-
-  #- list-t-1.0.0.1
-
 ghc-options:
     "$everything": -O2
-
-#allow-newer: true

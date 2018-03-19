@@ -194,6 +194,7 @@ main =
           , bench "machines" $ nfIO $ getRandom >>= \v -> runIOM (sourceM v) (M.final)
           , bench "streaming" $ nfIO $ S.last sourceS
           , bench "streamly"  $ nfIO $ A.last sourceA
+          , bench "conduit"  $ nfIO $ C.runConduit $ sourceC C..| CC.last
           ]
     , bgroup "concat"
           [ bench "conduit" $ nfIO $ runIOC sourceC (C.map (replicate 3) C..| C.concat)
