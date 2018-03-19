@@ -113,7 +113,7 @@ genGroupGraph bmGroupName bmTitles values =
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
         layout_x_axis . laxis_style . axis_label_style . font_size .= 12
-        layout_y_axis . laxis_override .= axisGridAtTicks
+        -- layout_y_axis . laxis_override .= axisGridAtTicks
         -- XXX We are mapping a missing value to 0, can we label it missing
         -- instead?
         let getVal x = map (fromMaybe 0) (snd x)
