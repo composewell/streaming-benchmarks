@@ -176,7 +176,7 @@ results. Criterion had several bugs due to which results were not reliable. We
 fixed those bugs in ``gauge``. For example due to GC or CAF evaluation
 interaction across benchmarks, the results of benchmarks running later in the
 sequence were sometimes totally off the mark. We fixed that by running each
-benchmark in a separate process in guage. Another bug caused criterion to
+benchmark in a separate process in gauge. Another bug caused criterion to
 report wrong mean.
 
 ``Iterations:`` We pass a million elements through the streaming pipelines. We
