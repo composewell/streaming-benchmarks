@@ -39,6 +39,14 @@ conduit-1.2.13.1 `which showed significantly better performance
 <https://github.com/composewell/streaming-benchmarks/blob/269ac94fc59c76267b89b07690d9ea290096b95b/charts/AllOperationsataGlance.svg>`_
 compared to the newer version.
 
+When choosing a streaming library to use we should not be over obsessed about
+the performance numbers, in general. Whether the performance numbers or
+differential among various libraries matters or not may depend on your
+workload. If the cost of processing other data is significantly higher then the
+streaming operations' cost will just pale in comparison and may not matter at
+all. Unless you are performing huge number of tiny operations, performance
+difference may not be significant.
+
 Composing Pipeline Stages
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
