@@ -2,6 +2,7 @@
 
 print_help () {
   echo "Usage: $0 [--quick] [--pedantic] [--no-graph] [--no-measure] <benchmark-name or prefix> [min-samples]"
+  echo "Any arguments after a '--' will be passed as it is to guage"
   exit
 }
 
@@ -19,16 +20,11 @@ do
     --pedantic) PEDANTIC=1; shift ;;
     --no-graph) GRAPH=0; shift ;;
     --no-measure) MEASURE=0; shift ;;
+    --) shift; break ;;
     -*|--*) print_help ;;
     *) break ;;
   esac
 done
-
-MIN_SAMPLES=1
-if test -n "$2"
-then
-  MIN_SAMPLES=$2
-fi
 
 STACK=stack
 if test "$PEDANTIC" = "1"
@@ -82,7 +78,7 @@ enable_isolated
 
 if test "$QUICK" = "1"
 then
-  ARGS="--quick"
+  ENABLE_QUICK="--quick"
 fi
 
 if test "$MEASURE" != "0"
@@ -92,13 +88,17 @@ if test "$MEASURE" != "0"
     mv -f -v results.csv results.csv.prev
   fi
 
-  $STACK bench --benchmark-arguments "$ARGS \
+  # We set min-samples to 1 so that we run with default benchmark duration of 5
+  # seconds, whatever number of samples are possible in that.
+  # We run just one iteration for each sample. Anyway the default is to run
+  # for 30 ms and most our benchmarks are close to that or more.
+  $STACK bench --benchmark-arguments "$ENABLE_QUICK \
     --include-first-iter \
+    --min-samples 1 \
     --min-duration 0 \
-    --min-samples $MIN_SAMPLES \
     --csv=results.csv \
     -v 2 \
-    $BENCH_PROG $1" || die "Benchmarking failed"
+    $BENCH_PROG $*" || die "Benchmarking failed"
 fi
 
 if test "$GRAPH" != "0"
