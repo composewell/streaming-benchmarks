@@ -30,7 +30,7 @@ bmGroups :: [(String, [String])]
 bmGroups =
     [
       -- Operations are listed in increasing cost order
-      ( "All Operations at a Glance"
+      ( "All Operations at a Glance (Shorter is Faster)"
       , [
         -- "filtering/take-one"
           "elimination/toNull"
@@ -54,7 +54,7 @@ bmGroups =
         , "elimination/concat"
         ]
       )
-    , ( "Discarding and Folding"
+    , ( "Discarding and Folding (Shorter is Faster)"
       , [
         -- "filtering/take-one"
           "elimination/toNull"
@@ -63,7 +63,7 @@ bmGroups =
         , "elimination/fold"
         ]
       )
-    , ( "Pure Transformation and Filtering"
+    , ( "Pure Transformation and Filtering (Shorter is Faster)"
       , [
           "filtering/filter-all-out"
         , "filtering/dropWhile-true"
@@ -75,22 +75,22 @@ bmGroups =
         , "elimination/scan"
         ]
       )
-    , ( "Monadic Transformation"
+    , ( "Monadic Transformation (Shorter is Faster)"
       , [
           "transformation/mapM"
         ]
       )
-    , ( "Folding to List"
+    , ( "Folding to List (Shorter is Faster)"
       , [
           "elimination/toList"
         ]
       )
-    , ( "Zipping and Concating Streams"
+    , ( "Zipping and Concating Streams (Shorter is Faster)"
       , [ "zip"
         , "elimination/concat"
         ]
       )
-    , ( "Composing Pipeline Stages"
+    , ( "Composing Pipeline Stages (Shorter is Faster)"
       , [
           "compose/all-out-filters"
         , "compose/all-in-filters"
@@ -108,7 +108,7 @@ genGroupGraph bmGroupName bmTitles values =
     toFile def (outputDir
                 ++ "/"
                 -- links in README.rst eat up the space so we match the same
-                ++ (filter (not . isSpace) bmGroupName)
+                ++ (filter (not . isSpace) (takeWhile (/= '(') bmGroupName))
                 ++ ".svg") $ do
         layout_title .= bmGroupName
         layout_title_style . font_size .= 25
