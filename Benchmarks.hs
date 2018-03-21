@@ -136,7 +136,7 @@ runIOLT s t = LT.traverse_ (\_ -> return ()) (s >>= t)
 -- logict
 -------------------------------------------------------------------------------
 
-sourceLG :: Monad m => Int -> LG.LogicT m Int
+sourceLG :: Int -> LG.LogicT m Int
 sourceLG v = msum $ map return [v..v+value]
 
 runIOLG :: LG.LogicT IO Int -> (Int -> LG.LogicT IO Int) -> IO ()
@@ -146,7 +146,7 @@ runIOLG s t = LG.observeAllT (s >>= t) >> return ()
 -- vector
 -------------------------------------------------------------------------------
 
-sourceV :: MonadIO m => Int -> V.Stream m Int
+sourceV :: Monad m => Int -> V.Stream m Int
 sourceV v = V.fromList [v..v+value]
 
 runIOV :: V.Stream IO Int -> (V.Stream IO Int -> V.Stream IO Int) -> IO ()
