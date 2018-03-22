@@ -1,14 +1,29 @@
-# See https://github.com/harendra-kumar/packcheck for all options and their
-# explanation.
+# You can use any of the options supported by packcheck as environment
+# variables here.  See https://github.com/harendra-kumar/packcheck for all
+# options and their explanation.
 environment:
+    # ------------------------------------------------------------------------
+    # Global options, you can use these per build as well
+    # ------------------------------------------------------------------------
   global:
     # ------------------------------------------------------------------------
-    # Global options used for all CI tests
+    # Common options
     # ------------------------------------------------------------------------
-    GHC_OPTIONS: "-Werror"
+    # GHC_OPTIONS: "-Werror"
+    CABAL_REINIT_CONFIG: "y"
+    LC_ALL: "C.UTF-8"
 
     # ------------------------------------------------------------------------
-    # Options for builds that need stack (note, cabal builds can use stack)
+    # What to build
+    # ------------------------------------------------------------------------
+    # DISABLE_TEST: "y"
+    # DISABLE_BENCH: "y"
+    # DISABLE_DOCS: "y"
+    # DISABLE_SDIST_BUILD: "y"
+    ENABLE_INSTALL: "y"
+
+    # ------------------------------------------------------------------------
+    # stack options
     # ------------------------------------------------------------------------
     # Note requiring a specific version of stack using STACKVER may fail due to
     # github API limit while checking and upgrading/downgrading to the specific
@@ -16,18 +31,19 @@ environment:
     #STACKVER: "1.6.5"
     STACK_UPGRADE: "y"
     RESOLVER: "lts-11"
+    STACK_ROOT: "c:\\sr"
 
     # ------------------------------------------------------------------------
-    # Normally you would not need to customize these params
+    # cabal options
     # ------------------------------------------------------------------------
-    CABAL_REINIT_CONFIG: "y"
     CABAL_CHECK_RELAX: "y"
     CABAL_NO_SANDBOX: "y"
     CABAL_HACKAGE_MIRROR: "hackage.haskell.org:http://hackage.fpcomplete.com"
-    TEST_INSTALL: "y"
-    LC_ALL: "C.UTF-8"
+
+    # ------------------------------------------------------------------------
+    # Where to find the required tools
+    # ------------------------------------------------------------------------
     PATH: "%PATH%;%APPDATA%\\local\\bin"
-    STACK_ROOT: "c:\\sr"
     LOCAL_BIN: "%APPDATA%\\local\\bin"
 
     # ------------------------------------------------------------------------
@@ -41,7 +57,7 @@ environment:
     # If you have not committed packcheck.sh in your repo at PACKCHECK_LOCAL_PATH
     # then it is automatically pulled from this URL.
     PACKCHECK_GITHUB_URL: "https://raw.githubusercontent.com/harendra-kumar/packcheck"
-    PACKCHECK_GITHUB_COMMIT: "f0745feb622cc690d7b17cb94781dde58fd91129"
+    PACKCHECK_GITHUB_COMMIT: "359852abfed5a445ae7d5053d9324ecddf0d42a1"
 
 cache:
   - "%STACK_ROOT%"

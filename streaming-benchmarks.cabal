@@ -1,6 +1,6 @@
 name:          streaming-benchmarks
 category:      Benchmark
-version:       0.1
+version:       0.1.0
 license:       MIT
 license-file:  LICENSE
 author:        Harendra Kumar
@@ -23,12 +23,13 @@ description:
   If you are using @stack@ then use @./run.sh@ to run the benchmarks;
   charts will be generated in the `charts` directory.
   .
-  With any build tool you can build and run the benchmarks with
+  With any build tool, run the benchmarks with
   @--csv=results.csv@ as arguments and then use @makecharts results.csv@ to
   create the charts. In case you want to be pedantic about accurate results
   then you can run the benchmarks in the same way as @run.sh@ invokes them.
 
 cabal-version: >= 1.10
+tested-with: GHC==8.2.2
 build-type:    Simple
 extra-source-files:
   run.sh
