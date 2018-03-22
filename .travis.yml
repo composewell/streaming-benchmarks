@@ -16,11 +16,11 @@ env:
   # ------------------------------------------------------------------------
   # What to build
   # ------------------------------------------------------------------------
-   - DISABLE_TEST=y
+  - DISABLE_TEST=y
   # - DISABLE_BENCH=y
-   - DISABLE_DOCS=y
+  - DISABLE_DOCS=y
   # - DISABLE_SDIST_BUILD=y
-   - ENABLE_INSTALL=y
+  - ENABLE_INSTALL=y
 
   # ------------------------------------------------------------------------
   # stack options
