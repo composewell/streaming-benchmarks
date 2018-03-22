@@ -1,3 +1,7 @@
+.. image:: https://badges.gitter.im/composewell/gitter.svg?
+  :target: https://gitter.im/composewell/streamly
+  :alt: Gitter chat
+
 .. image:: https://img.shields.io/hackage/v/streaming-benchmarks.svg?style=flat
   :target: https://hackage.haskell.org/package/streaming-benchmarks
   :alt: Hackage
