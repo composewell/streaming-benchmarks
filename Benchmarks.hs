@@ -36,8 +36,11 @@ import qualified Benchmarks.Streamly as Streamly
 import qualified Benchmarks.Vector as Vector
 import qualified Benchmarks.Streaming as Streaming
 import qualified Benchmarks.LogicT as LogicT
-import qualified Benchmarks.LogicT as ListT
-import qualified Benchmarks.LogicT as ListTransformer
+import qualified Benchmarks.ListT as ListT
+import qualified Benchmarks.ListTransformer as ListTransformer
+import qualified Benchmarks.Conduit as Conduit
+import qualified Benchmarks.Pipes as Pipes
+import qualified Benchmarks.Machines as Machines
 
 getRandom :: MonadIO m => m Int
 getRandom =  liftIO $ randomRIO (1,1000)
