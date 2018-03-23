@@ -1,20 +1,20 @@
 -- |
--- Module      : Benchmarks.Streamly
+-- Module      : Benchmarks.Vector
 -- Copyright   : (c) 2018 Harendra Kumar
+--               (c) 2018 Philipp Schuster
 --
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
-module Benchmarks.Streamly where
+module Benchmarks.Vector where
 
 import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude
-       (Monad, Int, (+), id, ($), (.), return, fmap, even, (>), (<=),
-        subtract, undefined)
+       (Monad, Int, (+), ($), (.), return, even, (>), (<=),
+        subtract, undefined, replicate)
 
-import qualified Streamly          as S
-import qualified Streamly.Prelude  as S
+import qualified Data.Vector.Fusion.Stream.Monadic as S
 
 -------------------------------------------------------------------------------
 -- Benchmark ops
@@ -31,13 +31,13 @@ toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
 -- Stream generation and elimination
 -------------------------------------------------------------------------------
 
-type Stream m a = S.StreamT m a
+type Stream m a = S.Stream m a
 
-source :: Int -> Stream m Int
-source n = S.each [n..n+value]
+source :: Monad m => Int -> Stream m Int
+source n = S.fromList [n..n+value]
 
 runStream :: Monad m => Stream m a -> m ()
-runStream = S.runStreamT
+runStream = S.mapM_ (\_ -> return ())
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -48,7 +48,7 @@ eliminate f = void . f . source
 
 toNull = eliminate $ runStream
 toList = eliminate $ S.toList
-foldl  = eliminate $ S.foldl (+) 0 id
+foldl  = eliminate $ S.foldl' (+) 0
 last   = eliminate $ S.last
 
 -------------------------------------------------------------------------------
@@ -58,8 +58,8 @@ last   = eliminate $ S.last
 transform :: Monad m => (Stream m Int -> Stream m a) -> Int -> m ()
 transform f = runStream . f . source
 
-scan          = transform $ S.scan (+) 0 id
-map           = transform $ fmap (+1)
+scan          = transform $ S.prescanl' (+) 0
+map           = transform $ S.map (+1)
 mapM          = transform $ S.mapM return
 filterEven    = transform $ S.filter even
 filterAllOut  = transform $ S.filter (> maxValue)
@@ -75,7 +75,7 @@ dropWhileTrue = transform $ S.dropWhile (<= maxValue)
 -------------------------------------------------------------------------------
 
 zip n         = runStream $ (S.zipWith (,) (source n) (source n))
-concat _n     = undefined
+concat n      = runStream $ (S.concatMap (S.fromList . replicate 3) (source n))
 
 -------------------------------------------------------------------------------
 -- Composition
@@ -87,7 +87,7 @@ compose f = transform $ (f . f . f . f)
 composeMapM           = compose (S.mapM return)
 composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
-composeMapAllInFilter = compose (S.filter (<= maxValue) . fmap (subtract 1))
+composeMapAllInFilter = compose (S.filter (<= maxValue) . S.map (subtract 1))
 
 composeScaling :: Monad m => Int -> Int -> m ()
 composeScaling m n =

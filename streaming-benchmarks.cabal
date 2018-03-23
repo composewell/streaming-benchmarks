@@ -50,6 +50,11 @@ benchmark benchmarks
   main-is:          Benchmarks.hs
   other-modules:    Benchmarks.Common
                   , Benchmarks.Streamly
+                  , Benchmarks.Vector
+                  , Benchmarks.Streaming
+                  , Benchmarks.LogicT
+                  , Benchmarks.ListT
+                  , Benchmarks.ListTransformer
   ghc-options: -O2 -Wall -with-rtsopts "-T"
   if impl(ghc >= 8.0)
     ghc-options:    -Wcompat

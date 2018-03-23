@@ -11,7 +11,6 @@
 
 module Main (main) where
 
-import Control.DeepSeq (NFData)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Trans.Class (lift)
 import Gauge
@@ -31,11 +30,14 @@ import qualified Pipes.Prelude     as P
 import qualified Streaming.Prelude as S
 import qualified Data.Vector.Fusion.Stream.Monadic as V
 -- import qualified Conduit.Simple    as SC
+
 import Benchmarks.Common (value, maxValue, benchIO)
 import qualified Benchmarks.Streamly as Streamly
-
--- Orphan instance to use nfIO on streaming
-instance (NFData a, NFData b) => NFData (S.Of a b)
+import qualified Benchmarks.Vector as Vector
+import qualified Benchmarks.Streaming as Streaming
+import qualified Benchmarks.LogicT as LogicT
+import qualified Benchmarks.LogicT as ListT
+import qualified Benchmarks.LogicT as ListTransformer
 
 getRandom :: MonadIO m => m Int
 getRandom =  liftIO $ randomRIO (1,1000)
