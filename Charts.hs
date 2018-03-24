@@ -63,7 +63,7 @@ bmGroups =
         , "elimination/fold"
         ]
       )
-    , ( "Pure Transformation and Filtering (Shorter is Faster)"
+    , ( "Transformation and Filtering (Shorter is Faster)"
       , [
           "filtering/filter-all-out"
         , "filtering/dropWhile-true"
