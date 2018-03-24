@@ -47,13 +47,13 @@ main = do
       [ $(createBgroup "filter-even" "filterEven")
       , $(createBgroup "filter-all-out" "filterAllOut")
       , $(createBgroup "filter-all-in" "filterAllIn")
-      , $(createBgroup "filter-all-in" "filterAllIn")
       , $(createBgroup "take-all" "takeAll")
       , $(createBgroup "takeWhile-true" "takeWhileTrue")
       , $(createBgroup "drop-all" "dropAll")
       , $(createBgroup "dropWhile-true" "dropWhileTrue")
       ]
     , $(createBgroup "zip" "zip")
+    , $(createBgroup "concat" "concat")
     , bgroup "compose"
       [ $(createBgroup "mapM" "composeMapM")
       , $(createBgroup "map-with-all-in-filter" "composeMapAllInFilter")
