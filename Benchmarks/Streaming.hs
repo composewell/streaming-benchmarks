@@ -80,7 +80,9 @@ dropWhileTrue = transform $ S.dropWhile (<= maxValue)
 -------------------------------------------------------------------------------
 
 zip n         = runStream $ (S.zip (source n) (source n))
-concat n      = runStream $ (S.concat $ S.map (replicate 3) (source n))
+concat n      = return ()
+    -- it just hangs with 100% CPU usage
+    -- runStream $ (S.concat $ S.map (replicate 3) (source n))
 
 -------------------------------------------------------------------------------
 -- Composition
