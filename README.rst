@@ -228,3 +228,26 @@ designed there may still be issues with the way benchmarking is being done or
 the way they have been coded. If you find that something is being measured
 unfairly or incorrectly please bring it to our notice by raising an issue or
 sending an email.
+
+Interesting Facts and Lessons Learned
+-------------------------------------
+
+* GHC simplifier is very fragile and inlining may affect the results in
+  unpredictable ways unless you have spent enough time scrutinizing and
+  optimizing everything carefully. The best way to avoid issues is to have all
+  the benchmarking code in a single file. As soon as the code was split into
+  multiple files, performance of some libraries dropped, in some cases by 3-4x.
+  Careful sprinkling of INLINE pragmas was required to bring it back to
+  original. Even functions that seemed just 2 lines of code were not
+  automatically inlined.
+
+* There is something magical about streamly, not sure what it is. Even though
+  all other libraries were impacted significantly for many ops, streamly seemed
+  almost unaffected by splitting the benchmarking into a separate file! If we
+  can find out why is it so, we could perhaps find some formula to keep
+  performance predicatable.
+
+* Benchmarking is very tricky, the code may sometimes just get completely
+  optimized out even in case of `nfIO`, and the results will be nanoseconds.  I
+  added a workaround for this issue but need to figure out the exact cause of
+  that.
