@@ -75,7 +75,7 @@ dropWhileTrue = transform $ S.dropWhile (<= maxValue)
 -------------------------------------------------------------------------------
 
 zip n         = runStream $ (S.zipWith (,) (source n) (source n))
-concat _n     = undefined
+concat _n     = return ()
 
 -------------------------------------------------------------------------------
 -- Composition

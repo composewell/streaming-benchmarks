@@ -5,6 +5,8 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Benchmarks.Streaming where
 
 import Benchmarks.Common (value, maxValue)

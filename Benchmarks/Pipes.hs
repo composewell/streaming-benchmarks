@@ -6,6 +6,7 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE RankNTypes #-}
+
 module Benchmarks.Pipes where
 
 import Benchmarks.Common (value, maxValue)
@@ -13,7 +14,7 @@ import Control.Monad (void)
 import Data.Void (Void)
 import Prelude
        (Monad, Int, (+), ($), id, (.), return, even, (>), (<=),
-        subtract, undefined, replicate, (<$>), (<*>))
+        subtract, undefined, replicate)
 
 import qualified Pipes             as S
 import qualified Pipes.Prelude     as S
@@ -22,6 +23,7 @@ import qualified Pipes.Prelude     as S
 -- Benchmark ops
 -------------------------------------------------------------------------------
 
+{-# INLINE toNull #-}
 toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
@@ -40,6 +42,7 @@ type Pipe   m i o = S.Proxy () i () o m ()
 source :: Monad m => Int -> Source m () Int
 source n = S.each [n..n+value]
 
+{-# INLINE runStream #-}
 runStream :: Monad m => Sink m Int () -> Int -> m ()
 runStream t n = void $ S.runEffect $ (source n) S.>-> t
 

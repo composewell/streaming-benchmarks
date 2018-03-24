@@ -18,5 +18,6 @@ extra-deps:
   - lens-4.15.4
   - free-4.12.4
 
+rebuild-ghc-options: true
 ghc-options:
     "$everything": -O2

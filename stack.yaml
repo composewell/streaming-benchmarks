@@ -17,3 +17,4 @@ extra-deps:
   - dual-tree-0.2.1
   - lens-4.15.4
   - free-4.12.4
+rebuild-ghc-options: true
