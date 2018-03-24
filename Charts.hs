@@ -102,15 +102,15 @@ bmGroups =
 
 -------------------------------------------------------------------------------
 
--- "values" has results for each package for each title in bmTitles
+-- "values" is [(packageName, [per benchmark result])]
 genGroupGraph :: String -> [String] -> [(String, [Maybe Double])] -> IO ()
-genGroupGraph bmGroupName bmTitles values =
+genGroupGraph chartTitle benchNames values =
     toFile def (outputDir
                 ++ "/"
                 -- links in README.rst eat up the space so we match the same
-                ++ (filter (not . isSpace) (takeWhile (/= '(') bmGroupName))
+                ++ (filter (not . isSpace) (takeWhile (/= '(') chartTitle))
                 ++ ".svg") $ do
-        layout_title .= bmGroupName
+        layout_title .= chartTitle
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
         layout_x_axis . laxis_style . axis_label_style . font_size .= 12
@@ -123,7 +123,7 @@ genGroupGraph bmGroupName bmTitles values =
         -- XXX We are mapping a missing value to 0, can we label it missing
         -- instead?
         let modifyVal x = map ((*1000) . fromMaybe 0) (snd x)
-        plot $ fmap plotBars $ bars bmTitles (addIndexes (map modifyVal values))
+        plot $ fmap plotBars $ bars benchNames (addIndexes (map modifyVal values))
 
 -- Given a package name (e.g. streaming) and benchmark prefixes (e.g.
 -- [elimination/null, elimination/toList]) get the corresponding results e.g.
@@ -138,8 +138,8 @@ getResultsForPackage csvData pkgname bmPrefixes =
 
     getBenchmarkMean entries bmname =
         case filter ((== bmname) .  head) entries of
-            [] -> trace
-                ("Warning! Benchmark [" ++ bmname ++"] not found in csv data")
+            [] -> -- trace
+                -- ("Warning! Benchmark [" ++ bmname ++"] not found in csv data")
                 Nothing
             xs -> Just (read ((last xs) !! 1))
 
@@ -156,18 +156,19 @@ genOneGraph csvData pkginfo (bmGroupTitle, prefixes) =
     pkgNameWithVersion pkgInfo = pkgName pkgInfo ++ "-" ++ pkgVersion pkgInfo
     pkgGetResults pkgInfo =
         let vals = getResultsForPackage csvData (pkgName pkgInfo) prefixes
-        in (pkgNameWithVersion pkgInfo, vals)
+        in if catMaybes vals == []
+           then Nothing
+           else Just $ (pkgNameWithVersion pkgInfo, vals)
 
     -- this produces results for all packages for all prefixes
     -- [(packagenamewithversion, [Maybe Double])]
-    bmResults = map pkgGetResults pkginfo
+    bmResults = catMaybes $ map pkgGetResults pkginfo
 
 genGraphs :: CSV -> [(String, String)] -> IO ()
 genGraphs csvData pkginfo = mapM_ (genOneGraph csvData pkginfo) bmGroups
 
 -- XXX display GHC version as well
 -- XXX display the OS/arch
--- XXX fix the y axis labels
 -- XXX fix the legend position
 main :: IO ()
 main = do

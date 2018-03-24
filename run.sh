@@ -83,10 +83,10 @@ fi
 
 if test "$MEASURE" != "0"
   then
-  if test -e results.csv
-  then
-    mv -f -v results.csv results.csv.prev
-  fi
+  #if test -e results.csv
+  #then
+    #mv -f -v results.csv results.csv.prev
+  #fi
 
   # We set min-samples to 1 so that we run with default benchmark duration of 5
   # seconds, whatever number of samples are possible in that.

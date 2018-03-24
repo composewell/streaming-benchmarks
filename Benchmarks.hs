@@ -56,6 +56,9 @@ main = do
       , $(createBgroup "all-in-filters" "composeAllInFilters")
       , $(createBgroup "all-out-filters" "composeAllOutFilters")
       ]
+    -- XXX Disabling this for now to reduce the running time
+    -- We need a way to include/exclude this dynamically
+    {-
     , bgroup "compose-scaling"
         -- Scaling with same operation in sequence
       [ $(createScaling "vector-filters" "Vector")
@@ -65,4 +68,5 @@ main = do
       , $(createScaling "pipes-filters" "Pipes")
       , $(createScaling "conduit-filters" "Conduit")
       ]
+      -}
    ]
