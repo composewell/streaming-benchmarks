@@ -229,6 +229,25 @@ the way they have been coded. If you find that something is being measured
 unfairly or incorrectly please bring it to our notice by raising an issue or
 sending an email.
 
+Observations
+------------
+
+* Streamly is the fastest when more than one operation is composed together,
+  streaming is more or less the same as streamly. This is a very important
+  benchmarks as this is a quite common case in practical programming.
+* Vector is the fastest in individual opetations, however it is slower when
+  operations are composed together.
+* Vector, streamly and streaming can do almost all operations in similar amount
+  of time. In general elimination operations are the fastest and transformation
+  are slightly slower.
+* pipes/conduit and machines can do elimination operations quite fast almost at
+  the same speed as streamly and streaming, but they are dramatically slower at
+  transformation operations.
+* When the operations being benchmarked are defined in a separate file conduit
+  and pipes are even slower. This is almost always the case in non-trivial
+  programs as they cannot be written in a single file. This could be due to GHC
+  not being able to inline them as well as it can inline others?
+
 Interesting Facts and Lessons Learned
 -------------------------------------
 
