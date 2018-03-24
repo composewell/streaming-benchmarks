@@ -24,6 +24,26 @@ import qualified Pipes.Prelude     as S
 -------------------------------------------------------------------------------
 
 {-# INLINE toNull #-}
+{-# INLINE toList #-}
+{-# INLINE foldl #-}
+{-# INLINE last #-}
+{-# INLINE scan #-}
+{-# INLINE map #-}
+{-# INLINE filterEven #-}
+{-# INLINE mapM #-}
+{-# INLINE filterAllOut #-}
+{-# INLINE filterAllIn #-}
+{-# INLINE takeOne #-}
+{-# INLINE takeAll #-}
+{-# INLINE takeWhileTrue #-}
+{-# INLINE dropAll #-}
+{-# INLINE dropWhileTrue #-}
+{-# INLINE zip #-}
+{-# INLINE concat #-}
+{-# INLINE composeMapM #-}
+{-# INLINE composeAllInFilters #-}
+{-# INLINE composeAllOutFilters #-}
+{-# INLINE composeMapAllInFilter #-}
 toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
