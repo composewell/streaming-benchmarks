@@ -24,10 +24,6 @@ import qualified Benchmarks.Conduit as Conduit
 
 import Gauge
 
--------------------------------------------------------------------------------
--- Benchmarks
--------------------------------------------------------------------------------
-
 main :: IO ()
 main = do
   n <- randomRIO (1,1000)
@@ -42,6 +38,7 @@ main = do
       [ $(createBgroup "scan" "scan")
       , $(createBgroup "map" "map")
       , $(createBgroup "mapM" "mapM")
+      , $(createBgroup "concat" "concat")
       ]
     , bgroup "filtering"
       [ $(createBgroup "filter-even" "filterEven")
@@ -53,7 +50,6 @@ main = do
       , $(createBgroup "dropWhile-true" "dropWhileTrue")
       ]
     , $(createBgroup "zip" "zip")
-    , $(createBgroup "concat" "concat")
     , bgroup "compose"
       [ $(createBgroup "mapM" "composeMapM")
       , $(createBgroup "map-with-all-in-filter" "composeMapAllInFilter")

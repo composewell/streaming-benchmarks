@@ -46,12 +46,12 @@ bmGroups =
         , "filtering/filter-all-in"
         , "filtering/filter-even"
 
-        , "elimination/scan"
+        , "transformation/scan"
         , "transformation/mapM"
         ,  "zip"
 
         , "elimination/toList"
-        , "elimination/concat"
+        , "transformation/concat"
         ]
       )
     , ( "Discarding and Folding (Shorter is Faster)"
@@ -72,7 +72,7 @@ bmGroups =
         , "transformation/map"
         , "filtering/filter-all-in"
         , "filtering/filter-even"
-        , "elimination/scan"
+        , "transformation/scan"
         ]
       )
     , ( "Monadic Transformation (Shorter is Faster)"
@@ -87,7 +87,7 @@ bmGroups =
       )
     , ( "Zipping and Concating Streams (Shorter is Faster)"
       , [ "zip"
-        , "elimination/concat"
+        , "transformation/concat"
         ]
       )
     , ( "Composing Pipeline Stages (Shorter is Faster)"
