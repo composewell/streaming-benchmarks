@@ -22,8 +22,8 @@ value, maxValue :: Int
 value = 1000000
 maxValue = value + 1000
 
-benchIO :: String -> (a -> IO b) -> a -> Benchmark
-benchIO name f n = bench name $ nfIO $ void (f n)
+benchIO :: NFData b => String -> (a -> IO b) -> a -> Benchmark
+benchIO name f n = bench name $ nfIO $ f n >>= return
 
 benchId :: NFData b => String -> (a -> Identity b) -> a -> Benchmark
 benchId name f n = bench name $ nf (runIdentity . f) n
