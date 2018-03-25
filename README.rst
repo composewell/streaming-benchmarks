@@ -1,3 +1,6 @@
+Streaming Benchmarks
+====================
+
 .. image:: https://badges.gitter.im/composewell/gitter.svg?
   :target: https://gitter.im/composewell/streamly
   :alt: Gitter chat
@@ -14,8 +17,8 @@
   :target: https://ci.appveyor.com/project/harendra-kumar/streaming-benchmarks
   :alt: Windows Build status
 
-Streaming Benchmarks
-====================
+.. contents:: Table of Contents
+   :depth: 1
 
 Comprehensive, carefully crafted benchmarks for streaming operations and their
 comparisons across notable Haskell streaming libraries including `vector`,
@@ -26,8 +29,8 @@ motivation for these benchmarks.  We have put a lot of effort to make sure that
 the benchmarks are correct, fair and reproducible.  Please report if you find
 something that is not right.
 
-See below to find out how to run the benchmarks yourself and compare any
-selected streaming packages. It is trivial to add a new package. This is how `a
+See below to find out how to run the benchmarks yourself and compare your
+favorite streaming packages. It is trivial to add a new package. This is how `a
 benchmark file
 <https://github.com/composewell/streaming-benchmarks/blob/master/Benchmarks/Streamly.hs>`_
 for a streaming package looks like. Pull requests are welcome, I will be happy
@@ -35,13 +38,14 @@ to help, `just join the gitter chat
 <https://github.com/composewell/streaming-benchmarks/blob/master/Benchmarks/Streamly.hs>`_
 and ask!
 
-Benchmarks & Results
---------------------
+Benchmarks
+----------
 
-In all the benchmarks we work on a stream of a million consecutive numbers. We
-start the sequence using a random number between 1 and 1000 and enumerate it to
-make a total of a million elements using the streaming library's native
-sequence enumeration API.
+In all the benchmarks we work on a stream of a million consecutive numbers. The
+benchmarks use the IO Monad for running the operations. There are two
+categories of benchmarks, `composing pipeline stages` benchmark measures the
+efficiency of composition of more than one streaming operation, `individual
+operations` benchmark measures the timings of single streaming operations.
 
 Caveats
 ~~~~~~~
@@ -55,11 +59,14 @@ conduit or any other package is being measured please point out.
 
 When choosing a streaming library to use we should not be over obsessed about
 the performance numbers as long as the performance is within reasonable bounds.
-Whether the absolute performance or the differential among various libraries matters
-or not may depend on your workload. If the cost of processing the data is
-significantly higher then the streaming operations' overhead will just pale in
-comparison and may not matter at all. Unless you are performing huge number of
-tiny operations, performance difference may not be significant.
+Whether the absolute performance or the differential among various libraries
+matters or not may depend on your workload. If the cost of processing the data
+is significantly higher compared to the streaming overhead then the difference
+may not matter at all. Unless you are performing huge number of tiny
+operations, performance difference may not be significant.
+
+Comparative Results
+-------------------
 
 Composing Pipeline Stages
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,8 +140,8 @@ form a transformed stream based on a function on the value. Benchmarks include:
   elements are kept and the other half discarded.
 * `scan`: scans the stream using ``+`` operation.
 
-.. image:: charts/Pure Transformation and Filtering.svg
-  :alt: Pure Transformation and Filtering
+.. image:: charts/Transformation and Filtering.svg
+  :alt: Transformation and Filtering
 
 Monadic Transformation
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -182,9 +189,9 @@ If you want to compare just two or three packages you can do that too.
   ./run.sh --append -- -m pattern streamly
   ./run.sh --append -- -m pattern streaming
 
-These commands will keep appending benchmark data and an additional packages
-will appear in the charts every time you run the command. To start fresh again
-remove the `--append` option.
+These commands will keep appending benchmark data and the newly benchmarked
+package will get added in the charts every time you run the command. To start
+fresh again remove the ``--append`` option.
 
 Quick Mode
 ~~~~~~~~~~
