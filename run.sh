@@ -1,8 +1,9 @@
 #!/bin/bash
 
 print_help () {
-  echo "Usage: $0 [--quick] [--pedantic] [--no-graph] [--no-measure] <benchmark-name or prefix> [min-samples]"
-  echo "Any arguments after a '--' will be passed as it is to guage"
+  echo "Usage: $0 [--quick] [--append] [--pedantic] [--no-graph] [--no-measure] -- <gauge options>"
+  echo "Any arguments after a '--' are passed directly to guage"
+  echo "You can omit '--' if the gauge args used do not start with a '-'."
   exit
 }
 
@@ -17,6 +18,7 @@ do
   case $1 in
     -h|--help|help) print_help ;;
     --quick) QUICK=1; shift ;;
+    --append) APPEND=1; shift ;;
     --pedantic) PEDANTIC=1; shift ;;
     --no-graph) GRAPH=0; shift ;;
     --no-measure) MEASURE=0; shift ;;
@@ -83,18 +85,19 @@ fi
 
 if test "$MEASURE" != "0"
   then
-  #if test -e results.csv
-  #then
-    #mv -f -v results.csv results.csv.prev
-  #fi
+  if test -e results.csv -a "$APPEND" != 1
+  then
+    mv -f -v results.csv results.csv.prev
+  fi
 
   # We set min-samples to 1 so that we run with default benchmark duration of 5
   # seconds, whatever number of samples are possible in that.
   # We run just one iteration for each sample. Anyway the default is to run
   # for 30 ms and most our benchmarks are close to that or more.
+  # If we use less than three samples, statistical analysis crashes
   $STACK bench --benchmark-arguments "$ENABLE_QUICK \
     --include-first-iter \
-    --min-samples 1 \
+    --min-samples 3 \
     --min-duration 0 \
     --csv=results.csv \
     -v 2 \

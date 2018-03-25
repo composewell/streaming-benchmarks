@@ -20,13 +20,15 @@ description:
   make sure that the benchmarks are correct, fair and reproducible.  Please
   report if you find something that is not right.
   .
-  If you are using @stack@ then use @./run.sh@ to run the benchmarks;
-  charts will be generated in the `charts` directory.
+  If you are using @stack@ then you can just use @./run.sh@ to run the
+  benchmarks; charts will be generated in the `charts` directory.
   .
-  With any build tool, run the benchmarks with
-  @--csv=results.csv@ as arguments and then use @makecharts results.csv@ to
-  create the charts. In case you want to be pedantic about accurate results
-  then you can run the benchmarks in the same way as @run.sh@ invokes them.
+  With any build tool, run the benchmarks with @--csv=results.csv@ as arguments
+  and then use @makecharts results.csv@ to create the charts. Note that,
+  @makecharts@ currently depends on @stack@ to extract the versions of packages
+  for reporting in charts. In case you want to be pedantic about accurate
+  results then you can run the benchmarks in the same way as @run.sh@ invokes
+  them.
 
 cabal-version: >= 1.10
 tested-with: GHC==8.2.2
