@@ -69,7 +69,7 @@ runStream t n = void $ S.runConduit $ (source n) S..| t
 eliminate :: Monad m => Sink m Int a -> Int -> m ()
 eliminate = runStream
 
-toNull = eliminate $ S.mapM_ (\_ -> return ())
+toNull = eliminate $ S.sinkNull
 toList = eliminate $ S.sinkList
 foldl  = eliminate $ S.foldl (+) 0
 last   = eliminate $ S.last
@@ -78,10 +78,10 @@ last   = eliminate $ S.last
 -- Transformation
 -------------------------------------------------------------------------------
 
--- mapM_ vs sinkNull
 transform :: Monad m => Pipe m Int Int -> Int -> m ()
-transform t = runStream (t S..| S.mapM_ (\_ -> return ()))
---transform t = runStream (t S..| S.sinkNull)
+-- mapM_ is much more costly compared to sinkNull
+--transform t = runStream (t S..| S.mapM_ (\_ -> return ()))
+transform t = runStream (t S..| S.sinkNull)
 
 scan          = transform $ S.scanl (+) 0
 map           = transform $ S.map (+1)
