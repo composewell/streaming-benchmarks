@@ -4,7 +4,7 @@ packages:
 extra-deps:
   - gauge-0.2.1
   - list-transformer-1.0.3
-  - streamly-0.1.1
+  - streamly-0.1.2
 
   # for lts-11.0
   - Chart-diagrams-1.8.3

@@ -82,7 +82,7 @@ benchmark benchmarks
     template-haskell    >= 2.10  && < 2.13,
 
     vector              >= 0.12  && < 0.13,
-    streamly            >= 0.1.1 && < 0.2,
+    streamly            >= 0.1.2 && < 0.2,
     streaming           >= 0.1.4 && < 0.3,
     machines            >= 0.6.0 && < 0.7,
     pipes               >= 4     && < 4.4,
