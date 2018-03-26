@@ -1,7 +1,7 @@
 #!/bin/bash
 
 print_help () {
-  echo "Usage: $0 [--quick] [--append] [--pedantic] [--no-graph] [--no-measure] -- <gauge options>"
+  echo "Usage: $0 [--quick] [--append] [--pedantic] [--no-graphs] [--no-measure] -- <gauge options>"
   echo "Any arguments after a '--' are passed directly to guage"
   echo "You can omit '--' if the gauge args used do not start with a '-'."
   exit
@@ -20,7 +20,7 @@ do
     --quick) QUICK=1; shift ;;
     --append) APPEND=1; shift ;;
     --pedantic) PEDANTIC=1; shift ;;
-    --no-graph) GRAPH=0; shift ;;
+    --no-graphs) GRAPH=0; shift ;;
     --no-measure) MEASURE=0; shift ;;
     --) shift; break ;;
     -*|--*) print_help ;;
