@@ -312,11 +312,13 @@ GHC Inlining
   specialization optimizations can make the code unpredictable if mixed flags
   are used. See the ``--pedantic`` option of the ``run.sh`` script.
 
-* ``Single file vs multiple files`` The best way to avoid issues is to have
-  all the benchmarking code in a single file. As soon as the code was split
-  into multiple files, performance of some libraries dropped, in some cases by
-  3-4x.  Careful sprinkling of INLINE pragmas was required to bring it back to
-  original. Even functions that seemed just 2 lines of code were not
+* ``Single file vs multiple files`` The best way to avoid issues is to have all
+  the benchmarking code in a single file. However, in real life that is not the
+  case and we also needed some modularity to scale the benchmarks to arbitrary
+  number of libraries so we split it into per package file. As soon as the code
+  was split into multiple files, performance of some libraries dropped, in some
+  cases by 3-4x.  Careful sprinkling of INLINE pragmas was required to bring it
+  back to original. Even functions that seemed just 2 lines of code were not
   automatically inlined.
 
 * When all the code was in a single file, not a single INLINE pragma was
@@ -327,7 +329,7 @@ GHC Inlining
 * The effect of inlining varied depending on the library.  To make sure that we
   are using the fully optimized combination of inline or non-inline for each
   library we carefully studied the impact of inlining individual operations for
-  each package.  The study can be found here.
+  each package. The current code is the best we could get for each package.
 
 * There is something magical about streamly, not sure what it is. Even though
   all other libraries were impacted significantly for many ops, streamly seemed
