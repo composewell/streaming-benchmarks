@@ -279,23 +279,23 @@ Benchmarking Code
 Observations
 ------------
 
-* `Streamly` and `streaming` are the fastest (faster than `vector`) when
-  more than one operation is composed together.  This is a very important
-  benchmark as this is a quite common case in practical programming.
-* Vector is the fastest in individual operations.
-* Vector, streamly and streaming can do almost all operations in similar amount
-  of time. In general elimination operations are the fastest and transformation
-  are slightly slower.
-* pipes/conduit and machines can do elimination operations quite fast, almost
-  at the same speed as streamly and streaming, but they are significantly slower
-  at transformation operations. There may be some optimization opportunity
-  there or it may be a fundamental characterization of that design category.
-* When the operations being benchmarked are defined in a separate file conduit
-  and pipes are even slower. This is almost always the case in non-trivial
-  programs as they cannot be written in a single file. This could be due to GHC
-  not being able to inline them as well as it can inline others?
+* Elimination operations are in general faster than transformation operations
+  because the benchmarks for latter include elimination cost as well.
+* When the operations being benchmarked were defined in separate files there
+  was a drastic drop in performance of all libraries except streamly. However
+  the drop could be recovered by explicitly inlining all the functions exported
+  by the file.
+* The effect of inlining varied depending on the library.  To make sure that we
+  are using the fully optimized combination of inlining for each library we
+  carefully studied the impact of inlining individual operations for each
+  package.  The study can be found here.
 * There is something magical about streamly, not sure what it is. Even though
   all other libraries were impacted significantly for many ops, streamly seemed
-  almost unaffected by splitting the benchmarking into a separate file! If we
-  can find out why is it so, we could perhaps find some formula to keep
-  performance predictable.
+  almost unaffected by splitting the benchmarking ops into a separate file! If
+  we can find out why is it so, we could perhaps understand and use GHC
+  inlining in a more predictable manner.
+* This kind of unpredictable non-uniform impact of moving functions in
+  different files shows that we are at the mercy of the GHC simplifier and
+  always need to tune performance carefully after refactoring to be sure
+  everything is fine. In other words, benchmarking and optimizing is crucial
+  not just for the libraries but for the users of the libraries as well.
