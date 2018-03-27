@@ -42,59 +42,43 @@ Benchmarks
 ----------
 
 In all the benchmarks we work on a stream of a million consecutive numbers. The
-benchmarks use the IO Monad for running the operations. There are two
-categories of benchmarks, `composing pipeline stages` benchmark measures the
-efficiency of composition of more than one streaming operation, `individual
-operations` benchmark measures the timings of single streaming operations.
+benchmarks use the IO Monad for running the operations. There are three
+categories of graphs:
 
-Caveats
-~~~~~~~
+* Composing an operation four times in a pipeline; measures composition
+  efficiency
+* Individual operations are divided into two categories for clarity of graphs:
 
-Note that, these benchmarks show results for conduit-1.3.0 which is a recently
-released major version, it perhaps requires some work to get at par with the
-earlier version.  conduit-1.2.13.1 `showed significantly better performance
-<https://github.com/composewell/streaming-benchmarks/blob/269ac94fc59c76267b89b07690d9ea290096b95b/charts/AllOperationsataGlance.svg>`_
-compared to the newer version.  If you  know there is an issue in the way
-conduit or any other package is being measured please point out.
-
-When choosing a streaming library to use we should not be over obsessed about
-the performance numbers as long as the performance is within reasonable bounds.
-Whether the absolute performance or the differential among various libraries
-matters or not may depend on your workload. If the cost of processing the data
-is significantly higher compared to the streaming overhead then the difference
-may not matter at all. Unless you are performing huge number of tiny
-operations, performance difference may not be significant.
-
-Comparative Results
--------------------
+  * Relatively cheaper operations
+  * More expensive operations
 
 Composing Pipeline Stages
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-These benchmarks compare the performance when multiple operations are composed
-serially in a pipeline. This is how the streaming libraries are supposed to be
-used in real applications.
++------------------------+----------------------------------------------------+
+| Benchmark              | Description                                        |
++========================+====================================================+
+| mapM                   | ``mapM`` four times in a row                       |
++------------------------+----------------------------------------------------+
+| all-in-filters         | four filters in a row,                             |
+|                        | each allowing all elements in                      |
++------------------------+----------------------------------------------------+
+| all-out-filters        | four filters in a row, each blocking all elements  |
++------------------------+----------------------------------------------------+
+| map-with-all-in-filter | ``map`` followed by ``filter`` composed four times |
+|                        | serially                                           |
++------------------------+----------------------------------------------------+
 
-The `mapM` benchmark introduces four stages of `mapM` between the source and
-the sink.
+.. image:: charts-1/comparative/Composed.svg
+  :target: charts-1/Composed.svg
+  :alt: vector, streamly and streaming
 
-`all-in-filters` composes four stages of a `filter` operation that passes all
-the items through.  Note that passing or blocking nature of the filter may
-impact the results. Some libraries can do blocking more optimally by short
-circuiting.
+.. image:: charts-2/comparative/Composed.svg
+  :target: charts-2/Composed.svg
+  :alt: conduit, pipes and machines
 
-`all-out-filters` composes four stages of a `filter` operation that `blocks`
-all the items i.e. does not let anything pass through.
-
-The `map-with-all-in-filter` benchmark introduces four identical stages between
-the source and the sink where each stage performs a simple `map` operation
-followed by a `filter` operation that passes all the items through.
-
-.. image:: charts/Composing Pipeline Stages.svg
-  :alt: Composing Pipeline Stages
-
-Individual Operations
-~~~~~~~~~~~~~~~~~~~~~
+Cheaper Operations
+~~~~~~~~~~~~~~~~~~
 
 This chart shows micro-benchmarks for all individual streaming operations for a
 quick comparison. Operations are ordered more or less by increasing cost for
@@ -102,72 +86,86 @@ better visualization. If an operation is not present in a library then an empty
 space is displayed instead of a colored bar in its slot. See the following
 sections for details about what the benchmarks do.
 
-.. image:: charts/All Operations at a Glance.svg
-  :alt: All Operations at a Glance
++------------------------+----------------------------------------------------+
+| Benchmark              | Description                                        |
++========================+====================================================+
+| toNull                 | Just discards all the elements in the stream       |
++------------------------+----------------------------------------------------+
+| drop-all               | drops all element using the ``drop`` operation     |
++------------------------+----------------------------------------------------+
+| dropWhile-true         | drops all element using an always ``True``         |
+|                        | predicate with ``dropWhile``                       |
++------------------------+----------------------------------------------------+
+| filter-all-out         | Discards all the elements in the stream using      |
+|                        | ``filter``                                         |
++------------------------+----------------------------------------------------+
+| last                   | extract the last element of the stream             |
++------------------------+----------------------------------------------------+
+| fold                   | sum all the numbers in the stream                  |
++------------------------+----------------------------------------------------+
+| map                    | increments each number in the stream by 1          |
++------------------------+----------------------------------------------------+
+| take-all               | Use ``take`` to retain all the elements in the     |
+|                        | stream                                             |
++------------------------+----------------------------------------------------+
+| takeWhile-true         | Use ``takeWhile`` with an always ``True``          |
+|                        | predicate                                          |
++------------------------+----------------------------------------------------+
+| filter-all-in          | Use ``filter`` with a predicate that reatins all   |
+|                        | elements in the stream                             |
++------------------------+----------------------------------------------------+
+| filter-even            | Use ``filter`` to keep even numbers and discard    |
+|                        | odd numbers in the stream.                         |
++------------------------+----------------------------------------------------+
+| scan                   | scans the stream using ``+`` operation             |
++------------------------+----------------------------------------------------+
 
-Elimination Operations
-^^^^^^^^^^^^^^^^^^^^^^
+.. image:: charts-1/comparative/CheaperOperations.svg
+  :target: charts-1/CheaperOperations.svg
+  :alt: vector, streamly and streaming
 
-This chart shows the cheapest of all operations, they include operations that
-iterate over the stream and either discard all the elements or fold them to a
-single value. They all do similar stuff and are generally expected to have
-similar cost.  Benchmarks include:
+.. image:: charts-2/comparative/CheaperOperations.svg
+  :target: charts-2/CheaperOperations.svg
+  :alt: conduit, pipes and machines
 
-* `toNull:` Just discards all the elements in the stream.
-* `drop-all`: drops ``n`` elements from the stream where ``n`` is set to the
-  length of the stream.
-* `last`: drops all the elements except the last one.
-* `fold`: adds all the elements in the stream to produces the sum.
+Expensive Operations
+~~~~~~~~~~~~~~~~~~~~
 
-.. image:: charts/Discarding and Folding.svg
-  :alt: Discarding and Folding
+More expensive operattions are charted separately to have shorter range in the
+charts for better clarity.
 
-Transformation and Filtering
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++------------------------+----------------------------------------------------+
+| Benchmark              | Description                                        |
++========================+====================================================+
+| mapM                   | transform the stream using a monadic action        |
++------------------------+----------------------------------------------------+
+| zip                    | combines corresponding elements of the two streams |
+|                        | together                                           |
++------------------------+----------------------------------------------------+
+| concat                 | turn a stream of containers into a stream of their |
+|                        | elements                                           |
++------------------------+----------------------------------------------------+
+| toList                 | convert the stream to a list                       |
++------------------------+----------------------------------------------------+
 
-This is the next category which is a bit costlier than the previous one. Unlike
-previous category these operations inspect the elements in the stream and
-form a transformed stream based on a function on the value. Benchmarks include:
+.. image:: charts-1/comparative/Expensiveoperations.svg
+  :target: charts-1/Expensiveoperations.svg
+  :alt: vector, streamly and streaming
 
-* `filter-all-out`: A filter that discards all the elements in the stream.
-* `filter-all-in`: A filter that retains all the elements in the stream.
-* `take-all`: take `n` elements from the stream where `n` is set to the length
-  of the stream. Effectively iterates through the stream and retains all of it.
-* `takeWhile-true`: retains all elements of the stream using a condition that
-  always evaluates to true.
-* `map`: A pure transformation that increments each element by 1.
-* `filter-even`: A filter that passes even elements in the stream i.e. half the
-  elements are kept and the other half discarded.
-* `scan`: scans the stream using ``+`` operation.
+.. image:: charts-2/comparative/Expensiveoperations.svg
+  :target: charts-2/Expensiveoperations.svg
+  :alt: conduit, pipes and machines
 
-.. image:: charts/Transformation and Filtering.svg
-  :alt: Transformation and Filtering
+Caveats
+~~~~~~~
 
-Monadic Transformation
-^^^^^^^^^^^^^^^^^^^^^^
-
-This benchmark compares the monadic transformation of the stream using
-``mapM``.
-
-.. image:: charts/Monadic Transformation.svg
-  :alt: Monadic Transformation
-
-Folding to List
-^^^^^^^^^^^^^^^
-
-This benchmark compares folding the stream to a list.
-
-.. image:: charts/Folding to List.svg
-  :alt: Folding to List
-
-Zip and Concat
-^^^^^^^^^^^^^^
-
-Zip combines corresponding elements of the two streams together. Concat turns a
-stream of containers into a stream of their elements.
-
-.. image:: charts/Zipping and Concating Streams.svg
-  :alt: Zipping and Concating Streams
+When choosing a streaming library to use we should not be over obsessed about
+the performance numbers as long as the performance is within reasonable bounds.
+Whether the absolute performance or the differential among various libraries
+matters or not may depend on your workload. If the cost of processing the data
+is significantly higher compared to the streaming overhead then the difference
+may not matter at all; unless you are performing huge number of tiny
+operations, performance difference may not be significant.
 
 How to Run
 ----------

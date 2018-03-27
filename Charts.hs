@@ -125,6 +125,14 @@ genGroupGraph chartTitle benchNames values =
                 _axis_labels = map (map (second (++ " ms"))) (_axis_labels ad)
             }
         layout_y_axis . laxis_override .= modifyLabels
+
+        --layout_y_axis . laxis_override .= \_ ->
+            --let indexes = map PlotIndex [0..7]
+            --let indexes = [0,25..125]
+            --let indexes = [0,50..350]
+            --let indexes = [0,100..700]
+            --in makeAxis (map ((++ " ms") . show . floor)) (indexes, [], [])
+
         -- XXX We are mapping a missing value to 0, can we label it missing
         -- instead?
         let modifyVal x = map ((*1000) . fromMaybe 0) (snd x)
