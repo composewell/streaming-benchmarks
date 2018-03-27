@@ -69,18 +69,22 @@ Composing Pipeline Stages
 |                        | serially                                           |
 +------------------------+----------------------------------------------------+
 
-.. image:: charts-1/comparative/Composed.svg
+.. |composed1| image:: charts-1/comparative/Composed.svg
+  :width: 48 %
   :target: charts-1/Composed.svg
   :alt: vector, streamly and streaming
 
-.. image:: charts-2/comparative/Composed.svg
+.. |composed2| image:: charts-2/Composed.svg
+  :width: 48 %
   :target: charts-2/Composed.svg
   :alt: conduit, pipes and machines
+
+|composed1| |composed2|
 
 Cheaper Operations
 ~~~~~~~~~~~~~~~~~~
 
-This chart shows micro-benchmarks for all individual streaming operations for a
+These charts show micro-benchmarks for less costly streaming operations for a
 quick comparison. Operations are ordered more or less by increasing cost for
 better visualization. If an operation is not present in a library then an empty
 space is displayed instead of a colored bar in its slot. See the following
@@ -111,7 +115,7 @@ sections for details about what the benchmarks do.
 | takeWhile-true         | Use ``takeWhile`` with an always ``True``          |
 |                        | predicate                                          |
 +------------------------+----------------------------------------------------+
-| filter-all-in          | Use ``filter`` with a predicate that reatins all   |
+| filter-all-in          | Use ``filter`` with a predicate that retains all   |
 |                        | elements in the stream                             |
 +------------------------+----------------------------------------------------+
 | filter-even            | Use ``filter`` to keep even numbers and discard    |
@@ -120,18 +124,22 @@ sections for details about what the benchmarks do.
 | scan                   | scans the stream using ``+`` operation             |
 +------------------------+----------------------------------------------------+
 
-.. image:: charts-1/comparative/CheaperOperations.svg
+.. |cheap1| image:: charts-1/comparative/CheaperOperations.svg
+  :width: 48 %
   :target: charts-1/CheaperOperations.svg
   :alt: vector, streamly and streaming
 
-.. image:: charts-2/comparative/CheaperOperations.svg
+.. |cheap2| image:: charts-2/CheaperOperations.svg
+  :width: 48 %
   :target: charts-2/CheaperOperations.svg
   :alt: conduit, pipes and machines
+
+|cheap1| |cheap2|
 
 Expensive Operations
 ~~~~~~~~~~~~~~~~~~~~
 
-More expensive operattions are charted separately to have shorter range in the
+More expensive operations are charted separately to have shorter range in the
 charts for better clarity.
 
 +------------------------+----------------------------------------------------+
@@ -148,13 +156,17 @@ charts for better clarity.
 | toList                 | convert the stream to a list                       |
 +------------------------+----------------------------------------------------+
 
-.. image:: charts-1/comparative/Expensiveoperations.svg
+.. |expensive1| image:: charts-1/comparative/Expensiveoperations.svg
+  :width: 48 %
   :target: charts-1/Expensiveoperations.svg
   :alt: vector, streamly and streaming
 
-.. image:: charts-2/comparative/Expensiveoperations.svg
+.. |expensive2| image:: charts-2/Expensiveoperations.svg
+  :width: 48 %
   :target: charts-2/Expensiveoperations.svg
   :alt: conduit, pipes and machines
+
+|expensive1| |expensive2|
 
 Caveats
 ~~~~~~~

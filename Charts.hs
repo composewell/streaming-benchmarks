@@ -1,4 +1,5 @@
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RecordWildCards #-}
 
 import Control.Arrow (second)
 import Data.Char (isSpace)
@@ -10,6 +11,7 @@ import System.Directory (createDirectoryIfMissing)
 import System.Environment (getArgs)
 import System.Process.Typed (readProcess_)
 import Text.CSV (CSV, parseCSVFromFile)
+import Control.Monad.Trans.State.Lazy (get, put)
 
 import qualified Data.Text.Lazy.Encoding as T
 import qualified Data.Text.Lazy as T
@@ -118,7 +120,20 @@ genGroupGraph chartTitle benchNames values =
         layout_title .= chartTitle
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
-        layout_x_axis . laxis_style . axis_label_style . font_size .= 12
+        layout_x_axis . laxis_style . axis_label_style . font_size .= 16
+        layout_y_axis . laxis_style . axis_label_style . font_size .= 14
+
+        layout <- get
+        case _layout_legend layout of
+            Nothing -> return ()
+            Just style@LegendStyle{..} -> do
+                let s = style { _legend_plot_size = 22
+                              -- , _legend_margin = 40
+                              , _legend_position = LegendBelow
+                              , _legend_label_style = _legend_label_style
+                                    { _font_size = 14 }
+                              }
+                put $ layout { _layout_legend = Just s }
 
         -- layout_y_axis . laxis_override .= axisGridAtTicks
         let modifyLabels ad = ad {
@@ -126,12 +141,14 @@ genGroupGraph chartTitle benchNames values =
             }
         layout_y_axis . laxis_override .= modifyLabels
 
-        --layout_y_axis . laxis_override .= \_ ->
-            --let indexes = map PlotIndex [0..7]
-            --let indexes = [0,25..125]
+        {-
+        -- to make comparative charts on a fixed scale
+        layout_y_axis . laxis_override .= \_ ->
+             let indexes = [0,25..125]
             --let indexes = [0,50..350]
             --let indexes = [0,100..700]
-            --in makeAxis (map ((++ " ms") . show . floor)) (indexes, [], [])
+            in makeAxis (map ((++ " ms") . show . floor)) (indexes, [], [])
+        -}
 
         -- XXX We are mapping a missing value to 0, can we label it missing
         -- instead?

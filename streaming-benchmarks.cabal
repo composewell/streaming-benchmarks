@@ -109,4 +109,5 @@ executable makecharts
     , directory         >= 1.2     && < 1.4
     , split             >= 0.2     && < 0.3
     , text              >= 1.1.1   && < 1.3
+    , transformers        >= 0.4   && < 0.6
     , typed-process     >= 0.1.0.0 && < 0.3
