@@ -58,6 +58,7 @@ type Pipe   m i o = S.ProcessT m i o
 source :: Monad m => Int -> Source m () Int
 source n = S.enumerateFromTo n (n + value)
 
+{-# INLINE runStream #-}
 runStream :: Monad m => Pipe m Int o -> Int -> m ()
 runStream t n = void $ S.runT_ $ (source n) S.~> t
 
@@ -74,6 +75,7 @@ last   = runStream $ S.final
 -- Transformation
 -------------------------------------------------------------------------------
 
+{-# INLINE transform #-}
 transform :: Monad m => Pipe m Int o -> Int -> m ()
 transform = runStream
 

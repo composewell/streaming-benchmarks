@@ -57,6 +57,7 @@ type Stream m a = S.Stream m a
 source :: Monad m => Int -> Stream m Int
 source n = S.fromList [n..n+value]
 
+{-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()
 runStream = S.mapM_ (\_ -> return ())
 
@@ -76,6 +77,7 @@ last   = eliminate $ S.last
 -- Transformation
 -------------------------------------------------------------------------------
 
+{-# INLINE transform #-}
 transform :: Monad m => (Stream m Int -> Stream m a) -> Int -> m ()
 transform f = runStream . f . source
 
@@ -102,6 +104,7 @@ concat n      = runStream $ (S.concatMap (S.fromList . replicate 3) (source n))
 -- Composition
 -------------------------------------------------------------------------------
 
+{-# INLINE compose #-}
 compose :: Monad m => (Stream m Int -> Stream m Int) -> Int -> m ()
 compose f = transform $ (f . f . f . f)
 

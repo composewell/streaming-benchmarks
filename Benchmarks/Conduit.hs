@@ -59,6 +59,7 @@ type Pipe   m a b = S.ConduitT a b m ()
 source :: Monad m => Int -> Source m () Int
 source n = S.enumFromTo n (n+value)
 
+{-# INLINE runStream #-}
 runStream :: Monad m => Sink m Int a -> Int -> m ()
 runStream t n = void $ S.runConduit $ (source n) S..| t
 
@@ -78,6 +79,7 @@ last   = eliminate $ S.last
 -- Transformation
 -------------------------------------------------------------------------------
 
+{-# INLINE transform #-}
 transform :: Monad m => Pipe m Int Int -> Int -> m ()
 -- mapM_ is much more costly compared to sinkNull
 --transform t = runStream (t S..| S.mapM_ (\_ -> return ()))
@@ -109,6 +111,7 @@ concat = transform (S.map (replicate 3) S..| S.concat)
 -- Composition
 -------------------------------------------------------------------------------
 
+{-# INLINE compose #-}
 compose :: Monad m => Pipe m Int Int -> Int -> m ()
 compose f = transform $ (f S..| f S..| f S..| f)
 

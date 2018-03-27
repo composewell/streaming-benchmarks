@@ -83,6 +83,7 @@ last   = eliminate $ S.last
 -------------------------------------------------------------------------------
 
 -- discard vs mapM
+{-# INLINE transform #-}
 transform :: Monad m => Pipe m Int Int -> Int -> m ()
 transform t = runStream (t S.>-> S.mapM_ (\_ -> return ()))
 
@@ -109,6 +110,7 @@ concat = transform (S.map (replicate 3) S.>-> S.concat)
 -- Composition
 -------------------------------------------------------------------------------
 
+{-# INLINE compose #-}
 compose :: Monad m => Pipe m Int Int -> Int -> m ()
 compose f = transform $ (f S.>-> f S.>-> f S.>-> f)
 
