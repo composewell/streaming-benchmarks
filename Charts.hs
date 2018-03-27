@@ -25,7 +25,7 @@ outputDir :: String
 outputDir = "charts"
 
 packages :: [String]
-packages = ["streamly", "streaming", "pipes", "conduit", "machines", "vector"]
+packages = ["vector", "streamly", "streaming", "conduit", "pipes", "machines"]
 
 -- pairs of benchmark group titles and corresponding list of benchmark
 -- prefixes i.e. without the package name at the end.
@@ -33,30 +33,32 @@ bmGroups :: [(String, [String])]
 bmGroups =
     [
       -- Operations are listed in increasing cost order
-      ( "All Operations at a Glance (Shorter is Faster)"
+      ( "Cheaper Operations (Shorter is Faster)"
       , [
-        -- "filtering/take-one"
           "elimination/toNull"
         , "filtering/drop-all"
+        , "filtering/dropWhile-true"
+        , "filtering/filter-all-out"
         , "elimination/last"
         , "elimination/fold"
-
-        , "filtering/filter-all-out"
-        , "filtering/dropWhile-true"
+        -- "filtering/take-one"
+        , "transformation/map"
         , "filtering/take-all"
         , "filtering/takeWhile-true"
-        , "transformation/map"
         , "filtering/filter-all-in"
         , "filtering/filter-even"
-
         , "transformation/scan"
-        , "transformation/mapM"
-        ,  "zip"
-
-        , "elimination/toList"
-        , "transformation/concat"
         ]
       )
+
+    , ( "Expensive operations (Shorter is Faster)"
+      , [ "transformation/mapM"
+        , "zip"
+        , "transformation/concat"
+        , "elimination/toList"
+        ]
+      )
+      {-
     , ( "Discarding and Folding (Shorter is Faster)"
       , [
         -- "filtering/take-one"
@@ -93,12 +95,12 @@ bmGroups =
         , "transformation/concat"
         ]
       )
-    , ( "Composing Pipeline Stages (Shorter is Faster)"
-      , [
-          "compose/all-out-filters"
+    -}
+    , ( "Composed (4x) operations (Shorter is Faster)"
+      , [ "compose/all-out-filters"
         , "compose/all-in-filters"
-        , "compose/map-with-all-in-filter"
         , "compose/mapM"
+        , "compose/map-with-all-in-filter"
         ]
       )
     ]
