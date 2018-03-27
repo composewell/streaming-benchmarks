@@ -1,5 +1,8 @@
+{-# LANGUAGE TupleSections #-}
+
 import Control.Arrow (second)
 import Data.Char (isSpace)
+import Data.List (nub, transpose)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe, catMaybes, fromJust)
 import Debug.Trace (trace)
@@ -125,23 +128,46 @@ genGroupGraph chartTitle benchNames values =
         let modifyVal x = map ((*1000) . fromMaybe 0) (snd x)
         plot $ fmap plotBars $ bars benchNames (addIndexes (map modifyVal values))
 
--- Given a package name (e.g. streaming) and benchmark prefixes (e.g.
+-- [[Double]] each list is multiple results for each benchmark
+transposeLists :: [[a]] -> Maybe [[Maybe a]]
+transposeLists xs =
+    -- If each benchmark does not have the same number of results then reject
+    -- all because the results may not correspond with each other when zipped.
+    case nub $ map length xs of
+        [0] -> Nothing
+        [n] ->
+            let ys = map (convertToMaybe n) xs
+            in Just $ transpose ys
+        [0,n] ->
+            -- some packages may have missing benchmarks
+            -- fill the empty results with Nothing
+            let ys = map (convertToMaybe n) xs
+            in Just $ transpose ys
+        _ -> Nothing
+    where
+        convertToMaybe n zs = case zs of
+            [] -> replicate n Nothing
+            x  -> map Just x
+
+-- Given a package name (e.g. streaming), and benchmark prefixes (e.g.
 -- [elimination/null, elimination/toList]) get the corresponding results e.g.
 -- [8.1 ms, 5.4 ms]. The corresponding result file entries will have
 -- elimination/null/streaming etc. as the names of the entries.
-getResultsForPackage :: CSV -> String -> [String] -> [Maybe Double]
+--
+-- We return a list of lists as the same benchmark may appear more than once if
+-- we ran benchmarks for the same package multiple times. This is helpful in
+-- comparing the benchmarks for the same package after fixing something.
+getResultsForPackage :: CSV -> String -> [String] -> Maybe [[Maybe Double]]
 getResultsForPackage csvData pkgname bmPrefixes =
-      map (getBenchmarkMean csvData)
-    $ map (++ "/" ++ pkgname) bmPrefixes
+    let bmnames = map (++ "/" ++ pkgname) bmPrefixes
+    in transposeLists $ map getBenchmarkMeans bmnames
 
     where
 
-    getBenchmarkMean entries bmname =
-        case filter ((== bmname) .  head) entries of
-            [] -> -- trace
-                -- ("Warning! Benchmark [" ++ bmname ++"] not found in csv data")
-                Nothing
-            xs -> Just (read ((last xs) !! 1))
+    -- field at index 1 is the mean
+    getBenchmarkMeans :: String -> [Double]
+    getBenchmarkMeans bmname =
+        map read $ map (!! 1) $ filter ((== bmname) .  head) csvData
 
 genOneGraph :: CSV -> [(String, String)] -> (String, [String]) -> IO ()
 genOneGraph csvData pkginfo (bmGroupTitle, prefixes) =
@@ -155,14 +181,20 @@ genOneGraph csvData pkginfo (bmGroupTitle, prefixes) =
     pkgVersion = snd
     pkgNameWithVersion pkgInfo = pkgName pkgInfo ++ "-" ++ pkgVersion pkgInfo
     pkgGetResults pkgInfo =
-        let vals = getResultsForPackage csvData (pkgName pkgInfo) prefixes
-        in if catMaybes vals == []
-           then Nothing
-           else Just $ (pkgNameWithVersion pkgInfo, vals)
+        let res = getResultsForPackage csvData (pkgName pkgInfo) prefixes
+        in case res of
+            Nothing -> Nothing
+            Just xs ->
+                case length xs of
+                    0 -> Nothing
+                    1 -> Just $ map (pkgNameWithVersion pkgInfo,) xs
+                    _ -> Just $ zipWith (withIndexes pkgInfo) [(1::Int)..] xs
+    withIndexes pkgInfo x y =
+        (pkgNameWithVersion pkgInfo ++ "(" ++ show x ++ ")", y)
 
     -- this produces results for all packages for all prefixes
     -- [(packagenamewithversion, [Maybe Double])]
-    bmResults = catMaybes $ map pkgGetResults pkginfo
+    bmResults = concat $ catMaybes $ map pkgGetResults pkginfo
 
 genGraphs :: CSV -> [(String, String)] -> IO ()
 genGraphs csvData pkginfo = mapM_ (genOneGraph csvData pkginfo) bmGroups
