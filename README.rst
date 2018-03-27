@@ -81,6 +81,17 @@ Composing Pipeline Stages
 
 |composed1| |composed2|
 
+Commentary
+^^^^^^^^^^
+
+* The composed ``mapM`` for ``streaming`` is more expensive than ``streamly``
+  even though the cost of the individual operation is the same for both
+  libraries.
+
+* A composed ``mapM`` has an unusally high cost for ``conduit`` and ``pipes``
+  which is in line with the cost of individual ``mapM`` being unusually high
+  for these libraries.
+
 Cheaper Operations
 ~~~~~~~~~~~~~~~~~~
 
@@ -136,6 +147,12 @@ sections for details about what the benchmarks do.
 
 |cheap1| |cheap2|
 
+Commentary
+^^^^^^^^^^
+
+* ``toNull``, ``filter-all-in`` and ``filter-even`` seem to be an anomaly for
+  ``pipes``, perhaps some low hanging opitmization can help.
+
 Expensive Operations
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -167,6 +184,17 @@ charts for better clarity.
   :alt: conduit, pipes and machines
 
 |expensive1| |expensive2|
+
+Commentary
+^^^^^^^^^^
+
+* ``mapM`` and ``zip`` should not be in the expensive category, they are not
+  very expensive for ``vector``, ``streamly``, and ``streaming``. They are here
+  because ``mapM`` is unusually expensive for ``conduit`` (20x of vector) and
+  ``pipes`` (30x of vector), and ``zip`` is unusally expensive for ``machines``
+  (46x of vector). Perhaps they can use some optimization for these.
+* The ``concat`` operation for ``streaming`` hangs forever, it may be a bug in
+  the library. ``concat`` is not yet available in streamly.
 
 Caveats
 ~~~~~~~
@@ -257,55 +285,58 @@ Benchmarking Code
   real life usage. Note that most existing streaming benchmarks use pure code
   or Identity monad which may produce entirely different results.
 
+* Unless you do some real IO operation, the operation being benchmarked can get
+  completely optimized out in some cases. We use a random number generation in
+  the IO monad and feed it to the operation being benchmarked to avoid that
+  issue.
+
+* The efficiency of the code generating a stream may affect all performance
+  numbers of a library because this is a constant cost involved in all the
+  benchmarks. That is also the reason why elimination operations are in general
+  faster than transformation operations because the benchmarks for latter
+  include elimination cost as well.
+
+GHC Inlining
+------------
+
+* ``Inlining:`` GHC simplifier is very fragile and inlining may affect the
+  results in unpredictable ways unless you have spent enough time scrutinizing
+  and optimizing everything carefully.  Inlining is the biggest source of
+  fragility in performance benchmarking. It can easily result in an order of
+  magnitude drop in performance just because some operation is not correctly
+  inlined. Note that this applies very well to the benchmarking code as well.
+
 * ``GHC Optimization Flags:`` To make sure we are comparing fairly we make sure
   that we compile the benchmarking code, the library code as well as all
   dependencies using exactly the same GHC flags. GHC inlining and
   specialization optimizations can make the code unpredictable if mixed flags
   are used. See the ``--pedantic`` option of the ``run.sh`` script.
 
-* ``Inlining:`` GHC simplifier is very fragile and inlining may affect the
-  results in unpredictable ways unless you have spent enough time scrutinizing
-  and optimizing everything carefully. The best way to avoid issues is to have
+* ``Single file vs multiple files`` The best way to avoid issues is to have
   all the benchmarking code in a single file. As soon as the code was split
   into multiple files, performance of some libraries dropped, in some cases by
   3-4x.  Careful sprinkling of INLINE pragmas was required to bring it back to
   original. Even functions that seemed just 2 lines of code were not
   automatically inlined.
 
-* ``Issues due to Optimizations?:`` In some cases we saw ridiculously low
-  results, may be due to some trivial optimizations. To avoid that we tried
-  using random numbers in the IO monad and pass those through the pipeline
-  rather than using some constant or predictable source, it helped but we are
-  still not sure of root cause of the issue. Also there is a yet unknown issue
-  that makes the code to just get completely optimized out even when using
-  `nfIO`, and the results will be nanoseconds.  I added a workaround for this
-  issue but need to figure out the exact cause of that. Both of these issues
-  may be related.
+* When all the code was in a single file, not a single INLINE pragma was
+  needed. But when split in multiple files even functions that were not
+  exported from that file needed an INLINE pragma for equivalent performance.
+  This is something that GHC may have to look at.
 
-* The efficiency of the code generating a stream may affect all performance
-  numbers of a library because this is a constant cost involved in all the
-  benchmarks.
-
-Observations
-------------
-
-* Elimination operations are in general faster than transformation operations
-  because the benchmarks for latter include elimination cost as well.
-* When the operations being benchmarked were defined in separate files there
-  was a drastic drop in performance of all libraries except streamly. However
-  the drop could be recovered by explicitly inlining all the functions exported
-  by the file.
 * The effect of inlining varied depending on the library.  To make sure that we
-  are using the fully optimized combination of inlining for each library we
-  carefully studied the impact of inlining individual operations for each
-  package.  The study can be found here.
+  are using the fully optimized combination of inline or non-inline for each
+  library we carefully studied the impact of inlining individual operations for
+  each package.  The study can be found here.
+
 * There is something magical about streamly, not sure what it is. Even though
   all other libraries were impacted significantly for many ops, streamly seemed
   almost unaffected by splitting the benchmarking ops into a separate file! If
   we can find out why is it so, we could perhaps understand and use GHC
   inlining in a more predictable manner.
+
 * This kind of unpredictable non-uniform impact of moving functions in
   different files shows that we are at the mercy of the GHC simplifier and
-  always need to tune performance carefully after refactoring to be sure
+  always need to tune performance carefully after refactoring, to be sure that
   everything is fine. In other words, benchmarking and optimizing is crucial
-  not just for the libraries but for the users of the libraries as well.
+  not just for the libraries `but for the users of the libraries as well`.
