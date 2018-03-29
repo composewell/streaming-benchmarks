@@ -16,6 +16,7 @@ createBgroup name fname =
             , benchIO "machines" $(varE (mkName ("Machines." ++ fname))) n
             , benchIO "pipes" $(varE (mkName ("Pipes." ++ fname))) n
             , benchIO "conduit" $(varE (mkName ("Conduit." ++ fname))) n
+            , benchIO "drinkery" $(varE (mkName ("Drinkery." ++ fname))) n
             ]
     |]
 
