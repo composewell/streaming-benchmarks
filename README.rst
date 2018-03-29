@@ -46,15 +46,17 @@ paradigm we represent a stream as a data type and use functions to work on it.
 In the second paradigm we represent *stream processors* as data types and
 provide them individual data elements to process, there is no explicit
 representation of the stream as a data type. In the first paradigm we work with
-data and in the second paradigm we work with functions. Both of these paradigms
-have equal expressive power. The latter uses the monadic composition for data
-flow whereas the former does not need monadic composition for straight line
-stream processing and therefore can use it for even higher level composition
-e.g.  to compose streams in a product style.
+data representation and in the second paradigm we work with function
+representations. Both of these paradigms have equal expressive power. The
+latter uses the monadic composition for data flow whereas the former does not
+need monadic composition for straight line stream processing and therefore can
+use it for higher level composition e.g.  to compose streams in a product
+style.
 
-A monadic stream of integers can be represented as ``Stream IO Int`` in the
-first paradigm using the ``vector`` package. The stream is passed explicitly to
-the stream processing functions like ``filter`` and ``drop`` to manipulate it::
+To see an example of the first paradigm, let us use the ``vector`` package to
+represent a monadic stream of integers as ``Stream IO Int``. This data
+representation of stream is passed explicitly to the stream processing
+functions like ``filter`` and ``drop`` to manipulate it::
 
   import qualified Data.Vector.Fusion.Stream.Monadic as S
 
@@ -72,9 +74,9 @@ added.
 
 The second paradigm is direct opposite of the first one, there is no stream
 representation in this paradigm, instead we represent *stream processors* as
-data types. A stream processor represents a particular processing rather than
+data types. A stream processor represents a particular process rather than
 data, and we compose them together to create composite processors. We can call
-then stream transducers or simply pipes. Using the ``machines`` package::
+them stream transducers or simply pipes. Using the ``machines`` package::
 
   import qualified Data.Machine as S
 
@@ -145,12 +147,13 @@ receive and send data usually called ``await`` and ``yield``.
 +------------------------+----------------------------------------------------+
 | Library                | Remarks                                            |
 +========================+====================================================+
-| conduit                | await and yield to upstream or downstream pipes.   |
-|                        | supports pushing leftovers back.                   |
+| conduit                | ``await`` and ``yield`` data to upstream or        |
+|                        | downstream pipes; supports pushing leftovers back. |
 +------------------------+----------------------------------------------------+
-| pipes                  | await and yield to upstream or downstream pipes    |
+| pipes                  | ``await`` and ``yield`` data to upstream or        |
+|                        | downstream pipes                                   |
 +------------------------+----------------------------------------------------+
-| machines               | It can await from two sources, left and right.     |
+| machines               | Can await from two sources, left and right.        |
 +------------------------+----------------------------------------------------+
 
 Benchmarks & Results
