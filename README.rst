@@ -412,7 +412,10 @@ Benchmarking Code
   numbers of a library because this is a constant cost involved in all the
   benchmarks. That is also the reason why elimination operations are in general
   faster than transformation operations because the benchmarks for latter
-  include elimination cost as well.
+  include elimination cost as well. Also, we source the stream from a list for
+  all libraries to keep the comparison fair. Some libraries provide faster ways
+  to generate a sequence, but we don't use that as we are not benchmarking
+  generation.
 
 GHC Inlining
 ------------
