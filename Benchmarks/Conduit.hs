@@ -15,6 +15,7 @@ import Prelude
 
 import qualified Data.Conduit as S
 import qualified Data.Conduit.Combinators as S
+import Data.Conduit.List (sourceList)
 
 -------------------------------------------------------------------------------
 -- Benchmark ops
@@ -57,7 +58,7 @@ type Sink   m a r = S.ConduitT a S.Void m r
 type Pipe   m a b = S.ConduitT a b m ()
 
 source :: Monad m => Int -> Source m () Int
-source n = S.enumFromTo n (n+value)
+source n = sourceList [n..n+value]
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Sink m Int a -> Int -> m ()

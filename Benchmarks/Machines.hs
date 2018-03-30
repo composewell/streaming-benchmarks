@@ -56,7 +56,7 @@ type Source m i o = S.SourceT m o
 type Pipe   m i o = S.ProcessT m i o
 
 source :: Monad m => Int -> Source m () Int
-source n = S.enumerateFromTo n (n + value)
+source n = S.source [n..n+value]
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Pipe m Int o -> Int -> m ()
