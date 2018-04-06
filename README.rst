@@ -265,12 +265,6 @@ sections for details about what the benchmarks do.
 
 |cheap1| |cheap2|
 
-Commentary
-^^^^^^^^^^
-
-* ``toNull``, ``filter-all-in`` and ``filter-even`` seem to be an anomaly for
-  ``pipes``, perhaps some low hanging opitmization can help.
-
 Expensive Operations
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -306,11 +300,15 @@ charts for better clarity.
 Commentary
 ^^^^^^^^^^
 
+* For pipes avoid using `mapM_` and use `discard` instead, `mapM_` is much more
+  expensive.
+* For conduit avoid using `mapM_` and use `sinkNull` instead, `mapM_` is much
+  more expensive.
 * ``mapM`` and ``zip`` should not be in the expensive category, they are not
-  very expensive for ``vector``, ``streamly``, and ``streaming``. They are here
+  expensive for ``vector``, ``streamly``, and ``streaming``. They are here
   because ``mapM`` is unusually expensive for ``conduit`` (20x of vector) and
   ``pipes`` (30x of vector), and ``zip`` is unusally expensive for ``machines``
-  (46x of vector). Perhaps they can use some optimization for these.
+  (46x of vector). Perhaps these libraries can use some optimization for these.
 * The ``concat`` operation for ``streaming`` hangs forever, it may be a bug in
   the library. ``concat`` is not yet available in streamly.
 
