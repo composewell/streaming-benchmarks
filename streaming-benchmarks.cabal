@@ -62,6 +62,7 @@ benchmark benchmarks
                   , Benchmarks.Pipes
                   , Benchmarks.Machines
                   , Benchmarks.Drinkery
+                  , Benchmarks.List
   ghc-options: -O2 -Wall -with-rtsopts "-T"
   if impl(ghc >= 8.0)
     ghc-options:    -Wcompat

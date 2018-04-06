@@ -10,6 +10,7 @@ module Benchmarks.Common
     , maxValue
     , benchIO
     , benchId
+    , benchPure
     ) where
 
 import Control.DeepSeq (NFData)
@@ -30,3 +31,6 @@ benchIO name src f = bench name $ nfIO $ randomRIO (1,1000) >>= f . src
 
 benchId :: (NFData b) => String -> (Int -> a) -> (a -> Identity b) -> Benchmark
 benchId name src f = bench name $ nf (runIdentity . f) (src 10)
+
+benchPure :: NFData b => String -> (Int -> a) -> (a -> b) -> Benchmark
+benchPure name src f = bench name $ nf f (src 10)

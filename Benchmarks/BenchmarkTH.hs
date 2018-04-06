@@ -2,7 +2,7 @@
 
 module Benchmarks.BenchmarkTH (createBgroup, createScaling) where
 
-import Benchmarks.Common (benchIO)
+import Benchmarks.Common (benchIO, benchPure)
 --import Benchmarks.Common (benchId)
 import Language.Haskell.TH.Syntax (Q, Exp, mkName)
 import Language.Haskell.TH.Lib (varE)
@@ -25,6 +25,8 @@ createBgroup name fname =
                                   $(varE (mkName ("Conduit." ++ fname)))
             , benchIO "drinkery"  $(varE (mkName ("Drinkery.source")))
                                   $(varE (mkName ("Drinkery." ++ fname)))
+            , benchPure "list"    $(varE (mkName ("List.source")))
+                                  $(varE (mkName ("List." ++ fname)))
             ]
     |]
 

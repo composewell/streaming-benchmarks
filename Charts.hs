@@ -5,7 +5,7 @@ import Control.Arrow (second)
 import Data.Char (isSpace)
 import Data.List (nub, transpose)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromMaybe, catMaybes, fromJust)
+import Data.Maybe (fromMaybe, catMaybes, fromMaybe)
 import System.Directory (createDirectoryIfMissing)
 import System.Environment (getArgs)
 import System.Process.Typed (readProcess_)
@@ -25,8 +25,9 @@ import Graphics.Rendering.Chart.Backend.Diagrams
 outputDir :: String
 outputDir = "charts"
 
+-- XXX use package name and a tag
 packages :: [String]
-packages = ["vector", "streamly", "streaming", "conduit", "pipes", "machines", "drinkery"]
+packages = ["list", "vector", "streamly", "streaming", "conduit", "pipes", "machines", "drinkery"]
 
 -- pairs of benchmark group titles and corresponding list of benchmark
 -- prefixes i.e. without the package name at the end.
@@ -250,7 +251,7 @@ main = do
 
     -- order them in the order specified in packages so that the order is
     -- can be controlled by the user.
-    let pkginfo' = map (\x -> (x, fromJust $ lookup x pkginfo)) packages
+    let pkginfo' = map (\x -> (x, fromMaybe "" $ lookup x pkginfo)) packages
 
     csvData <- parseCSVFromFile (head args)
     case csvData of
