@@ -10,11 +10,10 @@
 module Benchmarks.Pipes where
 
 import Benchmarks.Common (value, maxValue)
-import Control.Monad (void)
 import Data.Void (Void)
 import Prelude
        (Monad, Int, (+), ($), id, (.), return, even, (>), (<=),
-        subtract, undefined, replicate)
+        subtract, undefined, replicate, Maybe)
 
 import qualified Pipes             as S
 import qualified Pipes.Prelude     as S
@@ -44,18 +43,22 @@ import qualified Pipes.Prelude     as S
 {-# INLINE composeAllInFilters #-}
 {-# INLINE composeAllOutFilters #-}
 {-# INLINE composeMapAllInFilter #-}
-toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
+toNull, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
     composeMapAllInFilter
     :: Monad m
-    => Int -> m ()
+    => Source m () Int -> m ()
+
+toList :: Monad m => Source m () Int -> m [Int]
+foldl :: Monad m => Source m () Int -> m Int
+last :: Monad m => Source m () Int -> m (Maybe Int)
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
 -------------------------------------------------------------------------------
 
-type Source m i o = S.Producer' o m i
+type Source m i o = S.Producer o m i
 type Sink   m i r = S.Proxy () i () Void m r
 type Pipe   m i o = S.Proxy () i () o m ()
 
@@ -63,20 +66,17 @@ source :: Monad m => Int -> Source m () Int
 source n = S.each [n..n+value]
 
 {-# INLINE runStream #-}
-runStream :: Monad m => Sink m Int () -> Int -> m ()
-runStream t n = void $ S.runEffect $ (source n) S.>-> t
+runStream :: Monad m => Sink m Int () -> Source m () Int -> m ()
+runStream t src = S.runEffect $ src S.>-> t
 
 -------------------------------------------------------------------------------
 -- Elimination
 -------------------------------------------------------------------------------
 
-eliminate :: Monad m => (S.Proxy Void i () Int m () -> m a) -> Int -> m ()
-eliminate s = void . s . source
-
 toNull = runStream $ S.mapM_ (\_ -> return ())
-toList = eliminate $ S.toListM
-foldl  = eliminate $ S.fold (+) 0 id
-last   = eliminate $ S.last
+toList = S.toListM
+foldl  = S.fold (+) 0 id
+last   = S.last
 
 -------------------------------------------------------------------------------
 -- Transformation
@@ -84,7 +84,7 @@ last   = eliminate $ S.last
 
 -- discard vs mapM
 {-# INLINE transform #-}
-transform :: Monad m => Pipe m Int Int -> Int -> m ()
+transform :: Monad m => Pipe m Int Int -> Source m () Int -> m ()
 transform t = runStream (t S.>-> S.mapM_ (\_ -> return ()))
 
 scan          = transform $ S.scan (+) 0 id
@@ -103,7 +103,7 @@ dropWhileTrue = transform $ S.dropWhile (<= maxValue)
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
-zip n = S.runEffect $ S.for (S.zip (source n) (source n)) S.discard
+zip src = S.runEffect $ S.for (S.zip src src) S.discard
 concat = transform (S.map (replicate 3) S.>-> S.concat)
 
 -------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ concat = transform (S.map (replicate 3) S.>-> S.concat)
 -------------------------------------------------------------------------------
 
 {-# INLINE compose #-}
-compose :: Monad m => Pipe m Int Int -> Int -> m ()
+compose :: Monad m => Pipe m Int Int -> Source m () Int -> m ()
 compose f = transform $ (f S.>-> f S.>-> f S.>-> f)
 
 composeMapM           = compose (S.mapM return)
@@ -119,12 +119,12 @@ composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.map (subtract 1) S.>-> S.filter (<= maxValue))
 
-composeScaling :: Monad m => Int -> Int -> m ()
-composeScaling m n =
+composeScaling :: Monad m => Int -> Source m () Int -> m ()
+composeScaling m =
     case m of
-        1 -> transform f n
-        2 -> transform (f S.>-> f) n
-        3 -> transform (f S.>-> f S.>-> f) n
-        4 -> transform (f S.>-> f S.>-> f S.>-> f) n
+        1 -> transform f
+        2 -> transform (f S.>-> f)
+        3 -> transform (f S.>-> f S.>-> f)
+        4 -> transform (f S.>-> f S.>-> f S.>-> f)
         _ -> undefined
     where f = S.filter (<= maxValue)

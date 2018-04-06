@@ -9,7 +9,6 @@
 
 module Main (main) where
 
-import System.Random (randomRIO)
 import Benchmarks.BenchmarkTH (createBgroup, createScaling)
 
 import qualified Benchmarks.Vector as Vector
@@ -27,7 +26,6 @@ import Gauge
 
 main :: IO ()
 main = do
-  n <- randomRIO (1,1000)
   defaultMain
     [ bgroup "elimination"
       [ $(createBgroup "toNull" "toNull")

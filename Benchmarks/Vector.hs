@@ -12,7 +12,7 @@ import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=),
-        subtract, undefined, replicate)
+        subtract, undefined, Maybe, replicate)
 
 import qualified Data.Vector.Fusion.Stream.Monadic as S
 
@@ -41,12 +41,16 @@ import qualified Data.Vector.Fusion.Stream.Monadic as S
 {-# INLINE composeAllInFilters #-}
 {-# INLINE composeAllOutFilters #-}
 {-# INLINE composeMapAllInFilter #-}
-toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
+toNull, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
     composeMapAllInFilter
     :: Monad m
-    => Int -> m ()
+    => Stream m Int -> m ()
+
+toList :: Monad m => Stream m Int -> m [Int]
+foldl :: Monad m => Stream m Int -> m Int
+last :: Monad m => Stream m Int -> m Int
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
@@ -65,60 +69,57 @@ runStream = S.mapM_ (\_ -> return ())
 -- Elimination
 -------------------------------------------------------------------------------
 
-eliminate :: Monad m => (Stream m Int -> m a) -> Int -> m ()
-eliminate f = void . f . source
-
-toNull = eliminate $ runStream
-toList = eliminate $ S.toList
-foldl  = eliminate $ S.foldl' (+) 0
-last   = eliminate $ S.last
+toNull = runStream
+toList = S.toList
+foldl  = S.foldl' (+) 0
+last   = S.last
 
 -------------------------------------------------------------------------------
 -- Transformation
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: Monad m => (Stream m Int -> Stream m a) -> Int -> m ()
-transform f = runStream . f . source
+transform :: Monad m => Stream m a -> m ()
+transform = runStream
 
-scan          = transform $ S.prescanl' (+) 0
-map           = transform $ S.map (+1)
-mapM          = transform $ S.mapM return
-filterEven    = transform $ S.filter even
-filterAllOut  = transform $ S.filter (> maxValue)
-filterAllIn   = transform $ S.filter (<= maxValue)
-takeOne       = transform $ S.take 1
-takeAll       = transform $ S.take maxValue
-takeWhileTrue = transform $ S.takeWhile (<= maxValue)
-dropAll       = transform $ S.drop maxValue
-dropWhileTrue = transform $ S.dropWhile (<= maxValue)
+scan          = transform . S.prescanl' (+) 0
+map           = transform . S.map (+1)
+mapM          = transform . S.mapM return
+filterEven    = transform . S.filter even
+filterAllOut  = transform . S.filter (> maxValue)
+filterAllIn   = transform . S.filter (<= maxValue)
+takeOne       = transform . S.take 1
+takeAll       = transform . S.take maxValue
+takeWhileTrue = transform . S.takeWhile (<= maxValue)
+dropAll       = transform . S.drop maxValue
+dropWhileTrue = transform . S.dropWhile (<= maxValue)
 
 -------------------------------------------------------------------------------
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
-zip n         = runStream $ (S.zipWith (,) (source n) (source n))
-concat n      = runStream $ (S.concatMap (S.fromList . replicate 3) (source n))
+zip src       = transform $ (S.zipWith (,) src src)
+concat src    = transform $ (S.concatMap (S.fromList . replicate 3) src)
 
 -------------------------------------------------------------------------------
 -- Composition
 -------------------------------------------------------------------------------
 
 {-# INLINE compose #-}
-compose :: Monad m => (Stream m Int -> Stream m Int) -> Int -> m ()
-compose f = transform $ (f . f . f . f)
+compose :: Monad m => (Stream m Int -> Stream m Int) -> Stream m Int -> m ()
+compose f = transform . f . f . f . f
 
 composeMapM           = compose (S.mapM return)
 composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.filter (<= maxValue) . S.map (subtract 1))
 
-composeScaling :: Monad m => Int -> Int -> m ()
-composeScaling m n =
+composeScaling :: Monad m => Int -> Stream m Int -> m ()
+composeScaling m =
     case m of
-        1 -> transform f n
-        2 -> transform (f . f) n
-        3 -> transform (f . f . f) n
-        4 -> transform (f . f . f . f) n
+        1 -> transform . f
+        2 -> transform . f . f
+        3 -> transform . f . f . f
+        4 -> transform . f . f . f . f
         _ -> undefined
     where f = S.filter (<= maxValue)

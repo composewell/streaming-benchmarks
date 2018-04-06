@@ -5,7 +5,7 @@ import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, undefined, replicate, (<$>), (<*>), fst, id)
+        subtract, undefined, replicate, (<$>), (<*>), Maybe, fst, id)
 
 import qualified Data.Drinkery as S
 import qualified Data.Drinkery.Finite as S
@@ -40,7 +40,7 @@ toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
     composeMapAllInFilter
     :: Monad m
-    => Int -> m ()
+    => Source m () Int -> m ()
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
@@ -55,16 +55,16 @@ source :: Monad m => Int -> Source m () Int
 source n = S.tapListT $ S.sample [n .. n + value]
 
 {-# INLINE runStream #-}
-runStream :: Monad m => Pipe m Int o -> Int -> m ()
-runStream t n = void $ source n S.++& t S.$& S.drainFrom S.consume
+runStream :: Monad m => Pipe m Int o -> Source m () Int -> m ()
+runStream t src = void $ src S.++& t S.$& S.drainFrom S.consume
 
 -------------------------------------------------------------------------------
 -- Elimination
 -------------------------------------------------------------------------------
 
 {-# INLINE eliminate #-}
-eliminate :: Monad m => Sink m Int a -> Int -> m ()
-eliminate s n = void $ source n S.++& s
+eliminate :: Monad m => Sink m Int a -> Source m () Int -> m ()
+eliminate s src = void $ src S.++& s
 
 toNull = eliminate $ S.drainFrom S.consume
 toList = eliminate S.drinkUp
@@ -76,7 +76,7 @@ last   = eliminate $ S.lastFrom S.consume
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: Monad m => Pipe m Int o -> Int -> m ()
+transform :: Monad m => Pipe m Int o -> Source m () Int -> m ()
 transform = runStream
 
 scan          = transform $ S.scan (+) 0
@@ -95,8 +95,8 @@ dropWhileTrue = transform $ S.dropWhile (<= maxValue)
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
-zip n = void
-  $ S.unJoint ((,) <$> S.Joint (source n) <*> S.Joint (source n))
+zip src = void
+  $ S.unJoint ((,) <$> S.Joint src <*> S.Joint src)
   S.++& S.drainFrom (fst <$> S.consume)
 concat = transform $ S.map (replicate 3) S.++$ S.concatMap id
 
@@ -105,7 +105,7 @@ concat = transform $ S.map (replicate 3) S.++$ S.concatMap id
 -------------------------------------------------------------------------------
 
 {-# INLINE compose #-}
-compose :: Monad m => (forall n. Monad n => Pipe n Int Int) -> Int -> m ()
+compose :: Monad m => (forall n. Monad n => Pipe n Int Int) -> Source m () Int -> m ()
 compose f = transform (f S.++$ f S.++$ f S.++$ f)
 
 composeMapM           = compose (S.traverse return)
@@ -113,13 +113,13 @@ composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.map (subtract 1) S.++$ S.filter (<= maxValue))
 
-composeScaling :: Monad m => Int -> Int -> m ()
-composeScaling m n =
+composeScaling :: Monad m => Int -> Source m () Int -> m ()
+composeScaling m =
     case m of
-        1 -> transform f n
-        2 -> transform (f S.++$ f) n
-        3 -> transform (f S.++$ f S.++$ f) n
-        4 -> transform (f S.++$ f S.++$ f S.++$ f) n
+        1 -> transform f
+        2 -> transform (f S.++$ f)
+        3 -> transform (f S.++$ f S.++$ f)
+        4 -> transform (f S.++$ f S.++$ f S.++$ f)
         _ -> undefined
     where f :: Monad m => Pipe m Int Int
           f = S.filter (<= maxValue)

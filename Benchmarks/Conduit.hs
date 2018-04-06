@@ -8,10 +8,9 @@
 module Benchmarks.Conduit where
 
 import Benchmarks.Common (value, maxValue)
-import Control.Monad (void)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, undefined, replicate, (<$>), (<*>))
+        subtract, undefined, replicate, (<$>), (<*>), Maybe)
 
 import qualified Data.Conduit as S
 import qualified Data.Conduit.Combinators as S
@@ -42,12 +41,16 @@ import Data.Conduit.List (sourceList)
 {-# INLINE composeAllInFilters #-}
 {-# INLINE composeAllOutFilters #-}
 {-# INLINE composeMapAllInFilter #-}
-toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
+toNull, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
     composeMapAllInFilter
     :: Monad m
-    => Int -> m ()
+    => Source m () Int -> m ()
+
+toList :: Monad m => Source m () Int -> m [Int]
+foldl :: Monad m => Source m () Int -> m Int
+last :: Monad m => Source m () Int -> m (Maybe Int)
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
@@ -61,14 +64,14 @@ source :: Monad m => Int -> Source m () Int
 source n = sourceList [n..n+value]
 
 {-# INLINE runStream #-}
-runStream :: Monad m => Sink m Int a -> Int -> m ()
-runStream t n = void $ S.runConduit $ (source n) S..| t
+runStream :: Monad m => Sink m Int a -> Source m () Int -> m a
+runStream t src = S.runConduit $ src S..| t
 
 -------------------------------------------------------------------------------
 -- Elimination
 -------------------------------------------------------------------------------
 
-eliminate :: Monad m => Sink m Int a -> Int -> m ()
+eliminate :: Monad m => Sink m Int a -> Source m () Int -> m a
 eliminate = runStream
 
 toNull = eliminate $ S.sinkNull
@@ -81,7 +84,7 @@ last   = eliminate $ S.last
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: Monad m => Pipe m Int Int -> Int -> m ()
+transform :: Monad m => Pipe m Int Int -> Source m () Int -> m ()
 -- mapM_ is much more costly compared to sinkNull
 --transform t = runStream (t S..| S.mapM_ (\_ -> return ()))
 transform t = runStream (t S..| S.sinkNull)
@@ -102,10 +105,10 @@ dropWhileTrue = transform $ S.dropWhile (<= maxValue)
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
-zip n = S.runConduit $
+zip src = S.runConduit $
         (   S.getZipSource $ (,)
-        <$> S.ZipSource (source n)
-        <*> S.ZipSource (source n)) S..| S.sinkNull
+        <$> S.ZipSource src
+        <*> S.ZipSource src) S..| S.sinkNull
 concat = transform (S.map (replicate 3) S..| S.concat)
 
 -------------------------------------------------------------------------------
@@ -113,7 +116,7 @@ concat = transform (S.map (replicate 3) S..| S.concat)
 -------------------------------------------------------------------------------
 
 {-# INLINE compose #-}
-compose :: Monad m => Pipe m Int Int -> Int -> m ()
+compose :: Monad m => Pipe m Int Int -> Source m () Int -> m ()
 compose f = transform $ (f S..| f S..| f S..| f)
 
 composeMapM           = compose (S.mapM return)
@@ -121,12 +124,12 @@ composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.map (subtract 1) S..| S.filter (<= maxValue))
 
-composeScaling :: Monad m => Int -> Int -> m ()
-composeScaling m n =
+composeScaling :: Monad m => Int -> Source m () Int -> m ()
+composeScaling m =
     case m of
-        1 -> transform f n
-        2 -> transform (f S..| f) n
-        3 -> transform (f S..| f S..| f) n
-        4 -> transform (f S..| f S..| f S..| f) n
+        1 -> transform f
+        2 -> transform (f S..| f)
+        3 -> transform (f S..| f S..| f)
+        4 -> transform (f S..| f S..| f S..| f)
         _ -> undefined
     where f = S.filter (<= maxValue)
