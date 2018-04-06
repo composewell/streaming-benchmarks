@@ -65,15 +65,11 @@ type Pipe   m i o = S.Proxy () i () o m ()
 source :: Monad m => Int -> Source m () Int
 source n = S.each [n..n+value]
 
-{-# INLINE runStream #-}
-runStream :: Monad m => Sink m Int () -> Source m () Int -> m ()
-runStream t src = S.runEffect $ src S.>-> t
-
 -------------------------------------------------------------------------------
 -- Elimination
 -------------------------------------------------------------------------------
 
-toNull = runStream $ S.mapM_ (\_ -> return ())
+toNull src = S.runEffect $ S.for src S.discard
 toList = S.toListM
 foldl  = S.fold (+) 0 id
 last   = S.last
@@ -82,10 +78,9 @@ last   = S.last
 -- Transformation
 -------------------------------------------------------------------------------
 
--- discard vs mapM
 {-# INLINE transform #-}
 transform :: Monad m => Pipe m Int Int -> Source m () Int -> m ()
-transform t = runStream (t S.>-> S.mapM_ (\_ -> return ()))
+transform t src = S.runEffect $ S.for (src S.>-> t) S.discard
 
 scan          = transform $ S.scan (+) 0 id
 map           = transform $ S.map (+1)
