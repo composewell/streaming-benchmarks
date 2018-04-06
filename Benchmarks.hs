@@ -9,7 +9,8 @@
 
 module Main (main) where
 
-import Benchmarks.BenchmarkTH (createBgroup, createScaling)
+import Benchmarks.BenchmarkTH (createBgroup)
+--import Benchmarks.BenchmarkTH (createScaling)
 
 import qualified Benchmarks.Vector as Vector
 import qualified Benchmarks.Streamly as Streamly

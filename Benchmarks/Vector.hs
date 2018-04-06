@@ -9,10 +9,9 @@
 module Benchmarks.Vector where
 
 import Benchmarks.Common (value, maxValue)
-import Control.Monad (void)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=),
-        subtract, undefined, Maybe, replicate)
+        subtract, undefined, replicate)
 
 import qualified Data.Vector.Fusion.Stream.Monadic as S
 

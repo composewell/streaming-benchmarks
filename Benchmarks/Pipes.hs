@@ -12,7 +12,7 @@ module Benchmarks.Pipes where
 import Benchmarks.Common (value, maxValue)
 import Data.Void (Void)
 import Prelude
-       (Monad, Int, (+), ($), id, (.), return, even, (>), (<=),
+       (Monad, Int, (+), ($), id, return, even, (>), (<=),
         subtract, undefined, replicate, Maybe)
 
 import qualified Pipes             as S

@@ -13,7 +13,8 @@ import Benchmarks.Common (value, maxValue)
 import Control.DeepSeq (NFData)
 import Prelude
        (Monad, Int, (+), id, ($), (.), return, even, (>), (<=),
-        subtract, undefined, Maybe, replicate)
+        subtract, undefined, Maybe)
+--import Prelude (replicate)
 
 import qualified Streaming.Prelude as S
 

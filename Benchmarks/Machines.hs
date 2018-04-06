@@ -10,8 +10,8 @@ module Benchmarks.Machines where
 
 import Benchmarks.Common (value, maxValue)
 import Prelude
-       (Monad, Int, (+), ($), (.), return, even, (>), (<=),
-        subtract, undefined, replicate)
+       (Monad, Int, (+), ($), return, even, (>), (<=),
+        subtract, replicate)
 
 import qualified Data.Machine      as S
 
@@ -96,7 +96,7 @@ dropWhileTrue = transform $ S.droppingWhile (<= maxValue)
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
-zip src = S.runT_ (S.capT (source 10) (source 20) S.zipping)
+zip _src = S.runT_ (S.capT (source 10) (source 20) S.zipping)
 concat = transform (S.mapping (replicate 3) S.~> S.asParts)
 
 -------------------------------------------------------------------------------

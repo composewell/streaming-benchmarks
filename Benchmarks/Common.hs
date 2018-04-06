@@ -13,7 +13,6 @@ module Benchmarks.Common
     ) where
 
 import Control.DeepSeq (NFData)
-import Control.Monad (void)
 import Data.Functor.Identity (Identity, runIdentity)
 import System.Random (randomRIO)
 

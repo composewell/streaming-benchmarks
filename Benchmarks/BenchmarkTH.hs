@@ -2,7 +2,8 @@
 
 module Benchmarks.BenchmarkTH (createBgroup, createScaling) where
 
-import Benchmarks.Common (benchIO, benchId)
+import Benchmarks.Common (benchIO)
+--import Benchmarks.Common (benchId)
 import Language.Haskell.TH.Syntax (Q, Exp, mkName)
 import Language.Haskell.TH.Lib (varE)
 
