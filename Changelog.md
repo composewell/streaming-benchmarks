@@ -1,6 +1,7 @@
 ## Unreleased
 
 * Added benchmarks for pure lists
+* Added benchmarks for pure `vector`
 * Added benchmarks for `vector` monadic streaming library
 * Added `drinkery` streaming library
 * The code is modular now, package specific ops for each benchmarked package
