@@ -1,16 +1,16 @@
 -- |
--- Module      : Benchmarks.List
+-- Module      : Benchmarks.VectorPure
 -- Copyright   : (c) 2018 Harendra Kumar
 --
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
-module Benchmarks.List where
+module Benchmarks.VectorPure where
 
 import Benchmarks.Common (value, maxValue)
 import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined)
 
-import qualified Data.List          as S
+import qualified Data.Vector as S
 
 -------------------------------------------------------------------------------
 -- Benchmark ops
@@ -37,29 +37,31 @@ import qualified Data.List          as S
 {-# INLINE composeAllInFilters #-}
 {-# INLINE composeAllOutFilters #-}
 {-# INLINE composeMapAllInFilter #-}
-toNull, toList, scan, map, filterEven, mapM, filterAllOut,
+scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
     composeMapAllInFilter
-    :: [Int] -> [Int]
+    :: S.Vector Int -> S.Vector Int
 
-foldl :: [Int] -> Int
-last  :: [Int] -> Int
-zip :: [Int] -> [(Int, Int)]
+toNull :: S.Vector Int -> [Int]
+toList :: S.Vector Int -> [Int]
+foldl :: S.Vector Int -> Int
+last  :: S.Vector Int -> Int
+zip :: S.Vector Int -> S.Vector (Int, Int)
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
 -------------------------------------------------------------------------------
 
-source :: Int -> [Int]
-source v = [v..v+value]
+source :: Int -> S.Vector Int
+source v = S.fromList [v..v+value]
 
 -------------------------------------------------------------------------------
 -- Elimination
 -------------------------------------------------------------------------------
 
-toNull = id
-toList = id
+toNull = S.toList
+toList = S.toList
 foldl  = S.foldl' (+) 0
 last   = S.last
 
@@ -68,7 +70,7 @@ last   = S.last
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: [a] -> [a]
+transform :: S.Vector a -> S.Vector a
 transform = id
 
 scan          = transform . S.scanl' (+) 0
@@ -95,7 +97,7 @@ concat src    = transform $ (S.concatMap (S.replicate 3) src)
 -------------------------------------------------------------------------------
 
 {-# INLINE compose #-}
-compose :: ([Int] -> [Int]) -> [Int] -> [Int]
+compose :: (S.Vector Int -> S.Vector Int) -> S.Vector Int -> S.Vector Int
 compose f = transform . f . f . f . f
 
 composeMapM           = compose (S.map (+1))
@@ -103,7 +105,7 @@ composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.filter (<= maxValue) . S.map (subtract 1))
 
-composeScaling :: Int -> [Int] -> [Int]
+composeScaling :: Int -> S.Vector Int -> S.Vector Int
 composeScaling m =
     case m of
         1 -> transform . f

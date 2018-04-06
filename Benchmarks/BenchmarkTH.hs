@@ -27,6 +27,8 @@ createBgroup name fname =
                                   $(varE (mkName ("Drinkery." ++ fname)))
             , benchPure "list"    $(varE (mkName ("List.source")))
                                   $(varE (mkName ("List." ++ fname)))
+            , benchPure "pure-vector" $(varE (mkName ("VectorPure.source")))
+                                  $(varE (mkName ("VectorPure." ++ fname)))
             ]
     |]
 

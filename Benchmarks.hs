@@ -20,6 +20,7 @@ import qualified Benchmarks.Pipes as Pipes
 import qualified Benchmarks.Conduit as Conduit
 import qualified Benchmarks.Drinkery as Drinkery
 import qualified Benchmarks.List as List
+import qualified Benchmarks.VectorPure as VectorPure
 -- import qualified Benchmarks.LogicT as LogicT
 -- import qualified Benchmarks.ListT as ListT
 -- import qualified Benchmarks.ListTransformer as ListTransformer

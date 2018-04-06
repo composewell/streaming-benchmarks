@@ -5,7 +5,7 @@ import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, undefined, replicate, (<$>), (<*>), Maybe, fst, id)
+        subtract, undefined, replicate, (<$>), (<*>), fst, id)
 
 import qualified Data.Drinkery as S
 import qualified Data.Drinkery.Finite as S

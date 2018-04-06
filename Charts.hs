@@ -27,7 +27,7 @@ outputDir = "charts"
 
 -- XXX use package name and a tag
 packages :: [String]
-packages = ["list", "vector", "streamly", "streaming", "conduit", "pipes", "machines", "drinkery"]
+packages = ["list", "pure-vector", "vector", "streamly", "streaming", "conduit", "pipes", "machines", "drinkery"]
 
 -- pairs of benchmark group titles and corresponding list of benchmark
 -- prefixes i.e. without the package name at the end.
