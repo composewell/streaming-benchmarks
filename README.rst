@@ -87,10 +87,10 @@ them stream transducers or simply pipes. Using the ``machines`` package::
     let processor = producer S.~> S.dropping 10 S.~> S.filtered even
     S.runT processor >>= putStrLn . show
 
-These two look almost the same, right? To see the difference let's take a look
-at some types. In the first paradigm we have an explicit stream type and the
-processing functions take the stream as input and produce the transformed
-stream::
+Both of these paradigms look almost the same, right? To see the difference
+let's take a look at some types. In the first paradigm we have an explicit
+stream type and the processing functions take the stream as input and produce
+the transformed stream::
 
   stream :: S.Stream IO Int
   filter :: Monad m => (a -> Bool) -> Stream m a -> Stream m a
