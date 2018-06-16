@@ -5,12 +5,13 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# LANGUAGE FlexibleContexts #-}
 module Benchmarks.Streamly where
 
 import Benchmarks.Common (value, maxValue)
 import Prelude
-       (Monad, Int, (+), id, ($), (.), return, fmap, even, (>), (<=),
-        subtract, undefined, Maybe)
+       (Monad, Int, (+), ($), (.), return, fmap, even, (>), (<=),
+        subtract, undefined, Maybe(..), foldMap)
 
 import qualified Streamly          as S
 import qualified Streamly.Prelude  as S
@@ -40,13 +41,14 @@ import qualified Streamly.Prelude  as S
 {-# INLINE composeAllInFilters #-}
 {-# INLINE composeAllOutFilters #-}
 {-# INLINE composeMapAllInFilter #-}
-toNull, scan, map, filterEven, mapM, filterAllOut,
+toNull, scan, map, filterEven, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
-    concat, composeMapM, composeAllInFilters, composeAllOutFilters,
+    concat, composeAllInFilters, composeAllOutFilters,
     composeMapAllInFilter
     :: Monad m
     => Stream m Int -> m ()
 
+mapM, composeMapM :: S.MonadAsync m => Stream m Int -> m ()
 toList :: Monad m => Stream m Int -> m [Int]
 foldl :: Monad m => Stream m Int -> m Int
 last :: Monad m => Stream m Int -> m (Maybe Int)
@@ -55,14 +57,37 @@ last :: Monad m => Stream m Int -> m (Maybe Int)
 -- Stream generation and elimination
 -------------------------------------------------------------------------------
 
-type Stream m a = S.StreamT m a
+type Stream m a = S.SerialT m a
 
-source :: Int -> Stream m Int
-source n = S.each [n..n+value]
+{-# INLINE source #-}
+source :: S.MonadAsync m => Int -> Stream m Int
+-- source n = S.fromFoldable [n..n+value]
+source n = S.unfoldrM step n
+    where
+    step cnt =
+        if cnt > n + value
+        then return Nothing
+        else return (Just (cnt, cnt + 1))
+        {-
+source n = S.unfoldr step n
+    where
+    step cnt =
+        if cnt > n + value
+        then Nothing
+        else (Just (cnt, cnt + 1))
+            -}
+
+-------------------------------------------------------------------------------
+-- Append
+-------------------------------------------------------------------------------
+
+{-# INLINE appendSource #-}
+appendSource :: Monad m => Int -> Stream m Int
+appendSource n = foldMap (S.once . return) [n..n+value]
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()
-runStream = S.runStreamT
+runStream = S.runStream
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -70,7 +95,7 @@ runStream = S.runStreamT
 
 toNull = runStream
 toList = S.toList
-foldl  = S.foldl (+) 0 id
+foldl  = S.foldl' (+) 0
 last   = S.last
 
 -------------------------------------------------------------------------------
@@ -81,7 +106,7 @@ last   = S.last
 transform :: Monad m => Stream m a -> m ()
 transform = runStream
 
-scan          = transform . S.scan (+) 0 id
+scan          = transform . S.scanl' (+) 0
 map           = transform . fmap (+1)
 mapM          = transform . S.mapM return
 filterEven    = transform . S.filter even

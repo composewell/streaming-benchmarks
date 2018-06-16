@@ -27,7 +27,7 @@ outputDir = "charts"
 
 -- XXX use package name and a tag
 packages :: [String]
-packages = ["list", "pure-vector", "vector", "streamly", "streaming", "conduit", "pipes", "machines", "drinkery"]
+packages = ["list", "pure-vector", "streamly", "vector", "streaming", "pipes", "conduit", "machines", "drinkery"]
 
 -- pairs of benchmark group titles and corresponding list of benchmark
 -- prefixes i.e. without the package name at the end.
@@ -37,7 +37,7 @@ bmGroups =
       -- Operations are listed in increasing cost order
       ( "Cheaper Operations (Shorter is Faster)"
       , [
-          "elimination/toNull"
+          "elimination/drain"
         , "filtering/drop-all"
         , "filtering/dropWhile-true"
         , "filtering/filter-all-out"
@@ -55,6 +55,7 @@ bmGroups =
 
     , ( "Expensive operations (Shorter is Faster)"
       , [ "transformation/mapM"
+        , "append"
         , "zip"
         , "transformation/concat"
         , "elimination/toList"
@@ -120,7 +121,7 @@ genGroupGraph chartTitle benchNames values =
         layout_title .= chartTitle
         layout_title_style . font_size .= 25
         layout_x_axis . laxis_generate .= autoIndexAxis (map fst values)
-        layout_x_axis . laxis_style . axis_label_style . font_size .= 16
+        layout_x_axis . laxis_style . axis_label_style . font_size .= 12
         layout_y_axis . laxis_style . axis_label_style . font_size .= 14
 
         layout <- get

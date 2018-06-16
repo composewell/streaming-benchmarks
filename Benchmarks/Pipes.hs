@@ -13,7 +13,7 @@ import Benchmarks.Common (value, maxValue)
 import Data.Void (Void)
 import Prelude
        (Monad, Int, (+), ($), id, return, even, (>), (<=),
-        subtract, undefined, replicate, Maybe)
+        subtract, undefined, replicate, Maybe, Either(..), foldMap)
 
 import qualified Pipes             as S
 import qualified Pipes.Prelude     as S
@@ -62,8 +62,23 @@ type Source m i o = S.Producer o m i
 type Sink   m i r = S.Proxy () i () Void m r
 type Pipe   m i o = S.Proxy () i () o m ()
 
+{-# INLINE source #-}
 source :: Monad m => Int -> Source m () Int
-source n = S.each [n..n+value]
+-- source n = S.each [n..n+value]
+source n = S.unfoldr step n
+    where
+    step cnt =
+        if cnt > n + value
+        then return $ Left ()
+        else return (Right (cnt, cnt + 1))
+
+-------------------------------------------------------------------------------
+-- Append
+-------------------------------------------------------------------------------
+
+{-# INLINE appendSource #-}
+appendSource :: Monad m => Int -> Source m () Int
+appendSource n = foldMap S.yield [n..n+value]
 
 -------------------------------------------------------------------------------
 -- Elimination

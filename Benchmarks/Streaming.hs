@@ -13,7 +13,7 @@ import Benchmarks.Common (value, maxValue)
 import Control.DeepSeq (NFData)
 import Prelude
        (Monad, Int, (+), id, ($), (.), return, even, (>), (<=),
-        subtract, undefined, Maybe)
+        subtract, undefined, Maybe, Either(..), foldMap)
 --import Prelude (replicate)
 
 import qualified Streaming.Prelude as S
@@ -63,8 +63,23 @@ instance (NFData a, NFData b) => NFData (S.Of a b)
 
 type Stream m a = S.Stream (S.Of a) m ()
 
+{-# INLINE source #-}
 source :: Monad m => Int -> Stream m Int
-source n = S.each [n..n+value]
+-- source n = S.each [n..n+value]
+source n = S.unfoldr step n
+    where
+    step cnt =
+        if cnt > n + value
+        then return $ Left ()
+        else return (Right (cnt, cnt + 1))
+
+-------------------------------------------------------------------------------
+-- Append
+-------------------------------------------------------------------------------
+
+{-# INLINE appendSource #-}
+appendSource :: Monad m => Int -> Stream m Int
+appendSource n = foldMap S.yield [n..n+value]
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()

@@ -11,7 +11,7 @@ module Benchmarks.Machines where
 import Benchmarks.Common (value, maxValue)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, replicate)
+        subtract, replicate, Maybe(..))
 
 import qualified Data.Machine      as S
 
@@ -57,7 +57,13 @@ type Source m o = S.SourceT m o
 type Pipe   m i o = S.ProcessT m i o
 
 source :: Monad m => Int -> Source m Int
-source n = S.source [n..n+value]
+-- source n = S.source [n..n+value]
+source n = S.unfoldT step n
+    where
+    step cnt =
+        if cnt > n + value
+        then return Nothing
+        else return (Just (cnt, cnt + 1))
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Pipe m Int o -> S.MachineT m k Int -> m ()

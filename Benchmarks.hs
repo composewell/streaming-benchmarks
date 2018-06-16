@@ -10,6 +10,7 @@
 module Main (main) where
 
 import Benchmarks.BenchmarkTH (createBgroup)
+import Benchmarks.Common (benchIO)
 --import Benchmarks.BenchmarkTH (createScaling)
 
 import qualified Benchmarks.Vector as Vector
@@ -31,7 +32,7 @@ main :: IO ()
 main = do
   defaultMain
     [ bgroup "elimination"
-      [ $(createBgroup "toNull" "toNull")
+      [ $(createBgroup "drain" "toNull")
       , $(createBgroup "toList" "toList")
       , $(createBgroup "fold" "foldl")
       , $(createBgroup "last" "last")
@@ -52,6 +53,16 @@ main = do
       , $(createBgroup "dropWhile-true" "dropWhileTrue")
       ]
     , $(createBgroup "zip" "zip")
+    , bgroup "append"
+      [ benchIO "streamly" Streamly.appendSource Streamly.toNull
+      , benchIO "conduit" Conduit.appendSource Conduit.toNull
+--    , benchIO "pipes" Pipes.appendSource Pipes.toNull
+      , bench "pipes" $ nfIO (return 1 :: IO Int)
+--    , benchIO "vector" Vector.appendSource Vector.toNull
+      , bench "vector" $ nfIO (return 1 :: IO Int)
+--    , benchIO "streaming" Streaming.appendSource Streaming.toNull
+      , bench "streaming" $ nfIO (return 1 :: IO Int)
+      ]
     , bgroup "compose"
       [ $(createBgroup "mapM" "composeMapM")
       , $(createBgroup "map-with-all-in-filter" "composeMapAllInFilter")

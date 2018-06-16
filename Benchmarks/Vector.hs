@@ -11,7 +11,9 @@ module Benchmarks.Vector where
 import Benchmarks.Common (value, maxValue)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=),
-        subtract, undefined, replicate)
+        subtract, undefined, replicate, Maybe(..))
+import qualified Prelude as P
+import Data.Foldable (fold)
 
 import qualified Data.Vector.Fusion.Stream.Monadic as S
 
@@ -57,8 +59,31 @@ last :: Monad m => Stream m Int -> m Int
 
 type Stream m a = S.Stream m a
 
+{-# INLINE source #-}
 source :: Monad m => Int -> Stream m Int
-source n = S.fromList [n..n+value]
+--source n = S.fromList [n..n+value]
+source n = S.unfoldrM step n
+    where
+    step cnt =
+        if cnt > n + value
+        then return Nothing
+        else return (Just (cnt, cnt + 1))
+        {-
+source n = S.unfoldr step n
+    where
+    step cnt =
+        if cnt > n + value
+        then Nothing
+        else (Just (cnt, cnt + 1))
+            -}
+
+-------------------------------------------------------------------------------
+-- Append
+-------------------------------------------------------------------------------
+
+{-# INLINE appendSource #-}
+appendSource :: Monad m => Int -> Stream m Int
+appendSource n = P.foldr (S.++) S.empty (P.map S.singleton [n..n+value])
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()

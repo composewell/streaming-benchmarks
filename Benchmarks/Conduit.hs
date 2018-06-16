@@ -10,10 +10,11 @@ module Benchmarks.Conduit where
 import Benchmarks.Common (value, maxValue)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, undefined, replicate, (<$>), (<*>), Maybe)
+        subtract, undefined, replicate, (<$>), (<*>), Maybe(..), foldMap, (.))
 
 import qualified Data.Conduit as S
 import qualified Data.Conduit.Combinators as S
+import qualified Data.Conduit.List as SL
 import Data.Conduit.List (sourceList)
 
 -------------------------------------------------------------------------------
@@ -60,8 +61,23 @@ type Source m i a = S.ConduitT i a m ()
 type Sink   m a r = S.ConduitT a S.Void m r
 type Pipe   m a b = S.ConduitT a b m ()
 
+{-# INLINE source #-}
 source :: Monad m => Int -> Source m () Int
-source n = sourceList [n..n+value]
+-- source n = sourceList [n..n+value]
+source n = SL.unfoldM step n
+    where
+    step cnt =
+        if cnt > n + value
+        then return Nothing
+        else return (Just (cnt, cnt + 1))
+
+-------------------------------------------------------------------------------
+-- Append
+-------------------------------------------------------------------------------
+
+{-# INLINE appendSource #-}
+appendSource :: Monad m => Int -> Source m () Int
+appendSource n = foldMap (S.yieldM . return) [n..n+value]
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Sink m Int a -> Source m () Int -> m a
