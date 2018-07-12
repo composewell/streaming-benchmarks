@@ -13,7 +13,6 @@ import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=),
         subtract, undefined, replicate, Maybe(..))
 import qualified Prelude as P
-import Data.Foldable (fold)
 
 import qualified Data.Vector.Fusion.Stream.Monadic as S
 
@@ -97,8 +96,10 @@ appendSource n = P.foldr (S.++) S.empty (P.map S.singleton [n..n+value])
 {-# INLINE mapMSource #-}
 mapMSource :: Monad m => Int -> Stream m Int
 mapMSource n = f 100000 (sourceN 10 n)
-    where f 0 m = S.mapM return m
-          f x m = S.mapM return (f (x P.- 1) m)
+    where
+        f :: Monad m => Int -> Stream m Int -> Stream m Int
+        f 0 m = S.mapM return m
+        f x m = S.mapM return (f (x P.- 1) m)
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()

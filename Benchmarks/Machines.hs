@@ -6,6 +6,7 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE RankNTypes #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Benchmarks.Machines where
 
 import Benchmarks.Common (value, maxValue)

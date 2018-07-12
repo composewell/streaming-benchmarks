@@ -15,7 +15,7 @@ import Prelude
 import qualified Data.Conduit as S
 import qualified Data.Conduit.Combinators as S
 import qualified Data.Conduit.List as SL
-import Data.Conduit.List (sourceList)
+-- import Data.Conduit.List (sourceList)
 
 -------------------------------------------------------------------------------
 -- Benchmark ops

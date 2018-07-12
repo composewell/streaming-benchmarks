@@ -93,13 +93,15 @@ sourceN count begin = S.unfoldrM step begin
 
 {-# INLINE appendSource #-}
 appendSource :: Monad m => Int -> Stream m Int
-appendSource n = foldMap (S.once . return) [n..n+value]
+appendSource n = foldMap (S.yieldM . return) [n..n+value]
 
 {-# INLINE mapMSource #-}
 mapMSource :: S.MonadAsync m => Int -> Stream m Int
 mapMSource n = f 100000 (sourceN 10 n)
-    where f 0 m = S.mapM return m
-          f x m = S.mapM return (f (x P.- 1) m)
+    where
+        f :: S.MonadAsync m => Int -> Stream m Int -> Stream m Int
+        f 0 m = S.mapM return m
+        f x m = S.mapM return (f (x P.- 1) m)
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()

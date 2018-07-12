@@ -99,6 +99,7 @@ if test "$MEASURE" != "0"
     --include-first-iter \
     --min-samples 3 \
     --min-duration 0 \
+    --match exact \
     --csv=results.csv \
     -v 2 \
     $BENCH_PROG $*" || die "Benchmarking failed"
