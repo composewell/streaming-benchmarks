@@ -77,6 +77,15 @@ source n = S.unfoldr step n
         else (Just (cnt, cnt + 1))
             -}
 
+{-# INLINE sourceN #-}
+sourceN :: Monad m => Int -> Int -> Stream m Int
+sourceN count begin = S.unfoldrM step begin
+    where
+    step i =
+        if i > begin + count
+        then return Nothing
+        else return (Just (i, i + 1))
+
 -------------------------------------------------------------------------------
 -- Append
 -------------------------------------------------------------------------------
@@ -84,6 +93,12 @@ source n = S.unfoldr step n
 {-# INLINE appendSource #-}
 appendSource :: Monad m => Int -> Stream m Int
 appendSource n = P.foldr (S.++) S.empty (P.map S.singleton [n..n+value])
+
+{-# INLINE mapMSource #-}
+mapMSource :: Monad m => Int -> Stream m Int
+mapMSource n = f 100000 (sourceN 10 n)
+    where f 0 m = S.mapM return m
+          f x m = S.mapM return (f (x P.- 1) m)
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()
@@ -139,8 +154,8 @@ composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.filter (<= maxValue) . S.map (subtract 1))
 
 composeScaling :: Monad m => Int -> Stream m Int -> m ()
-composeScaling m =
-    case m of
+composeScaling n =
+    case n of
         1 -> transform . f
         2 -> transform . f . f
         3 -> transform . f . f . f

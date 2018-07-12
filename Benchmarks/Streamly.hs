@@ -12,6 +12,7 @@ import Benchmarks.Common (value, maxValue)
 import Prelude
        (Monad, Int, (+), ($), (.), return, fmap, even, (>), (<=),
         subtract, undefined, Maybe(..), foldMap)
+import qualified Prelude as P
 
 import qualified Streamly          as S
 import qualified Streamly.Prelude  as S
@@ -77,6 +78,15 @@ source n = S.unfoldr step n
         else (Just (cnt, cnt + 1))
             -}
 
+{-# INLINE sourceN #-}
+sourceN :: S.MonadAsync m => Int -> Int -> Stream m Int
+sourceN count begin = S.unfoldrM step begin
+    where
+    step i =
+        if i > begin + count
+        then return Nothing
+        else return (Just (i, i + 1))
+
 -------------------------------------------------------------------------------
 -- Append
 -------------------------------------------------------------------------------
@@ -84,6 +94,12 @@ source n = S.unfoldr step n
 {-# INLINE appendSource #-}
 appendSource :: Monad m => Int -> Stream m Int
 appendSource n = foldMap (S.once . return) [n..n+value]
+
+{-# INLINE mapMSource #-}
+mapMSource :: S.MonadAsync m => Int -> Stream m Int
+mapMSource n = f 100000 (sourceN 10 n)
+    where f 0 m = S.mapM return m
+          f x m = S.mapM return (f (x P.- 1) m)
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()

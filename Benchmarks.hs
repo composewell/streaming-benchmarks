@@ -63,6 +63,14 @@ main = do
 --    , benchIO "streaming" Streaming.appendSource Streaming.toNull
       , bench "streaming" $ nfIO (return 1 :: IO Int)
       ]
+      {-
+      -- Perform 100,000 mapM recursively over a stream of length 10
+      -- implemented only for vector and streamly.
+      bgroup "mapM-nested"
+    , [ benchIO "streamly" Streamly.mapMSource Streamly.toNull
+      , benchIO "vector" Vector.mapMSource Vector.toNull
+      ]
+      -}
     , bgroup "compose"
       [ $(createBgroup "mapM" "composeMapM")
       , $(createBgroup "map-with-all-in-filter" "composeMapAllInFilter")
