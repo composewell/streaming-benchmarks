@@ -6,7 +6,8 @@ import Data.Char (isSpace)
 import Data.List.Split (splitOn)
 import Data.Maybe (catMaybes)
 import System.Environment (getArgs)
-import System.Process.Typed (readProcess_)
+import System.Exit (ExitCode(..))
+import System.Process.Typed (readProcess)
 import BenchGraph (bgraph, defaultConfig, Config(..))
 
 import Data.List
@@ -80,21 +81,28 @@ charts =
 -------------------------------------------------------------------------------
 main :: IO ()
 main = do
-    (out, _) <- readProcess_ "stack --system-ghc list-dependencies --bench"
+    (ecode, out, _) <- readProcess "stack --system-ghc list-dependencies --bench"
 
-    -- Get our streaming packages and their versions
-    let match [] = Nothing
-        match (_ : []) = Nothing
-        match (x : y : _) =
-            case elem x packages of
-                False -> Nothing
-                True -> Just (x, y)
+    -- pkginfo is [(packagename, version)]
+    pkginfo <-
+        case ecode of
+            ExitSuccess -> do
+                -- Get our streaming packages and their versions
+                let match [] = Nothing
+                    match (_ : []) = Nothing
+                    match (x : y : _) =
+                        case elem x packages of
+                            False -> Nothing
+                            True -> Just (x, y)
 
-        -- pkginfo is [(packagename, version)]
-        pkginfo =
-              catMaybes
-            $ map match
-            $ map words (lines (T.unpack $ T.decodeUtf8 out))
+                 in return
+                    $ catMaybes
+                    $ map match
+                    $ map words (lines (T.unpack $ T.decodeUtf8 out))
+            ExitFailure _ -> do
+                putStrLn $ "Warning! Cannot determine package versions, "
+                    ++ "the 'stack list-dependencies' command failed."
+                return []
 
     -- suffix versions to packages
     let suffixVersion p =
