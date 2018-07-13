@@ -85,7 +85,7 @@ matrix:
   #  addons: {apt: {packages: [cabal-install-1.24], sources: [hvr-ghc]}}
 
   # Use cabal-install-1.24 for stack solver to work
-  - env: BUILD=stack RESOLVER=lts-11 GHCVER=8.2.2
+  - env: BUILD=stack RESOLVER=lts-11 GHCVER=8.2.2 STACK_YAML=stack-8.2.yaml
     addons: {apt: {packages: [cabal-install-1.24], sources: [hvr-ghc]}}
 
   # Use cabal-install-1.24 for stack solver to work
@@ -113,8 +113,8 @@ matrix:
   #- env: BUILD=cabal-new GHCVER=8.2.2
   #  addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal-new GHCVER=8.4.1
-    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.1], sources: [hvr-ghc]}}
+  - env: BUILD=cabal-new GHCVER=8.4.3
+    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.3], sources: [hvr-ghc]}}
 
   #- env: BUILD=cabal-new GHCVER=head
   #  addons: {apt: {packages: [cabal-install-head,ghc-head], sources: [hvr-ghc]}}

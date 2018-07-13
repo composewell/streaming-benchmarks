@@ -1,0 +1,21 @@
+resolver: lts-11.0
+packages:
+- '.'
+extra-deps:
+  - gauge-0.2.3
+  - streamly-0.4.0
+  - bench-graph-0.1.2
+
+  # for lts-11.0
+  - Chart-diagrams-1.8.3
+  - SVGFonts-1.6.0.3
+  - diagrams-core-1.4.0.1
+  - diagrams-lib-1.4.2
+  - diagrams-postscript-1.4
+  - diagrams-svg-1.4.1.1
+  - diagrams-solve-0.1.1
+  - dual-tree-0.2.1
+  - lens-4.15.4
+  - free-4.12.4
+  - drinkery-0.3
+rebuild-ghc-options: true

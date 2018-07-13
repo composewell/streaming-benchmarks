@@ -3,7 +3,6 @@ packages:
 - '.'
 extra-deps:
   - streamly-0.4.0
-  - list-transformer-1.0.4
   - drinkery-0.3
 
   # for lts-12.0
