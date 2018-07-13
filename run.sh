@@ -90,17 +90,19 @@ if test "$MEASURE" != "0"
     mv -f -v results.csv results.csv.prev
   fi
 
-  # We set min-samples to 1 so that we run with default benchmark duration of 5
-  # seconds, whatever number of samples are possible in that.
-  # We run just one iteration for each sample. Anyway the default is to run
-  # for 30 ms and most our benchmarks are close to that or more.
-  # If we use less than three samples, statistical analysis crashes
+  # We set min-samples to 3 if we use less than three samples, statistical
+  # analysis crashes. Note that the benchmark runs for a minimum of 5 seconds.
+  # We use min-duration=0 to run just one iteration for each sample, we anyway
+  # run a million ops in each iteration so we do not need more iterations.
+  # However with fusion, million ops finish in microseconds. The
+  # default is to run iterations worth minimum 30 ms and most of our benchmarks
+  # are close to that or more.
+  #  --min-duration 0 \
   $STACK bench --benchmark-arguments "$ENABLE_QUICK \
     --include-first-iter \
     --min-samples 3 \
-    --min-duration 0 \
     --match exact \
-    --csv=results.csv \
+    --csvraw=results.csv \
     -v 2 \
     $BENCH_PROG $*" || die "Benchmarking failed"
 fi

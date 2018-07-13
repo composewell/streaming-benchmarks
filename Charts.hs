@@ -22,9 +22,9 @@ packages =
     , "pure-vector"
     , "vector"
     , "streamly"
+    , "conduit"
     , "streaming"
     , "pipes"
-    , "conduit"
     , "machines"
     , "drinkery"
     ]
@@ -35,16 +35,19 @@ charts :: [(String, [String])]
 charts =
     [
       -- Operations are listed in increasing cost order
-      ( "Summary (Shorter is Faster)"
+      ( "Key Operations"
       , [
-          "elimination/drain"
+          "elimination/fold"
         , "transformation/mapM"
---        , "append"
+        , "filtering/filter-even"
         , "zip"
         ]
       )
-
-    , ( "Detailed (Shorter is Faster)"
+    , ( "Append Operation"
+      , [ "append"
+        ]
+      )
+    , ( "All Operations"
       , [
           "elimination/drain"
         , "filtering/drop-all"
@@ -60,20 +63,18 @@ charts =
         , "filtering/filter-even"
         , "transformation/scan"
         , "transformation/mapM"
-        -- , "append"
         , "zip"
         -- , "transformation/concat"
-        , "elimination/toList"
         ]
       )
-
-    , ( "Composed Ops 4 times (Shorter is Faster)"
-      , [ "compose/filter-even"
-        -- , "compose/all-in-filters"
-        -- , "compose/all-in-filters"
-        , "compose/mapM"
-        --, "compose/map-with-all-in-filter"
-        , "compose/map-and-filter"
+    , ( "toList Operation"
+      , [ "elimination/toList"
+        ]
+      )
+    , ( "Composed Operations: 4 times"
+      , [ "compose/mapM"
+        , "compose/all-in-filters"
+        , "compose/map-with-all-in-filter"
         ]
       )
     ]
@@ -117,14 +118,18 @@ main = do
                 case any (`isPrefixOf` bm) prefixes of
                     True ->
                         let xs = reverse (splitOn "/" bm)
-                        in Just (suffixVersion (xs !! 0), xs !! 1)
+                            grp   = xs !! 0
+                            bench = xs !! 1
+                        in case grp `elem` packages of
+                                True -> Just (suffixVersion grp, bench)
+                                False -> Nothing
                     False -> Nothing
             , sortBenchmarks = \bs ->
-                let i = intersect (map (last . splitOn "/") prefixes) bs
-                in i ++ (bs \\ i)
+                    let i = intersect (map (last . splitOn "/") prefixes) bs
+                    in i ++ (bs \\ i)
             , sortBenchGroups = \gs ->
-                let i = intersect (map suffixVersion packages) gs
-                in i ++ (gs \\ i)
+                    let i = intersect (map suffixVersion packages) gs
+                    in i ++ (gs \\ i)
             }
 
     -- links in README.rst eat up the space so we match the same
@@ -133,10 +138,13 @@ main = do
             ++ "-"
             ++ field
 
-        makeOneGraph infile field desc@(title, _) =
-            bgraph infile (toOutfile title field) field (cfg desc)
+        makeOneGraph infile field (title, prefixes) = do
+            let title' =
+                       title
+                    ++ " (" ++ field ++ ")"
+                    ++ " (Lower is Better)"
+            bgraph infile (toOutfile title field) field (cfg (title', prefixes))
 
     input <- fmap head getArgs
-    mapM_ (makeOneGraph input "Time") charts
-    -- mapM_ (makeOneGraph input "mean") charts
-    -- mapM_ (makeOneGraph "allocated") charts
+    mapM_ (makeOneGraph input "time") charts
+    mapM_ (makeOneGraph input "allocated") charts
