@@ -34,8 +34,8 @@ Benchmarks & Results
 Key Operations
 ~~~~~~~~~~~~~~
 
-A stream of one million consecutive number is generated using monadic unfold
-API `unfoldrM`, these elements are then processed using a streaming combinators
+A stream of one million consecutive numbers is generated using monadic unfold
+API `unfoldrM`, these elements are then processed using a streaming combinator
 under test, the total time to process one million operations is measured and
 plotted for each library. The underlying monad for each stream is the IO Monad.
 
@@ -83,7 +83,7 @@ A million streams of single elements are created and appended together to
 create a stream of million elements. The total time taken in this operation is
 measured. *Note that vector, streaming and pipes show a quadratic
 complexity (O(n^2)) on this benchmark and do not finish in a reasonable time*.
-The time shown in the graph is for these libraries is just
+The time shown in the graph for these libraries is just
 indicative the actual time taken is much higher.
 
 .. |append| image:: charts-0/AppendOperation-time.svg
