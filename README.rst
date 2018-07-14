@@ -31,14 +31,16 @@ any way.
 Benchmarks & Results
 --------------------
 
+Key Operations
+~~~~~~~~~~~~~~
+
 A stream of one million consecutive number is generated using monadic unfold
 API `unfoldrM`, these elements are then processed using a streaming combinators
 under test, the total time to process one million operations is measured and
 plotted for each library. The underlying monad for each stream is the IO Monad.
-The benchmarks are:
 
-Key Operations
-~~~~~~~~~~~~~~
+*Note: the time for streamly and vector is very low (600-700 microseconds) and
+therefore can barely be seen in this graph.*
 
 .. |keyoperations| image:: charts-0/KeyOperations-time.svg
   :width: 60 %
@@ -79,7 +81,7 @@ Append Operation
 
 A million streams of single elements are created and appended together to
 create a stream of million elements. The total time taken in this operation is
-measured. *Note that ``vector``, ``streaming`` and ``pipes`` show a quadratic
+measured. *Note that vector, streaming and pipes show a quadratic
 complexity (O(n^2)) on this benchmark and do not finish in a reasonable time*.
 The time shown in the graph is for these libraries is just
 indicative the actual time taken is much higher.
@@ -110,6 +112,9 @@ Composing Multiple Operations
 A stream operation or a combination of stream operations are performed four
 times in a row to measure how the composition scales for each library. A
 million elements are passed through this composition.
+
+*Note: the time for streamly and vector is very low (600-700 microseconds) and
+therefore can barely be seen in this graph.*
 
 .. |composed| image:: charts-0/ComposedOperations%3A4times-time.svg
   :width: 60 %
