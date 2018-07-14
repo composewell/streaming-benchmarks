@@ -1,6 +1,6 @@
 name:          streaming-benchmarks
 category:      Benchmark
-version:       0.1.0
+version:       0.2.0
 license:       MIT
 license-file:  LICENSE
 author:        Harendra Kumar
@@ -13,22 +13,18 @@ synopsis:      Benchmarks to compare streaming packages
 description:
   Comprehensive, carefully crafted benchmarks for streaming operations and
   their comparisons across notable Haskell streaming libraries including
-  `streaming`, `machines`, `pipes`, `conduit` and `streamly`.
-  <http://hackage.haskell.org/package/streamly Streamly> is a new
-  streaming library with high level and composable concurrency built-in, it is
-  the primary motivation for these benchmarks. We have put a lot of effort to
-  make sure that the benchmarks are correct, fair and reproducible.  Please
-  report if you find something that is not right.
+  `streamly`, `vector`, `streaming`, `machines`, `pipes`, and `conduit`.
+  <http://hackage.haskell.org/package/streamly Streamly> is a streaming
+  library with high level and composable concurrency built-in, it is the
+  primary motivation for these benchmarks.  Please report an issue in the
+  github repo if you find the benchmarks to be unfair or any issues with the
+  benchmarks.
   .
   If you are using @stack@ then you can just use @./run.sh@ to run the
   benchmarks; charts will be generated in the `charts` directory.
   .
   With any build tool, run the benchmarks with @--csv=results.csv@ as arguments
-  and then use @makecharts results.csv@ to create the charts. Note that,
-  @makecharts@ currently depends on @stack@ to extract the versions of packages
-  for reporting in charts. In case you want to be pedantic about accurate
-  results then you can run the benchmarks in the same way as @run.sh@ invokes
-  them.
+  and then use @makecharts results.csv@ to create the charts.
 
 cabal-version: >= 1.10
 tested-with: GHC==8.2.2, GHC==8.4.3
@@ -114,5 +110,5 @@ executable makecharts
     , directory         >= 1.2     && < 1.4
     , split             >= 0.2     && < 0.3
     , text              >= 1.1.1   && < 1.3
-    , transformers        >= 0.4   && < 0.6
+    , transformers      >= 0.4     && < 0.6
     , typed-process     >= 0.1.0.0 && < 0.3

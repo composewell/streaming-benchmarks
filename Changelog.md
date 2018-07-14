@@ -1,4 +1,4 @@
-## Unreleased
+## 0.2.0
 
 * Added benchmarks for pure lists
 * Added benchmarks for pure `vector`
@@ -10,6 +10,7 @@
 * The benchmarking code now works for `IO` as well as `Identity` monad.
 * Used the same stream generation method for all libraries for a fair
   comparison.
+* Use a monadic API (`unfoldrM`) for generating the stream.
 * conduit-1.3.0 has a performance issue with `mapM_`. Avoided using `mapM_` and
   used `sinkNull` instead. See https://github.com/snoyberg/conduit/issues/363.
   This workaround improves the performance of all conduit benchmarks that drain

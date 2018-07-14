@@ -19,8 +19,8 @@ environment:
     # DISABLE_TEST: "y"
     # DISABLE_BENCH: "y"
     # DISABLE_DOCS: "y"
-    # DISABLE_SDIST_BUILD: "y"
-    ENABLE_INSTALL: "y"
+    DISABLE_SDIST_BUILD: "y"
+    # ENABLE_INSTALL: "y"
 
     # ------------------------------------------------------------------------
     # stack options
