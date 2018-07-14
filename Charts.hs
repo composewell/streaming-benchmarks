@@ -20,8 +20,8 @@ packages :: [String]
 packages =
     [ "list"
     , "pure-vector"
-    , "vector"
     , "streamly"
+    , "vector"
     , "conduit"
     , "streaming"
     , "pipes"
