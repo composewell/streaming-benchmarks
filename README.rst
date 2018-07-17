@@ -21,35 +21,46 @@ Streaming Benchmarks
    :depth: 1
 
 This package compares `streamly <https://github.com/composewell/streamly>`_, a
-blazing fast streaming library with native concurrency support, with popular
-streaming libraries e.g. vector, streaming, pipes and conduit.  This package
-has been motivated by `streamly <https://github.com/composewell/streamly>`_,
-however, it is general purpose and compares more libraries and benchmarks than
-shown here. Please send an email or a pull request if the benchmarking code has
-a problem or is unfair to some library in any way.
+blazing fast streaming library providing native high level, declarative and
+composable concurrency support, with popular streaming libraries e.g. vector,
+streaming, pipes and conduit.  This package has been motivated by `streamly
+<https://github.com/composewell/streamly>`_, however, it is general purpose and
+compares more libraries and benchmarks than shown here. Please send an email or
+a pull request if the benchmarking code has a problem or is unfair to some
+library in any way.
 
 Benchmarks & Results
 --------------------
 
 A stream of one million consecutive numbers is generated using monadic unfold
 API ``unfoldrM``, these elements are then processed using a streaming
-combinator under test (e.g. ``map``), the total time to process all one million
+combinator under test (e.g. ``map``). The total time to process all one million
 operations, and the maximum resident set size (rss) is measured and plotted for
-each library. The underlying monad for each stream is the IO Monad.
+each library. The underlying monad for each stream is the IO Monad. All the
+libraries are compiled with GHC-8.4.3.
 
 Highlights
 ~~~~~~~~~~
 
 * ``streamly`` has the best overall performance in terms of time as well as
-  space. ``streamly`` and ``vector`` have almost the same performance except
-  for the ``append`` operation where ``streamly`` is much better.
-* The append operation scales well only for ``streamly`` and ``conduit``. All
-  other libraries show quadratic complexity on this operation.
+  space. ``streamly`` and ``vector`` have similar performance except
+  for the ``append`` operation where ``streamly`` is much better, and the
+  ``filter`` operation where vector is faster.
+* The ``append`` operation scales well only for ``streamly`` and ``conduit``.
+  All other libraries show quadratic complexity on this operation.
 * ``streaming`` performs slightly better than ``conduit`` when multiple
   operations are composed together even though in terms of individual
   operations it is slightly worse than ``conduit``.
 * ``conduit`` and ``pipes`` show unusually large space utilization for
-  ``take`` and ``drop`` operations (more than 100-150 MB vs 2 MB).
+  ``take`` and ``drop`` operations (more than 100-150 MiB vs 3 MiB).
+* ``drinkery`` shows very good performance too though not plotted here because
+  of a small issue in measurement and lack of space.
+* ``machines`` is roughly 2x slower than the slowest library here, and its
+  maximum resident set size is close to 100 MiB for all operations (touching
+  300 MiB for ``take``) compared to the 3MiB for all other libraries.  I am not
+  sure if there is something wrong with the measurements or the benchmarking
+  code, majority of the code is common to all libraries, any improvements in
+  the machines benchmarking code are welcome.
 
 Key Operations
 ~~~~~~~~~~~~~~
@@ -123,7 +134,7 @@ create a stream of million elements. The total time taken in this operation is
 measured. *Note that vector, streaming and pipes show a quadratic
 complexity (O(n^2)) on this benchmark and do not finish in a reasonable time*.
 The time shown in the graph for these libraries is just
-indicative the actual time taken is much higher.
+indicative, the actual time taken is much higher.
 
 .. |append| image:: charts-0/AppendOperation-time.svg
   :width: 60 %
@@ -135,8 +146,8 @@ indicative the actual time taken is much higher.
 toList Operation
 ~~~~~~~~~~~~~~~~
 
-A stream of a million elements is generated using `unfoldrM` and then converted
-to a list.
+A stream of a million elements is generated using ``unfoldrM`` and then
+converted to a list.
 
 .. |toList| image:: charts-0/toListOperation-time.svg
   :width: 60 %
@@ -177,33 +188,29 @@ therefore can barely be seen in this graph.*
 How to Run
 ----------
 
+To quickly compare packages:
+
 ::
 
-  ./run.sh
+  # Chart all the default packages
+  ./run.sh --quick
+
+  # Compare a given list of packages
+  # Available package names are: streamly, vector, streaming, pipes,
+  # conduit, machines, drinkery, list, pure-vector
+  ./run.sh --quick --select "streamly,vector"
+
+  # Show full results for the first packages and delta from that for
+  # the rest of the packages.
+  ./run.sh --quick --select "streamly,vector" --delta
 
 After running you can find the charts generated in the ``charts`` directory.
+If you have the patience to wait longer for the results remove the ``--quick``
+option, the results are likely to be a tiny bit more accurate.
 
-Comparing Selected Packages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you want to compare just two or three packages you can do that too.
-
-::
-
-  ./run.sh -- -m pattern vector
-  ./run.sh --append -- -m pattern streamly
-  ./run.sh --append -- -m pattern streaming
-
-These commands will keep appending benchmark data and the newly benchmarked
-package will get added in the charts every time you run the command. To start
-fresh again remove the ``--append`` option.
-
-Quick Mode
-~~~~~~~~~~
-
-If you are impatient use ``./run.sh --quick`` and you will get the results much
-sooner though a tiny bit less precise. Note that quick mode won't generate the
-graphs unless the yet unreleased version of ``gauge`` from github repo is used.
+The ``list`` package above is the standard haskell lists in the base package,
+and ``pure-vector`` is the vector package using pure API instead of the monadic
+API.
 
 Pedantic Mode
 ~~~~~~~~~~~~~

@@ -14,17 +14,22 @@ description:
   Comprehensive, carefully crafted benchmarks for streaming operations and
   their comparisons across notable Haskell streaming libraries including
   `streamly`, `vector`, `streaming`, `machines`, `pipes`, and `conduit`.
-  <http://hackage.haskell.org/package/streamly Streamly> is a streaming
-  library with high level and composable concurrency built-in, it is the
-  primary motivation for these benchmarks.  Please report an issue in the
-  github repo if you find the benchmarks to be unfair or any issues with the
-  benchmarks.
+  <http://hackage.haskell.org/package/streamly Streamly> is a streaming library
+  with native - high level, declarative and composable concurrency, it
+  is the primary motivation for these benchmarks.  Please report an issue in
+  the github repo if you find the benchmarks to be unfair or any issues with
+  the benchmarks.
   .
   If you are using @stack@ then you can just use @./run.sh@ to run the
-  benchmarks; charts will be generated in the `charts` directory.
+  benchmarks; use @--quick@ option to get the result quickly; charts will be
+  generated in the `charts` directory. Use @./run.sh --help@ for all script
+  options.
   .
   With any build tool, run the benchmarks with @--csv=results.csv@ as arguments
-  and then use @makecharts results.csv@ to create the charts.
+  (you can pass any @gauge@ arguments including @--quick@) and then use
+  @makecharts results.csv "streamly,vector,..." False@ to create the charts.
+  The second argument to @makecharts@ is the list of package names, the third
+  argument is whether to plot diff from the first package.
 
 cabal-version: >= 1.10
 tested-with: GHC==8.2.2, GHC==8.4.3
@@ -112,3 +117,4 @@ executable makecharts
     , text              >= 1.1.1   && < 1.3
     , transformers      >= 0.4     && < 0.6
     , typed-process     >= 0.1.0.0 && < 0.3
+    , getopt-generics   >= 0.11    && < 0.14

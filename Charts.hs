@@ -5,29 +5,15 @@ module Main where
 import Data.Char (isSpace)
 import Data.List.Split (splitOn)
 import Data.Maybe (catMaybes)
-import System.Environment (getArgs)
 import System.Exit (ExitCode(..))
 import System.Process.Typed (readProcess)
-import BenchGraph (bgraph, defaultConfig, Config(..))
+import BenchGraph (bgraph, defaultConfig, Config(..), ComparisonStyle(..))
+import WithCli (withCli)
 
 import Data.List
 
 import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Encoding as T
-
--- XXX use package name and a tag
-packages :: [String]
-packages =
-    [ "list"
-    , "pure-vector"
-    , "streamly"
-    , "vector"
-    , "streaming"
-    , "conduit"
-    , "pipes"
-    , "machines"
-    , "drinkery"
-    ]
 
 -- pairs of benchmark group titles and corresponding list of benchmark
 -- prefixes i.e. without the package name at the end.
@@ -81,40 +67,47 @@ charts =
     ]
 
 -------------------------------------------------------------------------------
-main :: IO ()
-main = do
+
+-- returns [(packagename, version)]
+getPkgVersions :: [String] -> IO [(String, String)]
+getPkgVersions packages = do
     (ecode, out, _) <- readProcess "stack --system-ghc list-dependencies --bench"
 
-    -- pkginfo is [(packagename, version)]
-    pkginfo <-
-        case ecode of
-            ExitSuccess -> do
-                -- Get our streaming packages and their versions
-                let match [] = Nothing
-                    match (_ : []) = Nothing
-                    match (x : y : _) =
-                        case elem x packages of
-                            False -> Nothing
-                            True -> Just (x, y)
+    case ecode of
+        ExitSuccess -> do
+            -- Get our streaming packages and their versions
+            let match [] = Nothing
+                match (_ : []) = Nothing
+                match (x : y : _) =
+                    case elem x packages of
+                        False -> Nothing
+                        True -> Just (x, y)
 
-                 in return
-                    $ catMaybes
-                    $ map match
-                    $ map words (lines (T.unpack $ T.decodeUtf8 out))
-            ExitFailure _ -> do
-                putStrLn $ "Warning! Cannot determine package versions, "
-                    ++ "the 'stack list-dependencies' command failed."
-                return []
+             in return
+                $ catMaybes
+                $ map match
+                $ map words (lines (T.unpack $ T.decodeUtf8 out))
+        ExitFailure _ -> do
+            putStrLn $ "Warning! Cannot determine package versions, "
+                ++ "the 'stack list-dependencies' command failed."
+            return []
 
-    -- suffix versions to packages
-    let suffixVersion p =
-            case lookup p pkginfo of
-                Nothing -> p
-                Just v -> p ++ "-" ++ v
+-- suffix versions to packages
+suffixVersion :: [(String, String)] -> String -> String
+suffixVersion pkginfo p =
+    case lookup p pkginfo of
+        Nothing -> p
+        Just v -> p ++ "-" ++ v
 
-        cfg (title, prefixes) = defaultConfig
+createCharts :: String -> String -> Bool -> IO ()
+createCharts input pkgList delta = do
+    let packages = splitOn "," pkgList
+    let pkgInfo = []
+    -- pkgInfo <- getPkgVersions
+    let cfg (title, prefixes) = defaultConfig
             { chartTitle = Just title
             , outputDir = "charts"
+            , comparisonStyle = if delta then CompareDelta else CompareFull
             , classifyBenchmark = \bm ->
                 case any (`isPrefixOf` bm) prefixes of
                     True ->
@@ -122,14 +115,14 @@ main = do
                             grp   = xs !! 0
                             bench = xs !! 1
                         in case grp `elem` packages of
-                                True -> Just (suffixVersion grp, bench)
+                                True -> Just (suffixVersion pkgInfo grp, bench)
                                 False -> Nothing
                     False -> Nothing
             , sortBenchmarks = \bs ->
                     let i = intersect (map (last . splitOn "/") prefixes) bs
                     in i ++ (bs \\ i)
             , sortBenchGroups = \gs ->
-                    let i = intersect (map suffixVersion packages) gs
+                    let i = intersect (map (suffixVersion pkgInfo) packages) gs
                     in i ++ (gs \\ i)
             }
 
@@ -146,7 +139,10 @@ main = do
                     ++ " (Lower is Better)"
             bgraph infile (toOutfile title field) field (cfg (title', prefixes))
 
-    input <- fmap head getArgs
     mapM_ (makeOneGraph input "time") charts
     mapM_ (makeOneGraph input "allocated") charts
     mapM_ (makeOneGraph input "maxrss") charts
+
+-- Pass <input file> <comma separated list of packages> <True/False>
+main :: IO ()
+main = withCli createCharts

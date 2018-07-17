@@ -1,7 +1,10 @@
 #!/bin/bash
 
 print_help () {
-  echo "Usage: $0 [--quick] [--append] [--pedantic] [--no-graphs] [--no-measure] -- <gauge options>"
+  echo "Usage: $0 [--quick] [--select] [--delta] [--append] [--pedantic] [--no-graphs] [--no-measure] -- <gauge options>"
+  echo
+  echo "--select "streamly,vector" - would generate results only for those two libraries."
+  echo "--delta - chart diff of subsequent packages from the first package"
   echo "Any arguments after a '--' are passed directly to guage"
   echo "You can omit '--' if the gauge args used do not start with a '-'."
   exit
@@ -13,11 +16,15 @@ die () {
   exit 1
 }
 
+DELTA=False
+
 while test -n "$1"
 do
   case $1 in
     -h|--help|help) print_help ;;
     --quick) QUICK=1; shift ;;
+    --select) shift; SELECTED=$1; shift ;;
+    --delta) DELTA=True; shift ;;
     --append) APPEND=1; shift ;;
     --pedantic) PEDANTIC=1; shift ;;
     --no-graphs) GRAPH=0; shift ;;
@@ -27,6 +34,13 @@ do
     *) break ;;
   esac
 done
+
+DEFAULT_PACKAGES="streamly,vector,streaming,conduit,pipes,machines,drinkery"
+
+if test -z "$SELECTED"
+then
+  SELECTED=$DEFAULT_PACKAGES
+fi
 
 STACK=stack
 if test "$PEDANTIC" = "1"
@@ -90,6 +104,12 @@ if test "$MEASURE" != "0"
     mv -f -v results.csv results.csv.prev
   fi
 
+  MATCH_ARGS=""
+  for i in $(echo $SELECTED | tr "," "\n")
+  do
+     MATCH_ARGS="$MATCH_ARGS -m pattern /$i"
+  done
+
   # We set min-samples to 3 if we use less than three samples, statistical
   # analysis crashes. Note that the benchmark runs for a minimum of 5 seconds.
   # We use min-duration=0 to run just one iteration for each sample, we anyway
@@ -104,6 +124,7 @@ if test "$MEASURE" != "0"
     --match exact \
     --csvraw=results.csv \
     -v 2 \
+    $MATCH_ARGS \
     $BENCH_PROG $*" || die "Benchmarking failed"
 fi
 
@@ -111,5 +132,5 @@ if test "$GRAPH" != "0"
 then
   echo
   echo "Generating charts from results.csv..."
-  $STACK exec makecharts results.csv
+  $STACK exec makecharts results.csv $SELECTED $DELTA
 fi
