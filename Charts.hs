@@ -22,8 +22,8 @@ packages =
     , "pure-vector"
     , "streamly"
     , "vector"
-    , "conduit"
     , "streaming"
+    , "conduit"
     , "pipes"
     , "machines"
     , "drinkery"
@@ -35,6 +35,7 @@ charts :: [(String, [String])]
 charts =
     [
       -- Operations are listed in increasing cost order
+      {-
       ( "Key Operations"
       , [
           "elimination/fold"
@@ -43,11 +44,11 @@ charts =
         , "zip"
         ]
       )
-    , ( "Append Operation"
+    , -} ( "Append Operation"
       , [ "append"
         ]
       )
-    , ( "All Operations"
+    , ( "Key Operations"
       , [
           "elimination/drain"
         , "filtering/drop-all"
@@ -148,3 +149,4 @@ main = do
     input <- fmap head getArgs
     mapM_ (makeOneGraph input "time") charts
     mapM_ (makeOneGraph input "allocated") charts
+    mapM_ (makeOneGraph input "maxrss") charts

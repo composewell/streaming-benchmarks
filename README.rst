@@ -20,34 +20,70 @@ Streaming Benchmarks
 .. contents:: Table of Contents
    :depth: 1
 
-Comparison of `streamly <https://github.com/composewell/streamly>`_ with
-popular streaming libraries. `streamly
-<https://github.com/composewell/streamly>`_ is a blazing fast streaming library
-with concurrency support. The package is general purpose and compares more
-libraries and benchmarks than shown here. Please send an email or a pull
-request if the benchmarking code has a problem or is unfair to some library in
-any way.
+This package compares `streamly <https://github.com/composewell/streamly>`_, a
+blazing fast streaming library with native concurrency support, with popular
+streaming libraries e.g. vector, streaming, pipes and conduit.  This package
+has been motivated by `streamly <https://github.com/composewell/streamly>`_,
+however, it is general purpose and compares more libraries and benchmarks than
+shown here. Please send an email or a pull request if the benchmarking code has
+a problem or is unfair to some library in any way.
 
 Benchmarks & Results
 --------------------
 
+A stream of one million consecutive numbers is generated using monadic unfold
+API ``unfoldrM``, these elements are then processed using a streaming
+combinator under test (e.g. ``map``), the total time to process all one million
+operations, and the maximum resident set size (rss) is measured and plotted for
+each library. The underlying monad for each stream is the IO Monad.
+
+Highlights
+~~~~~~~~~~
+
+* ``streamly`` has the best overall performance in terms of time as well as
+  space. ``streamly`` and ``vector`` have almost the same performance except
+  for the ``append`` operation where ``streamly`` is much better.
+* The append operation scales well only for ``streamly`` and ``conduit``. All
+  other libraries show quadratic complexity on this operation.
+* ``streaming`` performs slightly better than ``conduit`` when multiple
+  operations are composed together even though in terms of individual
+  operations it is slightly worse than ``conduit``.
+* ``conduit`` and ``pipes`` show unusually large space utilization for
+  ``take`` and ``drop`` operations (more than 100-150 MB vs 2 MB).
+
 Key Operations
 ~~~~~~~~~~~~~~
 
-A stream of one million consecutive numbers is generated using monadic unfold
-API `unfoldrM`, these elements are then processed using a streaming combinator
-under test, the total time to process one million operations is measured and
-plotted for each library. The underlying monad for each stream is the IO Monad.
-
+The diagram on the left plots the time taken by key streaming operations to
+process a million stream elements.
 *Note: the time for streamly and vector is very low (600-700 microseconds) and
 therefore can barely be seen in this graph.*
+For those interested in the heap allocations, the diagram on the right
+plots the overall heap allocations during each measurement period i.e. the
+total allocations for processing one million stream elements.
 
-.. |keyoperations| image:: charts-0/KeyOperations-time.svg
-  :width: 60 %
+.. |keyoperations-time| image:: charts-0/KeyOperations-time.svg
+  :width: 50%
   :target: charts-0/KeyOperations-time.svg
   :alt: Time Cost of Key Streaming Operations
 
-|keyoperations|
+.. |keyoperations-allocated| image:: charts-0/KeyOperations-allocated.svg
+  :width: 50%
+  :target: charts-0/KeyOperations-allocated.svg
+  :alt: Heap allocations for Key Streaming Operations
+
+|keyoperations-time| |keyoperations-allocated|
+
+The following diagram plots the maximum resident set size (rss) during the
+measurement of each operation. In plain terms, it is the maximum amount of
+physical memory that is utilized at any point during the measurement.
+
+.. |keyoperations-maxrss| image:: charts-0/KeyOperations-maxrss.svg
+  :width: 100 %
+  :target: charts-0/KeyOperations-maxrss.svg
+  :alt: Maximum rss for Key Streaming Operations
+
+|keyoperations-maxrss|
 
 +------------------------+----------------------------------------------------+
 | Benchmark              | Description                                        |
