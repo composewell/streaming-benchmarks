@@ -11,14 +11,13 @@ bug-reports:   http://github.com/composewell/streaming-benchmarks/issues
 copyright:     Copyright (c) 2017 Harendra Kumar
 synopsis:      Benchmarks to compare streaming packages
 description:
-  Comprehensive, carefully crafted benchmarks for streaming operations and
-  their comparisons across notable Haskell streaming libraries including
-  `streamly`, `vector`, `streaming`, `machines`, `pipes`, and `conduit`.
-  <http://hackage.haskell.org/package/streamly Streamly> is a streaming library
+  Benchmarks along with with pretty comparative graph generation for streaming
+  operations and their comparisons across notable Haskell streaming libraries
+  including `streamly`, `vector`, `streaming`, `machines`, `pipes`, and
+  `conduit`.
+  <http://hackage.haskell.org/package/streamly streamly> is a streaming library
   with native - high level, declarative and composable concurrency, it
-  is the primary motivation for these benchmarks.  Please report an issue in
-  the github repo if you find the benchmarks to be unfair or any issues with
-  the benchmarks.
+  is the primary motivation for these benchmarks.
   .
   If you are using @stack@ then you can just use @./run.sh@ to run the
   benchmarks; use @--quick@ option to get the result quickly; charts will be
@@ -29,7 +28,11 @@ description:
   (you can pass any @gauge@ arguments including @--quick@) and then use
   @makecharts results.csv "streamly,vector,..." False@ to create the charts.
   The second argument to @makecharts@ is the list of package names, the third
-  argument is whether to plot diff from the first package.
+  argument is whether to plot full or diff from the first package.
+  .
+  See the README file shipped with the package or
+  <https://github.com/composewell/streaming-benchmarks in the github repo>
+  for more details. The github repo also shows the latest comparative graphs.
 
 cabal-version: >= 1.10
 tested-with: GHC==8.2.2, GHC==8.4.3
