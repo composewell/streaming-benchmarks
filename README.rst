@@ -54,32 +54,35 @@ Highlights
 Key Operations
 ~~~~~~~~~~~~~~
 
-The diagram on the left plots the time taken by key streaming operations to
+The following diagram plots the time taken by key streaming operations to
 process a million stream elements.
 *Note: the time for streamly and vector is very low (600-700 microseconds) and
 therefore can barely be seen in this graph.*
-For those interested in the heap allocations, the diagram on the right
-plots the overall heap allocations during each measurement period i.e. the
-total allocations for processing one million stream elements.
 
 .. |keyoperations-time| image:: charts-0/KeyOperations-time.svg
-  :width: 50%
+  :width: 75%
   :target: charts-0/KeyOperations-time.svg
   :alt: Time Cost of Key Streaming Operations
 
+|keyoperations-time|
+
+For those interested in the heap allocations, the following diagram
+plots the overall heap allocations during each measurement period i.e. the
+total allocations for processing one million stream elements.
+
 .. |keyoperations-allocated| image:: charts-0/KeyOperations-allocated.svg
-  :width: 50%
+  :width: 75%
   :target: charts-0/KeyOperations-allocated.svg
   :alt: Heap allocations for Key Streaming Operations
 
-|keyoperations-time| |keyoperations-allocated|
+|keyoperations-allocated|
 
 The following diagram plots the maximum resident set size (rss) during the
 measurement of each operation. In plain terms, it is the maximum amount of
 physical memory that is utilized at any point during the measurement.
 
 .. |keyoperations-maxrss| image:: charts-0/KeyOperations-maxrss.svg
-  :width: 100 %
+  :width: 75 %
   :target: charts-0/KeyOperations-maxrss.svg
   :alt: Maximum rss for Key Streaming Operations
 
