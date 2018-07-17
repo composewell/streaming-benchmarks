@@ -37,13 +37,15 @@ API ``unfoldrM``, these elements are then processed using a streaming
 combinator under test (e.g. ``map``). The total time to process all one million
 operations, and the maximum resident set size (rss) is measured and plotted for
 each library. The underlying monad for each stream is the IO Monad. All the
-libraries are compiled with GHC-8.4.3.
+libraries are compiled with GHC-8.4.3. All the benchmarks were run on an Apple
+MacBook Pro computer with a single 2.2 GHz Intel Core i7 processor with 4 cores
+and 16GB RAM.
 
 Highlights
 ~~~~~~~~~~
 
-* ``streamly`` has the best overall performance in terms of time as well as
-  space. ``streamly`` and ``vector`` have similar performance except
+* ``streamly`` shows the best overall performance in terms of time as well as
+  space. ``streamly`` and ``vector`` show similar performance except
   for the ``append`` operation where ``streamly`` is much better, and the
   ``filter`` operation where vector is faster.
 * The ``append`` operation scales well only for ``streamly`` and ``conduit``.
@@ -248,20 +250,10 @@ Measurement
 ~~~~~~~~~~~
 
 ``Benchmarking Tool:`` We use the `gauge
-<https://github.com/vincenthz/hs-gauge>`_ package instead of criterion.  We
-spent a lot of time figuring out why benchmarking was not producing accurate
-results. Criterion had several bugs due to which results were not reliable. We
-fixed those bugs in ``gauge``. For example due to GC or CAF evaluation
-interaction across benchmarks, the results of benchmarks running later in the
-sequence were sometimes totally off the mark. We fixed that by running each
-benchmark in a separate process in gauge. Another bug caused criterion to
-report wrong mean.
-
-``Measurement iterations:`` We pass a million elements through the streaming
-pipelines. We do not rely on the benchmarking tool for this, it is explicitly
-done by the benchmarking code and the benchmarking tool is asked to perform
-just one iteration. We added fine grained control in `gauge
-<https://github.com/vincenthz/hs-gauge>`_ to be able to do this.
+<https://github.com/vincenthz/hs-gauge>`_ package for measurements instead of
+criterion.  There were several issues with criterion that we fixed in gauge to
+get correct results. Each benchmark is run in a separate process to avoid any
+interaction between benchmarks.
 
 Benchmarking Code
 ~~~~~~~~~~~~~~~~~
@@ -270,9 +262,15 @@ Benchmarking Code
   real life usage. Note that most existing streaming benchmarks use pure code
   or Identity monad which may produce entirely different results.
 
-* Unless you do some real IO operation, the operation being benchmarked can get
-  completely optimized out in some cases. We use a random number generation in
-  the IO monad and feed it to the operation being benchmarked to avoid that
+* ``unfoldrM`` is used to generate the stream for two reasons, (1) it is
+  monadic, (2) it reduces the generation overhead so that the actual streaming
+  operation cost is amplified. If we use generation from a list there is a
+  significant overhead in the generation itself because of the intermediate
+  list structure.
+
+* Unless we perform some real IO operation, the operation being benchmarked can
+  get completely optimized out in some cases. We use a random number generation
+  in the IO monad and feed it to the operation being benchmarked to avoid that
   issue.
 
 GHC Inlining
@@ -314,7 +312,9 @@ GHC Inlining
   all other libraries were impacted significantly for many ops, streamly seemed
   almost unaffected by splitting the benchmarking ops into a separate file! If
   we can find out why is it so, we could perhaps understand and use GHC
-  inlining in a more predictable manner.
+  inlining in a more predictable manner. Edit - CPS seems to be more immune to
+  inlining, as soon as streamly started using direct style, it too became
+  sensitive to inlining.
 
 * This kind of unpredictable non-uniform impact of moving functions in
   different files shows that we are at the mercy of the GHC simplifier and
