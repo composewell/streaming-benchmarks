@@ -46,7 +46,7 @@ import qualified Streaming.Prelude as S
 toNull, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
-    composeMapAllInFilter
+    composeMapAllInFilter, composeDropOne
     :: Monad m
     => Stream m Int -> m ()
 
@@ -135,6 +135,7 @@ composeMapM           = compose (S.mapM return)
 composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.filter (<= maxValue) . S.map (subtract 1))
+composeDropOne        = compose (S.drop 1)
 
 composeScaling :: Monad m => Int -> Stream m Int -> m ()
 composeScaling m =

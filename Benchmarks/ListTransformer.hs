@@ -23,7 +23,7 @@ import qualified List.Transformer as S
 toNull, toList, foldl, last, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
-    composeMapAllInFilter
+    composeMapAllInFilter, composeDropOne
     :: Monad m
     => Int -> m ()
 
@@ -88,6 +88,7 @@ composeMapM           = compose (lift . return)
 composeAllInFilters   = compose undefined
 composeAllOutFilters  = compose undefined
 composeMapAllInFilter = compose undefined
+composeDropOne        = compose undefined
 
 composeScaling :: Monad m => Int -> Int -> m ()
 composeScaling m n =

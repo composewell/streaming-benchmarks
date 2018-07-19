@@ -40,7 +40,7 @@ import qualified Data.Vector as S
 scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
-    composeMapAllInFilter
+    composeMapAllInFilter, composeDropOne
     :: S.Vector Int -> S.Vector Int
 
 toNull :: S.Vector Int -> [Int]
@@ -104,6 +104,7 @@ composeMapM           = compose (S.map (+1))
 composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.filter (<= maxValue) . S.map (subtract 1))
+composeDropOne        = compose (S.drop 1)
 
 composeScaling :: Int -> S.Vector Int -> S.Vector Int
 composeScaling m =

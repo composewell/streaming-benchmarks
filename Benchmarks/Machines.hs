@@ -44,7 +44,7 @@ import qualified Data.Machine      as S
 toNull, foldl, last, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
-    composeMapAllInFilter
+    composeMapAllInFilter, composeDropOne
     :: Monad m
     => S.MachineT m k Int -> m ()
 
@@ -117,6 +117,7 @@ composeMapM           = compose (S.autoM return)
 composeAllInFilters   = compose (S.filtered (<= maxValue))
 composeAllOutFilters  = compose (S.filtered (> maxValue))
 composeMapAllInFilter = compose (S.mapping (subtract 1) S.~> S.filtered (<= maxValue))
+composeDropOne        = compose (S.dropping 1)
 
 composeScaling :: Monad m => Int -> Source m Int -> m ()
 composeScaling m =
