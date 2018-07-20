@@ -3,9 +3,9 @@ packages:
 - '.'
 extra-deps:
   - streamly-0.4.1
-  - drinkery-0.3
 
   # for lts-12.0
+  - drinkery-0.4
   - bench-graph-0.1.3
   - Chart-1.9
   - Chart-diagrams-1.9

@@ -4,8 +4,8 @@ module Benchmarks.Drinkery where
 import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude
-       (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, undefined, replicate, (<$>), (<*>), fst, id)
+       (Monad, Int, Maybe(..), (+), ($), return, even, (>), (<=),
+        subtract, undefined, replicate, (<$>), (<*>), fst, id, const)
 
 import qualified Data.Drinkery as S
 import qualified Data.Drinkery.Finite as S
@@ -52,7 +52,8 @@ type Sink   m a r = S.Sink (S.Source () a) m r
 
 {-# INLINE source #-}
 source :: Monad m => Int -> Source m () Int
-source n = S.tapListT $ S.sample [n .. n + value]
+source n = S.unfoldrTapM
+  (const $ \x -> return (if x > n + value then Nothing else Just x, x + 1)) n
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Pipe m Int o -> Source m () Int -> m ()

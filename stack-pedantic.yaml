@@ -3,7 +3,7 @@ packages:
 - '.'
 extra-deps:
   - streamly-0.4.1
-  - drinkery-0.3
+  - drinkery-0.4
 
   # for lts-12.0
   - bench-graph-0.1.3
