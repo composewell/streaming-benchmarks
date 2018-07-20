@@ -40,7 +40,7 @@ import qualified Data.List          as S
 toNull, toList, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
-    composeMapAllInFilter
+    composeMapAllInFilter, composeDropOne
     :: [Int] -> [Int]
 
 foldl :: [Int] -> Int
@@ -102,6 +102,7 @@ composeMapM           = compose (S.map (+1))
 composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.filter (<= maxValue) . S.map (subtract 1))
+composeDropOne        = compose (S.drop 1)
 
 composeScaling :: Int -> [Int] -> [Int]
 composeScaling m =

@@ -76,6 +76,7 @@ main = do
       , $(createBgroup "map-with-all-in-filter" "composeMapAllInFilter")
       , $(createBgroup "all-in-filters" "composeAllInFilters")
       , $(createBgroup "all-out-filters" "composeAllOutFilters")
+      , $(createBgroup "drop-one" "composeDropOne")
       ]
     -- XXX Disabling this for now to reduce the running time
     -- We need a way to include/exclude this dynamically

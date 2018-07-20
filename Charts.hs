@@ -62,6 +62,7 @@ charts =
       , [ "compose/mapM"
         , "compose/all-in-filters"
         , "compose/map-with-all-in-filter"
+        , "compose/drop-one"
         ]
       )
     ]

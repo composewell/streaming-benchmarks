@@ -46,7 +46,7 @@ import qualified Pipes.Prelude     as S
 toNull, scan, map, filterEven, mapM, filterAllOut,
     filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
     concat, composeMapM, composeAllInFilters, composeAllOutFilters,
-    composeMapAllInFilter
+    composeMapAllInFilter, composeDropOne
     :: Monad m
     => Source m () Int -> m ()
 
@@ -128,6 +128,7 @@ composeMapM           = compose (S.mapM return)
 composeAllInFilters   = compose (S.filter (<= maxValue))
 composeAllOutFilters  = compose (S.filter (> maxValue))
 composeMapAllInFilter = compose (S.map (subtract 1) S.>-> S.filter (<= maxValue))
+composeDropOne        = compose (S.drop 1)
 
 composeScaling :: Monad m => Int -> Source m () Int -> m ()
 composeScaling m =
