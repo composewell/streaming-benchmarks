@@ -12,43 +12,9 @@ module Benchmarks.Machines where
 import Benchmarks.Common (value, maxValue)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, replicate, Maybe(..))
+        subtract, replicate, Maybe(..), maxBound)
 
 import qualified Data.Machine      as S
-
--------------------------------------------------------------------------------
--- Benchmark ops
--------------------------------------------------------------------------------
-
-{-# INLINE toNull #-}
-{-# INLINE toList #-}
-{-# INLINE foldl #-}
-{-# INLINE last #-}
-{-# INLINE scan #-}
-{-# INLINE map #-}
-{-# INLINE filterEven #-}
-{-# INLINE mapM #-}
-{-# INLINE filterAllOut #-}
-{-# INLINE filterAllIn #-}
-{-# INLINE takeOne #-}
-{-# INLINE takeAll #-}
-{-# INLINE takeWhileTrue #-}
-{-# INLINE dropAll #-}
-{-# INLINE dropWhileTrue #-}
-{-# INLINE zip #-}
-{-# INLINE concat #-}
-{-# INLINE composeMapM #-}
-{-# INLINE composeAllInFilters #-}
-{-# INLINE composeAllOutFilters #-}
-{-# INLINE composeMapAllInFilter #-}
-toNull, foldl, last, scan, map, filterEven, mapM, filterAllOut,
-    filterAllIn, takeOne, takeAll, takeWhileTrue, dropAll, dropWhileTrue, zip,
-    concat, composeMapM, composeAllInFilters, composeAllOutFilters,
-    composeMapAllInFilter, composeDropOne
-    :: Monad m
-    => S.MachineT m k Int -> m ()
-
-toList :: Monad m => S.MachineT m k Int -> m [Int]
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
@@ -66,13 +32,20 @@ source n = S.unfoldT step n
         then return Nothing
         else return (Just (cnt, cnt + 1))
 
+-------------------------------------------------------------------------------
+-- Elimination
+-------------------------------------------------------------------------------
+
 {-# INLINE runStream #-}
 runStream :: Monad m => Pipe m Int o -> S.MachineT m k Int -> m ()
 runStream t src = S.runT_ $ src S.~> t
 
--------------------------------------------------------------------------------
--- Elimination
--------------------------------------------------------------------------------
+{-# INLINE toNull #-}
+{-# INLINE toList #-}
+{-# INLINE foldl #-}
+{-# INLINE last #-}
+toNull, foldl, last :: Monad m => S.MachineT m k Int -> m ()
+toList :: Monad m => S.MachineT m k Int -> m [Int]
 
 toNull = S.runT_
 toList = S.runT
@@ -87,44 +60,85 @@ last   = runStream $ S.final
 transform :: Monad m => Pipe m Int o -> S.MachineT m k Int -> m ()
 transform = runStream
 
-scan          = transform $ S.scan (+) 0
-map           = transform $ S.mapping (+1)
-mapM          = transform $ S.autoM return
-filterEven    = transform $ S.filtered even
-filterAllOut  = transform $ S.filtered (> maxValue)
-filterAllIn   = transform $ S.filtered (<= maxValue)
-takeOne       = transform $ S.taking 1
-takeAll       = transform $ S.taking maxValue
-takeWhileTrue = transform $ S.takingWhile (<= maxValue)
-dropAll       = transform $ S.dropping maxValue
-dropWhileTrue = transform $ S.droppingWhile (<= maxValue)
+{-# INLINE composeN #-}
+composeN :: Monad m => Int -> Pipe m Int Int -> S.MachineT m k Int -> m ()
+composeN n f =
+    case n of
+        1 -> transform $ f
+        2 -> transform $ f S.~> f
+        3 -> transform $ f S.~> f S.~> f
+        4 -> transform $ f S.~> f S.~> f S.~> f
+        -- _ -> undefined
+
+{-# INLINE scan #-}
+{-# INLINE map #-}
+{-# INLINE mapM #-}
+{-# INLINE filterEven #-}
+{-# INLINE filterAllOut #-}
+{-# INLINE filterAllIn #-}
+{-# INLINE takeOne #-}
+{-# INLINE takeAll #-}
+{-# INLINE takeWhileTrue #-}
+{-# INLINE dropOne #-}
+{-# INLINE dropAll #-}
+{-# INLINE dropWhileTrue #-}
+{-# INLINE dropWhileFalse #-}
+scan, map, mapM,
+    filterEven, filterAllOut, filterAllIn,
+    takeOne, takeAll, takeWhileTrue,
+    dropOne, dropAll, dropWhileTrue, dropWhileFalse
+    :: Monad m => Int -> S.MachineT m k Int -> m ()
+
+scan           n = composeN n $ S.scan (+) 0
+map            n = composeN n $ S.mapping (+1)
+mapM           n = composeN n $ S.autoM return
+filterEven     n = composeN n $ S.filtered even
+filterAllOut   n = composeN n $ S.filtered (> maxValue)
+filterAllIn    n = composeN n $ S.filtered (<= maxValue)
+takeOne        n = composeN n $ S.taking 1
+takeAll        n = composeN n $ S.taking maxValue
+takeWhileTrue  n = composeN n $ S.takingWhile (<= maxValue)
+dropOne        n = composeN n $ S.dropping 1
+dropAll        n = composeN n $ S.dropping maxValue
+dropWhileFalse n = composeN n $ S.droppingWhile (<= 1)
+dropWhileTrue  n = composeN n $ S.droppingWhile (<= maxValue)
+
+-------------------------------------------------------------------------------
+-- Mixed Composition
+-------------------------------------------------------------------------------
+
+{-# INLINE scanMap #-}
+{-# INLINE dropMap #-}
+{-# INLINE dropScan #-}
+{-# INLINE takeDrop #-}
+{-# INLINE takeScan #-}
+{-# INLINE takeMap #-}
+{-# INLINE filterDrop #-}
+{-# INLINE filterTake #-}
+{-# INLINE filterScan #-}
+{-# INLINE filterMap #-}
+scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
+    filterTake, filterScan, filterMap
+    :: Monad m => Int -> S.MachineT m k Int -> m ()
+
+scanMap    n = composeN n $ S.mapping (subtract 1) S.~> S.scan (+) 0
+dropMap    n = composeN n $ S.mapping (subtract 1) S.~> S.dropping 1
+dropScan   n = composeN n $ S.scan (+) 0 S.~> S.dropping 1
+takeDrop   n = composeN n $ S.dropping 1 S.~> S.taking maxValue
+takeScan   n = composeN n $ S.scan (+) 0 S.~> S.taking maxValue
+takeMap    n = composeN n $ S.mapping (subtract 1) S.~> S.taking maxValue
+filterDrop n = composeN n $ S.dropping 1 S.~> S.filtered (<= maxValue)
+filterTake n = composeN n $ S.taking maxValue S.~> S.filtered (<= maxValue)
+filterScan n = composeN n $ S.scan (+) 0 S.~> S.filtered (<= maxBound)
+filterMap  n = composeN n $ S.mapping (subtract 1) S.~> S.filtered (<= maxValue)
 
 -------------------------------------------------------------------------------
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
+{-# INLINE zip #-}
+{-# INLINE concat #-}
+zip, concat :: Monad m => S.MachineT m k Int -> m ()
+
 zip _src = S.runT_ (S.capT (source 10) (source 20) S.zipping)
 concat = transform (S.mapping (replicate 3) S.~> S.asParts)
-
--------------------------------------------------------------------------------
--- Composition
--------------------------------------------------------------------------------
-
-compose :: Monad m => Pipe m Int Int -> S.MachineT m k Int -> m ()
-compose f = transform $ (f S.~> f S.~> f S.~> f)
-
-composeMapM           = compose (S.autoM return)
-composeAllInFilters   = compose (S.filtered (<= maxValue))
-composeAllOutFilters  = compose (S.filtered (> maxValue))
-composeMapAllInFilter = compose (S.mapping (subtract 1) S.~> S.filtered (<= maxValue))
-composeDropOne        = compose (S.dropping 1)
-
-composeScaling :: Monad m => Int -> Source m Int -> m ()
-composeScaling m =
-    case m of
-        1 -> transform f
-        2 -> transform (f S.~> f)
-        3 -> transform (f S.~> f S.~> f)
-        4 -> transform (f S.~> f S.~> f S.~> f)
-    --    _ -> undefined
-    where f = S.filtered (<= maxValue)

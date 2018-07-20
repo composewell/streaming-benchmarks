@@ -21,48 +21,80 @@ charts :: [(String, [String])]
 charts =
     [
       -- Operations are listed in increasing cost order
-      {-
-      ( "Key Operations"
+    ( "Elimination Operations"
       , [
-          "elimination/fold"
-        , "transformation/mapM"
-        , "filtering/filter-even"
-        , "zip"
+          "elimination/drain"
+        , "elimination/last"
+        , "elimination/fold"
         ]
       )
-    , -} ( "Append Operation"
+    , ( "Transformation Operations"
+      , [ "transformation/map"
+        , "transformation/mapM"
+        , "transformation/scan"
+        ]
+      )
+    , ( "Transformation Operations x 4"
+      , [ "transformationN/map"
+        , "transformationN/mapM"
+        , "transformationN/scan"
+        ]
+      )
+    , ( "Filtering  Operations"
+      , [
+          "filtering/filter-all-out"
+        , "filtering/filter-all-in"
+        , "filtering/drop-all"
+        , "filtering/takeWhile-true"
+        , "filtering/take-all"
+        , "filtering/dropWhile-true"
+        , "filtering/filter-even"
+        , "filtering/drop-one"
+        , "filtering/dropWhile-false"
+        ]
+      )
+    , ( "Filtering  Operations x 4"
+      , [
+          "filteringN/filter-all-out"
+        , "filteringN/takeWhile-true"
+        , "filteringN/filter-all-in"
+        , "filteringN/take-all"
+        , "filteringN/filter-even"
+        , "filteringN/drop-all"
+        , "filteringN/dropWhile-true"
+        , "filteringN/dropWhile-false"
+        , "filteringN/drop-one"
+        ]
+      )
+    , ( "Composed Operations x 4"
+      , [ "composed/filter-map"
+        , "composed/take-map"
+        , "composed/drop-map"
+        , "composed/filter-drop"
+        , "composed/filter-take"
+        , "composed/take-drop"
+        , "composed/scan-map"
+        , "composed/filter-scan"
+        , "composed/take-scan"
+        , "composed/drop-scan"
+        ]
+      )
+    {-
+    , ( "Append Operation"
       , [ "append"
         ]
       )
-    , ( "Key Operations"
-      , [
-          "elimination/drain"
-        , "filtering/drop-all"
-      --  , "filtering/dropWhile-true"
-      --  , "filtering/filter-all-out"
-        , "elimination/last"
-        , "elimination/fold"
-        -- "filtering/take-one"
-        , "transformation/map"
-        , "filtering/take-all"
-        --, "filtering/takeWhile-true"
-        -- , "filtering/filter-all-in"
-        , "filtering/filter-even"
-        , "transformation/scan"
-        , "transformation/mapM"
-        , "zip"
-        -- , "transformation/concat"
+    -}
+    , ( "Zip Operation"
+      , [ "zip"
         ]
       )
-    , ( "toList Operation"
+    , ( "Concat Operation"
+      , [ "concat"
+        ]
+      )
+    , ( "Conversion Operations"
       , [ "elimination/toList"
-        ]
-      )
-    , ( "Composed Operations: 4 times"
-      , [ "compose/mapM"
-        , "compose/all-in-filters"
-        , "compose/map-with-all-in-filter"
-        , "compose/drop-one"
         ]
       )
     ]

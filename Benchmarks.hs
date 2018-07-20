@@ -9,9 +9,8 @@
 
 module Main (main) where
 
-import Benchmarks.BenchmarkTH (createBgroup)
+import Benchmarks.BenchmarkTH (createBgroup, createBgroupN)
 import Benchmarks.Common (benchIO)
---import Benchmarks.BenchmarkTH (createScaling)
 
 import qualified Benchmarks.Vector as Vector
 import qualified Benchmarks.Streamly as Streamly
@@ -38,21 +37,51 @@ main = do
       , $(createBgroup "last" "last")
       ]
     , bgroup "transformation"
-      [ $(createBgroup "scan" "scan")
-      , $(createBgroup "map" "map")
-      , $(createBgroup "mapM" "mapM")
-      , $(createBgroup "concat" "concat")
+      [ $(createBgroupN "scan" "scan" 1)
+      , $(createBgroupN "map" "map" 1)
+      , $(createBgroupN "mapM" "mapM" 1)
+      ]
+    , bgroup "transformationN"
+      [ $(createBgroupN "scan" "scan" 4)
+      , $(createBgroupN "map" "map" 4)
+      , $(createBgroupN "mapM" "mapM" 4)
       ]
     , bgroup "filtering"
-      [ $(createBgroup "filter-even" "filterEven")
-      , $(createBgroup "filter-all-out" "filterAllOut")
-      , $(createBgroup "filter-all-in" "filterAllIn")
-      , $(createBgroup "take-all" "takeAll")
-      , $(createBgroup "takeWhile-true" "takeWhileTrue")
-      , $(createBgroup "drop-all" "dropAll")
-      , $(createBgroup "dropWhile-true" "dropWhileTrue")
+      [ $(createBgroupN "filter-all-out" "filterAllOut" 1)
+      , $(createBgroupN "filter-all-in" "filterAllIn" 1)
+      , $(createBgroupN "drop-all" "dropAll" 1)
+      , $(createBgroupN "takeWhile-true" "takeWhileTrue" 1)
+      , $(createBgroupN "filter-even" "filterEven" 1)
+      , $(createBgroupN "take-all" "takeAll" 1)
+      , $(createBgroupN "drop-one" "dropOne" 1)
+      , $(createBgroupN "dropWhile-true" "dropWhileTrue" 1)
+      , $(createBgroupN "dropWhile-false" "dropWhileFalse" 1)
+      ]
+    , bgroup "filteringN"
+      [ $(createBgroupN "filter-even" "filterEven" 4)
+      , $(createBgroupN "filter-all-out" "filterAllOut" 4)
+      , $(createBgroupN "filter-all-in" "filterAllIn" 4)
+      , $(createBgroupN "take-all" "takeAll" 4)
+      , $(createBgroupN "takeWhile-true" "takeWhileTrue" 4)
+      , $(createBgroupN "drop-one" "dropOne" 4)
+      , $(createBgroupN "drop-all" "dropAll" 4)
+      , $(createBgroupN "dropWhile-true" "dropWhileTrue" 4)
+      , $(createBgroupN "dropWhile-false" "dropWhileFalse" 4)
+      ]
+    , bgroup "composed"
+      [ $(createBgroupN "scan-map" "scanMap" 4)
+      , $(createBgroupN "drop-map" "dropMap" 4)
+      , $(createBgroupN "drop-scan" "dropScan" 4)
+      , $(createBgroupN "take-drop" "takeDrop" 4)
+      , $(createBgroupN "take-scan" "takeScan" 4)
+      , $(createBgroupN "take-map" "takeMap" 4)
+      , $(createBgroupN "filter-drop" "filterDrop" 4)
+      , $(createBgroupN "filter-take" "filterTake" 4)
+      , $(createBgroupN "filter-scan" "filterScan" 4)
+      , $(createBgroupN "filter-map" "filterMap" 4)
       ]
     , $(createBgroup "zip" "zip")
+    , $(createBgroup "concat" "concat")
     , bgroup "append"
       [ benchIO "streamly" Streamly.appendSource Streamly.toNull
       , benchIO "conduit" Conduit.appendSource Conduit.toNull
@@ -69,26 +98,6 @@ main = do
       bgroup "mapM-nested"
     , [ benchIO "streamly" Streamly.mapMSource Streamly.toNull
       , benchIO "vector" Vector.mapMSource Vector.toNull
-      ]
-      -}
-    , bgroup "compose"
-      [ $(createBgroup "mapM" "composeMapM")
-      , $(createBgroup "map-with-all-in-filter" "composeMapAllInFilter")
-      , $(createBgroup "all-in-filters" "composeAllInFilters")
-      , $(createBgroup "all-out-filters" "composeAllOutFilters")
-      , $(createBgroup "drop-one" "composeDropOne")
-      ]
-    -- XXX Disabling this for now to reduce the running time
-    -- We need a way to include/exclude this dynamically
-    {-
-    , bgroup "compose-scaling"
-        -- Scaling with same operation in sequence
-      [ $(createScaling "vector-filters" "Vector")
-      , $(createScaling "streamly-filters" "Streamly")
-      , $(createScaling "streaming-filters" "Streaming")
-      , $(createScaling "machines-filters" "Machines")
-      , $(createScaling "pipes-filters" "Pipes")
-      , $(createScaling "conduit-filters" "Conduit")
       ]
       -}
    ]
