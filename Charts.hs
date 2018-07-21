@@ -79,12 +79,10 @@ charts =
         , "composed/drop-scan"
         ]
       )
-    {-
     , ( "Append Operation"
       , [ "append"
         ]
       )
-    -}
     , ( "Zip Operation"
       , [ "zip"
         ]
@@ -172,8 +170,11 @@ createCharts input pkgList delta = do
                     ++ " (Lower is Better)"
             bgraph infile (toOutfile title field) field (cfg (title', prefixes))
 
+    putStrLn "Creating time charts..."
     mapM_ (makeOneGraph input "time") charts
+    putStrLn "\nCreating allocation charts..."
     mapM_ (makeOneGraph input "allocated") charts
+    putStrLn "\nCreating maxrss charts..."
     mapM_ (makeOneGraph input "maxrss") charts
 
 -- Pass <input file> <comma separated list of packages> <True/False>

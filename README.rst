@@ -55,8 +55,8 @@ Highlights
   operations it is slightly worse than ``conduit``.
 * ``conduit`` and ``pipes`` show unusually large space utilization for
   ``take`` and ``drop`` operations (more than 100-150 MiB vs 3 MiB).
-* ``drinkery`` shows very good performance too though not plotted here because
-  of a small issue in measurement and lack of space.
+* ``drinkery`` shows performance more or less similar to
+  streaming/conduit/pipes but is not plotted here.
 * ``machines`` is roughly 2x slower than the slowest library here, and its
   maximum resident set size is close to 100 MiB for all operations (touching
   300 MiB for ``take``) compared to the 3MiB for all other libraries.  I am not

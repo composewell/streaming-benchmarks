@@ -10,7 +10,7 @@ module Benchmarks.Streamly where
 
 import Benchmarks.Common (value, maxValue)
 import Prelude
-       (Monad, Int, (+), ($), (.), return, fmap, even, (>), (<=),
+       (Monad, Int, (+), ($), (.), return, even, (>), (<=),
         subtract, undefined, Maybe(..), foldMap, maxBound)
 import qualified Prelude as P
 
