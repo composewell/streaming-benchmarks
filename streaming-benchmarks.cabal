@@ -19,9 +19,9 @@ description:
   with native - high level, declarative and composable concurrency, it
   is the primary motivation for these benchmarks.
   .
-  If you are using @stack@ then you can just use @./run.sh@ to run the
+  If you are using @stack@ then you can just use @./bench.sh@ to run the
   benchmarks; use @--quick@ option to get the result quickly; charts will be
-  generated in the `charts` directory. Use @./run.sh --help@ for all script
+  generated in the `charts` directory. Use @./bench.sh --help@ for all script
   options.
   .
   With any build tool, run the benchmarks with @--csv=results.csv@ as arguments
@@ -39,7 +39,7 @@ tested-with: GHC==8.2.2, GHC==8.4.3
 build-type:    Simple
 extra-source-files:
   Changelog.md
-  run.sh
+  bench.sh
   README.rst
   licenses/Readme.txt
   licenses/LICENSE.machines

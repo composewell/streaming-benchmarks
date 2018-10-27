@@ -1,13 +1,21 @@
 #!/bin/bash
 
 print_help () {
-  echo "Usage: $0 [--quick] [--select] [--delta] [--append] [--pedantic] [--no-graphs] [--no-measure] -- <gauge options>"
+  echo "Usage: $0 "
+  echo "       [--packages <streamly,vector,streaming,pipes,conduit,machines>]"
+  echo "       [--graphs]"
+  echo "       [--delta]"
+  echo "       [--slow]"
+  echo "       [--no-measure]"
+  echo "       [--append] "
+  echo "       -- <gauge options>"
   echo
-  echo "--select "streamly,vector" - would generate results only for those two libraries."
-  echo "To find out all supported names that you can use in --select see Benchmarks/BenchmarkTH.hs"
+  echo "Multiple packages can be specified as a comma separated list"
+  echo " e.g. --packages \"streamly,vector\""
+  echo
   echo "--delta - chart diff of subsequent packages from the first package"
+  echo
   echo "Any arguments after a '--' are passed directly to guage"
-  echo "You can omit '--' if the gauge args used do not start with a '-'."
   exit
 }
 
@@ -17,44 +25,16 @@ die () {
   exit 1
 }
 
-DELTA=False
-
-while test -n "$1"
-do
-  case $1 in
-    -h|--help|help) print_help ;;
-    --quick) QUICK=1; shift ;;
-    --select) shift; SELECTED=$1; shift ;;
-    --delta) DELTA=True; shift ;;
-    --append) APPEND=1; shift ;;
-    --pedantic) PEDANTIC=1; shift ;;
-    --no-graphs) GRAPH=0; shift ;;
-    --no-measure) MEASURE=0; shift ;;
-    --) shift; break ;;
-    -*|--*) print_help ;;
-    *) break ;;
-  esac
-done
-
-DEFAULT_PACKAGES="streamly,vector,streaming,conduit,pipes,machines,drinkery"
-
-if test -z "$SELECTED"
-then
-  SELECTED=$DEFAULT_PACKAGES
-fi
-
-STACK=stack
-if test "$PEDANTIC" = "1"
-then
-  GHC_PATH=`$STACK path --compiler-bin`
-  export PATH=$GHC_PATH:$PATH
-  mkdir -p .stack-root
-  export STACK_ROOT=`pwd`/.stack-root
-  STACK="$STACK --system-ghc --stack-yaml stack-pedantic.yaml"
-fi
-
-echo "Using stack command [$STACK]"
-$STACK build --bench --no-run-benchmarks || die "build failed"
+set_packages() {
+  if test -z "$PACKAGES"
+  then
+    PACKAGES=$DEFAULT_PACKAGES
+  elif test "$PACKAGES" = "all"
+  then
+    PACKAGES=$ALL_PACKAGES
+  fi
+  echo "Using packages [$PACKAGES]"
+}
 
 # We run the benchmarks in isolation in a separate process so that different
 # benchmarks do not interfere with other. To enable that we need to pass the
@@ -65,20 +45,20 @@ $STACK build --bench --no-run-benchmarks || die "build failed"
 # Use this command to find the exe if this script fails with an error:
 # find .stack-work/ -type f -name "benchmarks"
 
-enable_isolated () {
-  local PROG=`$STACK path --dist-dir`/build/benchmarks/benchmarks
-  if test -x "$PROG"
+find_bench_prog () {
+  local bench_name=$1
+  local bench_prog=`$STACK path --dist-dir`/build/$bench_name/$bench_name
+  if test -x "$bench_prog"
   then
-    BENCH_PROG="--measure-with $PROG"
+    echo $bench_prog
   else
-    echo
-    echo "WARNING! benchmark binary [$PROG] not found or not executable"
-    echo "WARNING! not using isolated measurement."
-    echo
+    return 1
   fi
 }
 
-enable_isolated
+bench_output_file() {
+    echo "charts/results.csv"
+}
 
 # --min-duration 0 means exactly one iteration per sample. We use a million
 # iterations in the benchmarking code explicitly and do not use the iterations
@@ -93,45 +73,116 @@ enable_isolated
 # We can pass --min-samples value from the command line as second argument
 # after the benchmark name in case we want to use more than one sample.
 
-if test "$QUICK" = "1"
-then
-  ENABLE_QUICK="--quick"
-fi
+run_bench () {
+  local bench_name=benchmarks
+  local output_file=$(bench_output_file)
+  local bench_prog
+  bench_prog=$(find_bench_prog $bench_name) || \
+    die "Cannot find benchmark executable for benchmark $bench_name"
 
-if test "$MEASURE" != "0"
-  then
-  if test -e results.csv -a "$APPEND" != 1
-  then
-    mv -f -v results.csv results.csv.prev
-  fi
+  mkdir -p `dirname $output_file`
 
-  MATCH_ARGS=""
-  for i in $(echo $SELECTED | tr "," "\n")
+  echo "Running benchmark $bench_name ..."
+
+  local MATCH_ARGS=""
+  for i in $(echo $PACKAGES | tr "," "\n")
   do
      MATCH_ARGS="$MATCH_ARGS -m pattern /$i"
   done
 
-  # We set min-samples to 3 if we use less than three samples, statistical
-  # analysis crashes. Note that the benchmark runs for a minimum of 5 seconds.
-  # We use min-duration=0 to run just one iteration for each sample, we anyway
-  # run a million ops in each iteration so we do not need more iterations.
-  # However with fusion, million ops finish in microseconds. The
-  # default is to run iterations worth minimum 30 ms and most of our benchmarks
-  # are close to that or more.
-  #  --min-duration 0 \
-  $STACK bench --benchmark-arguments "$ENABLE_QUICK \
-    --include-first-iter \
-    --min-samples 3 \
-    --match exact \
-    --csvraw=results.csv \
+  $bench_prog $SPEED_OPTIONS \
+    --csvraw=$output_file \
     -v 2 \
-    $MATCH_ARGS \
-    $BENCH_PROG $*" || die "Benchmarking failed"
+    --measure-with $bench_prog $MATCH_ARGS $GAUGE_ARGS \
+      || die "Benchmarking failed"
+}
+
+backup_output_file() {
+  local output_file=$(bench_output_file)
+
+  if test -e $output_file -a "$APPEND" != 1
+  then
+      mv -f -v $output_file ${output_file}.prev
+  fi
+}
+
+run_measurements() {
+  backup_output_file
+  run_bench
+}
+
+run_reports() {
+  local packages=$1
+  local output_file=$(bench_output_file)
+  echo
+  echo "Generating charts from ${output_file}..."
+  $STACK exec makecharts $output_file $packages $DELTA
+}
+
+#-----------------------------------------------------------------------------
+# Execution starts here
+#-----------------------------------------------------------------------------
+
+DEFAULT_PACKAGES="streamly,vector,streaming,conduit,pipes,machines,drinkery"
+ALL_PACKAGES="streamly,vector,streaming,conduit,pipes,machines,drinkery"
+DELTA=False
+
+APPEND=0
+RAW=0
+GRAPH=0
+MEASURE=1
+SPEED_OPTIONS="--quick --min-samples 10 --time-limit 1 --min-duration 0"
+
+STACK=stack
+GAUGE_ARGS=
+
+BUILD_ONCE=0
+
+#-----------------------------------------------------------------------------
+# Read command line
+#-----------------------------------------------------------------------------
+
+while test -n "$1"
+do
+  case $1 in
+    -h|--help|help) print_help ;;
+    --slow) SPEED_OPTIONS="--min-duration 0"; shift ;;
+    --append) APPEND=1; shift ;;
+    --packages) shift; PACKAGES=$1; shift ;;
+    --delta) DELTA=True; shift ;;
+    --raw) RAW=1; shift ;;
+    --graphs) GRAPH=1; shift ;;
+    --no-measure) MEASURE=0; shift ;;
+    --) shift; break ;;
+    -*|--*) print_help ;;
+    *) break ;;
+  esac
+done
+GAUGE_ARGS=$*
+
+echo "Using stack command [$STACK]"
+set_packages
+
+#-----------------------------------------------------------------------------
+# Build stuff
+#-----------------------------------------------------------------------------
+
+$STACK build --bench --no-run-benchmarks || die "build failed"
+
+#-----------------------------------------------------------------------------
+# Run benchmarks
+#-----------------------------------------------------------------------------
+
+if test "$MEASURE" = "1"
+then
+  run_measurements
 fi
 
-if test "$GRAPH" != "0"
+#-----------------------------------------------------------------------------
+# Run reports
+#-----------------------------------------------------------------------------
+
+if test "$RAW" = "0"
 then
-  echo
-  echo "Generating charts from results.csv..."
-  $STACK exec makecharts results.csv $SELECTED $DELTA
+    run_reports "$PACKAGES"
 fi
