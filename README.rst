@@ -195,16 +195,16 @@ To quickly compare packages:
 ::
 
   # Chart all the default packages
-  ./run.sh --quick
+  ./bench.sh --quick
 
   # Compare a given list of packages
   # Available package names are: streamly, vector, streaming, pipes,
   # conduit, machines, drinkery, list, pure-vector
-  ./run.sh --quick --select "streamly,vector"
+  ./bench.sh --quick --select "streamly,vector"
 
   # Show full results for the first packages and delta from that for
   # the rest of the packages.
-  ./run.sh --quick --select "streamly,vector" --delta
+  ./bench.sh --quick --select "streamly,vector" --delta
 
 After running you can find the charts generated in the ``charts`` directory.
 If you have the patience to wait longer for the results remove the ``--quick``
@@ -221,7 +221,7 @@ Note that if different optimization flags are used on different packages,
 performance can sometimes badly suffer because of GHC inlining and
 specialization not working optimally.  If you  want to be absolutely sure that
 all packages and dependencies are compiled with the same optimization flags
-(``-O2``) use ``run.sh --pedantic``, it will install the stack snapshot in a
+(``-O2``) use ``bench.sh --pedantic``, it will install the stack snapshot in a
 private directory under the current directory and build them fresh with the ghc
 flags specified in ``stack-pedantic.yaml``. Be aware that this will require 1-2
 GB extra disk space.
@@ -287,7 +287,7 @@ GHC Inlining
   that we compile the benchmarking code, the library code as well as all
   dependencies using exactly the same GHC flags. GHC inlining and
   specialization optimizations can make the code unpredictable if mixed flags
-  are used. See the ``--pedantic`` option of the ``run.sh`` script.
+  are used. See the ``--pedantic`` option of the ``bench.sh`` script.
 
 * ``Single file vs multiple files`` The best way to avoid issues is to have all
   the benchmarking code in a single file. However, in real life that is not the
