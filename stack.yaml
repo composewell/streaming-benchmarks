@@ -1,8 +1,9 @@
-resolver: lts-12.0
+resolver: lts-12.14
 packages:
 - '.'
 extra-deps:
-  - streamly-0.5.0
+  - gauge-0.2.4
+  - streamly-0.5.2
 
   # for lts-12.0
   - drinkery-0.4

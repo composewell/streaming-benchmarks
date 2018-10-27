@@ -88,7 +88,7 @@ benchmark benchmarks
     mtl                 >= 2     && < 2.3,
     random              >= 1.0   && < 2.0,
     transformers        >= 0.4   && < 0.6,
-    template-haskell    >= 2.10  && < 2.14,
+    template-haskell    >= 2.10  && < 2.15,
 
     vector              >= 0.12  && < 0.13,
     streamly            >= 0.2.1 && < 0.6,
