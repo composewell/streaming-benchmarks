@@ -4,6 +4,7 @@ print_help () {
   echo "Usage: $0 [--quick] [--select] [--delta] [--append] [--pedantic] [--no-graphs] [--no-measure] -- <gauge options>"
   echo
   echo "--select "streamly,vector" - would generate results only for those two libraries."
+  echo "To find out all supported names that you can use in --select see Benchmarks/BenchmarkTH.hs"
   echo "--delta - chart diff of subsequent packages from the first package"
   echo "Any arguments after a '--' are passed directly to guage"
   echo "You can omit '--' if the gauge args used do not start with a '-'."

@@ -1,3 +1,10 @@
+## Unreleased
+
+* Add benchmarks to measure composition of the same filtering and
+  transformation operations multiple times
+* Add benchmarks to measure composition of various combinations of different
+  operations multiple times.
+
 ## 0.2.0
 
 * Added benchmarks for pure lists

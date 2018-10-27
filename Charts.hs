@@ -172,8 +172,9 @@ createCharts input pkgList delta = do
 
     putStrLn "Creating time charts..."
     mapM_ (makeOneGraph input "time") charts
-    putStrLn "\nCreating allocation charts..."
-    mapM_ (makeOneGraph input "allocated") charts
+    -- allocation charts are not very interesting
+    -- putStrLn "\nCreating allocation charts..."
+    -- mapM_ (makeOneGraph input "allocated") charts
     putStrLn "\nCreating maxrss charts..."
     mapM_ (makeOneGraph input "maxrss") charts
 
