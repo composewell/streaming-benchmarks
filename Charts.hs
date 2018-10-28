@@ -2,7 +2,6 @@
 
 module Main where
 
-import Control.Monad (when)
 import Data.Char (isSpace)
 import Data.List (reverse, sortOn)
 import Data.List.Split (splitOn)
@@ -104,7 +103,7 @@ charts =
 -- returns [(packagename, version)]
 getPkgVersions :: [String] -> IO [(String, String)]
 getPkgVersions packages = do
-    (ecode, out, _) <- readProcess "stack --system-ghc list-dependencies --bench"
+    (ecode, out, _) <- readProcess "stack list-dependencies --bench"
 
     case ecode of
         ExitSuccess -> do
@@ -132,12 +131,16 @@ suffixVersion pkginfo p =
         Nothing -> p
         Just v -> p ++ "-" ++ v
 
-createCharts :: String -> String -> Bool -> Bool -> IO ()
-createCharts input pkgList graphs delta = do
+createCharts :: String -> String -> Bool -> Bool -> Bool -> IO ()
+createCharts input pkgList graphs delta versions = do
     let packages = splitOn "," pkgList
-    let pkgInfo = []
-    -- pkgInfo <- getPkgVersions
-        bsort pxs bs =
+
+    pkgInfo <-
+        if versions
+        then getPkgVersions packages
+        else return []
+
+    let bsort pxs bs =
                 let i = intersect (map (last . splitOn "/") pxs) bs
                 in i ++ (bs \\ i)
         selectByRegression f =
@@ -177,15 +180,15 @@ createCharts input pkgList graphs delta = do
 
         makeOneGraph infile (t, prefixes) = do
             let title' = t ++ " (Lower is Better)"
-                cfg' = cfg (t, prefixes)
+                cfg' = cfg (title', prefixes)
                 cfg'' =
                     if delta
                     then cfg' { selectBenchmarks = selectByRegression }
                     else cfg'
-            report infile Nothing cfg''
-            when graphs $ graph infile (toOutfile t) cfg''
+            if graphs
+            then graph infile (toOutfile t) cfg''
+            else report infile Nothing cfg''
 
-    putStrLn "Creating time charts..."
     mapM_ (makeOneGraph input) charts
 
 -- Pass <input file> <comma separated list of packages> <True/False>

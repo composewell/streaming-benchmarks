@@ -8,12 +8,15 @@ print_help () {
   echo "       [--slow]"
   echo "       [--no-measure]"
   echo "       [--append] "
+  echo "       [--versions] "
   echo "       -- <gauge options>"
   echo
-  echo "Multiple packages can be specified as a comma separated list"
-  echo " e.g. --packages \"streamly,vector\""
-  echo
-  echo "--delta - chart diff of subsequent packages from the first package"
+  echo "--graphs: generate SVG graphs instead of text reports"
+  echo "--delta: show diff of subsequent packages from the first package"
+  echo "--slow: slower but a bit more precise benchmarking"
+  echo "--no-measure: don't measure, generate reports from previous measurements"
+  echo "--append: append the new measurement results to previous ones for comparison"
+  echo "--versions: add package versions in the report/graphs"
   echo
   echo "Any arguments after a '--' are passed directly to guage"
   exit
@@ -115,8 +118,8 @@ run_reports() {
   local packages=$1
   local output_file=$(bench_output_file)
   echo
-  echo "Generating charts from ${output_file}..."
-  $STACK exec makecharts $output_file $packages $GRAPH $DELTA
+  echo "Generating reports/charts from ${output_file}..."
+  $STACK exec makecharts $output_file $packages $GRAPH $DELTA $VERSIONS
 }
 
 #-----------------------------------------------------------------------------
@@ -130,6 +133,7 @@ DELTA=False
 APPEND=0
 RAW=0
 GRAPH=False
+VERSIONS=False
 MEASURE=1
 SPEED_OPTIONS="--quick --min-samples 10 --time-limit 1 --min-duration 0"
 
@@ -152,6 +156,7 @@ do
     --delta) DELTA=True; shift ;;
     --raw) RAW=1; shift ;;
     --graphs) GRAPH=True; shift ;;
+    --versions) VERSIONS=True; shift ;;
     --no-measure) MEASURE=0; shift ;;
     --) shift; break ;;
     -*|--*) print_help ;;
