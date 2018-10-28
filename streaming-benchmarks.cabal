@@ -15,20 +15,22 @@ description:
   operations and their comparisons across notable Haskell streaming libraries
   including `streamly`, `vector`, `streaming`, `machines`, `pipes`, and
   `conduit`.
-  <http://hackage.haskell.org/package/streamly streamly> is a streaming library
-  with native - high level, declarative and composable concurrency, it
-  is the primary motivation for these benchmarks.
+  <http://hackage.haskell.org/package/streamly streamly> is a blazing fast
+  streaming library with native, high level, declarative and composable
+  concurrency, it is the primary motivation for these benchmarks.
   .
   If you are using @stack@ then you can just use @./bench.sh@ to run the
-  benchmarks; use @--quick@ option to get the result quickly; charts will be
+  benchmarks; use @--graphs@ option to generate the charts; charts will be
   generated in the `charts` directory. Use @./bench.sh --help@ for all script
   options.
   .
   With any build tool, run the benchmarks with @--csv=results.csv@ as arguments
-  (you can pass any @gauge@ arguments including @--quick@) and then use
-  @makecharts results.csv "streamly,vector,..." False@ to create the charts.
-  The second argument to @makecharts@ is the list of package names, the third
-  argument is whether to plot full or diff from the first package.
+  (you can pass any @gauge@ arguments when running benchmarks) and then use
+  @makecharts results.csv "streamly,vector,..." True False False@ to create the
+  charts.  The second argument to @makecharts@ is the list of package names,
+  the rest of the args control whether to generate graphs, whether to show diff
+  when comparing packages and whether to show versions of the packages in the
+  reports.
   .
   See the README file shipped with the package or
   <https://github.com/composewell/streaming-benchmarks in the github repo>

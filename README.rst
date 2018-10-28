@@ -194,37 +194,28 @@ To quickly compare packages:
 
 ::
 
-  # Chart all the default packages
-  ./bench.sh --quick
+  # Compare all the default packages
+  ./bench.sh
 
   # Compare a given list of packages
   # Available package names are: streamly, vector, streaming, pipes,
   # conduit, machines, drinkery, list, pure-vector
-  ./bench.sh --quick --select "streamly,vector"
+  ./bench.sh --packages "streamly,vector"
 
   # Show full results for the first packages and delta from that for
   # the rest of the packages.
-  ./bench.sh --quick --select "streamly,vector" --delta
+  ./bench.sh --packages "streamly,vector" --delta
+
+  # Generate graphs
+  ./bench.sh --packages "streamly,vector" --delta --graphs
 
 After running you can find the charts generated in the ``charts`` directory.
-If you have the patience to wait longer for the results remove the ``--quick``
+If you have the patience to wait longer for the results then use the ``--slow``
 option, the results are likely to be a tiny bit more accurate.
 
 The ``list`` package above is the standard haskell lists in the base package,
 and ``pure-vector`` is the vector package using pure API instead of the monadic
 API.
-
-Pedantic Mode
-~~~~~~~~~~~~~
-
-Note that if different optimization flags are used on different packages,
-performance can sometimes badly suffer because of GHC inlining and
-specialization not working optimally.  If you  want to be absolutely sure that
-all packages and dependencies are compiled with the same optimization flags
-(``-O2``) use ``bench.sh --pedantic``, it will install the stack snapshot in a
-private directory under the current directory and build them fresh with the ghc
-flags specified in ``stack-pedantic.yaml``. Be aware that this will require 1-2
-GB extra disk space.
 
 Adding New Libraries
 ~~~~~~~~~~~~~~~~~~~~
@@ -258,20 +249,11 @@ interaction between benchmarks.
 Benchmarking Code
 ~~~~~~~~~~~~~~~~~
 
-* ``IO Monad:`` We run the benchmarks in the IO monad so that they are close to
-  real life usage. Note that most existing streaming benchmarks use pure code
-  or Identity monad which may produce entirely different results.
-
 * ``unfoldrM`` is used to generate the stream for two reasons, (1) it is
   monadic, (2) it reduces the generation overhead so that the actual streaming
   operation cost is amplified. If we use generation from a list there is a
   significant overhead in the generation itself because of the intermediate
   list structure.
-
-* Unless we perform some real IO operation, the operation being benchmarked can
-  get completely optimized out in some cases. We use a random number generation
-  in the IO monad and feed it to the operation being benchmarked to avoid that
-  issue.
 
 GHC Inlining
 ------------
@@ -283,11 +265,11 @@ GHC Inlining
   magnitude drop in performance just because some operation is not correctly
   inlined. Note that this applies very well to the benchmarking code as well.
 
-* ``GHC Optimization Flags:`` To make sure we are comparing fairly we make sure
-  that we compile the benchmarking code, the library code as well as all
-  dependencies using exactly the same GHC flags. GHC inlining and
+* ``GHC Optimization Flags:`` To make sure we are comparing fairly we have to
+  make sure that we compile the benchmarking code, the library code as well as
+  all dependencies using exactly the same GHC flags. GHC inlining and
   specialization optimizations can make the code unpredictable if mixed flags
-  are used. See the ``--pedantic`` option of the ``bench.sh`` script.
+  are used.
 
 * ``Single file vs multiple files`` The best way to avoid issues is to have all
   the benchmarking code in a single file. However, in real life that is not the
