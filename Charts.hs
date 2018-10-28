@@ -2,12 +2,14 @@
 
 module Main where
 
+import Control.Monad (when)
 import Data.Char (isSpace)
+import Data.List (reverse, sortOn)
 import Data.List.Split (splitOn)
 import Data.Maybe (catMaybes)
 import System.Exit (ExitCode(..))
 import System.Process.Typed (readProcess)
-import BenchGraph (bgraph, defaultConfig, Config(..), ComparisonStyle(..))
+import BenchShow
 import WithCli (withCli)
 
 import Data.List
@@ -130,15 +132,27 @@ suffixVersion pkginfo p =
         Nothing -> p
         Just v -> p ++ "-" ++ v
 
-createCharts :: String -> String -> Bool -> IO ()
-createCharts input pkgList delta = do
+createCharts :: String -> String -> Bool -> Bool -> IO ()
+createCharts input pkgList graphs delta = do
     let packages = splitOn "," pkgList
     let pkgInfo = []
     -- pkgInfo <- getPkgVersions
-    let cfg (title, prefixes) = defaultConfig
-            { chartTitle = Just title
-            , outputDir = "charts"
-            , comparisonStyle = if delta then CompareDelta else CompareFull
+        bsort pxs bs =
+                let i = intersect (map (last . splitOn "/") pxs) bs
+                in i ++ (bs \\ i)
+        selectByRegression f =
+            reverse
+          $ fmap fst
+          $ either
+              (const $ either error id $ f $ ColumnIndex 0)
+              (sortOn snd)
+              $ f $ ColumnIndex 1
+
+    let cfg (t, prefixes) = defaultConfig
+            { title = Just t
+            , outputDir = Just "charts"
+            , presentation =
+                if delta then Groups PercentDiff else Groups Absolute
             , classifyBenchmark = \bm ->
                 case any (`isPrefixOf` bm) prefixes of
                     True ->
@@ -149,34 +163,30 @@ createCharts input pkgList delta = do
                                 True -> Just (suffixVersion pkgInfo grp, bench)
                                 False -> Nothing
                     False -> Nothing
-            , sortBenchmarks = \bs ->
-                    let i = intersect (map (last . splitOn "/") prefixes) bs
-                    in i ++ (bs \\ i)
-            , sortBenchGroups = \gs ->
-                    let i = intersect (map (suffixVersion pkgInfo) packages) gs
-                    in i ++ (gs \\ i)
+            , selectGroups = \gs ->
+                let gs' = map fst gs
+                    i = intersect (map (suffixVersion pkgInfo) packages) gs'
+                    new = i ++ (gs' \\ i)
+                in concat $ map (\x -> filter (\(y,_) -> y == x) gs) new
+            , selectBenchmarks = \g -> bsort prefixes $
+                either error (map fst) $ g (ColumnIndex 0)
             }
 
-    -- links in README.rst eat up the space so we match the same
-    let toOutfile title field =
-               (filter (not . isSpace) (takeWhile (/= '(') title))
-            ++ "-"
-            ++ field
+        -- links in README.rst eat up the space so we match the same
+        toOutfile t = filter (not . isSpace) (takeWhile (/= '(') t)
 
-        makeOneGraph infile field (title, prefixes) = do
-            let title' =
-                       title
-                    ++ " (" ++ field ++ ")"
-                    ++ " (Lower is Better)"
-            bgraph infile (toOutfile title field) field (cfg (title', prefixes))
+        makeOneGraph infile (t, prefixes) = do
+            let title' = t ++ " (Lower is Better)"
+                cfg' = cfg (t, prefixes)
+                cfg'' =
+                    if delta
+                    then cfg' { selectBenchmarks = selectByRegression }
+                    else cfg'
+            report infile Nothing cfg''
+            when graphs $ graph infile (toOutfile t) cfg''
 
     putStrLn "Creating time charts..."
-    mapM_ (makeOneGraph input "time") charts
-    -- allocation charts are not very interesting
-    -- putStrLn "\nCreating allocation charts..."
-    -- mapM_ (makeOneGraph input "allocated") charts
-    putStrLn "\nCreating maxrss charts..."
-    mapM_ (makeOneGraph input "maxrss") charts
+    mapM_ (makeOneGraph input) charts
 
 -- Pass <input file> <comma separated list of packages> <True/False>
 main :: IO ()

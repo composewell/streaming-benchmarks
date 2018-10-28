@@ -116,7 +116,7 @@ run_reports() {
   local output_file=$(bench_output_file)
   echo
   echo "Generating charts from ${output_file}..."
-  $STACK exec makecharts $output_file $packages $DELTA
+  $STACK exec makecharts $output_file $packages $GRAPH $DELTA
 }
 
 #-----------------------------------------------------------------------------
@@ -129,7 +129,7 @@ DELTA=False
 
 APPEND=0
 RAW=0
-GRAPH=0
+GRAPH=False
 MEASURE=1
 SPEED_OPTIONS="--quick --min-samples 10 --time-limit 1 --min-duration 0"
 
@@ -151,7 +151,7 @@ do
     --packages) shift; PACKAGES=$1; shift ;;
     --delta) DELTA=True; shift ;;
     --raw) RAW=1; shift ;;
-    --graphs) GRAPH=1; shift ;;
+    --graphs) GRAPH=True; shift ;;
     --no-measure) MEASURE=0; shift ;;
     --) shift; break ;;
     -*|--*) print_help ;;
