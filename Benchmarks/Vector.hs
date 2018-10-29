@@ -158,15 +158,15 @@ scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
     :: Monad m => Int -> Stream m Int -> m ()
 
-scanMap    n = composeN n $ S.map (subtract 1) . S.prescanl' (+) 0
+scanMap    n = composeN n $ S.map (subtract 1) . S.scanl' (+) 0
 dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
-dropScan   n = composeN n $ S.prescanl' (+) 0 . S.drop 1
+dropScan   n = composeN n $ S.scanl' (+) 0 . S.drop 1
 takeDrop   n = composeN n $ S.drop 1 . S.take maxValue
-takeScan   n = composeN n $ S.prescanl' (+) 0 . S.take maxValue
+takeScan   n = composeN n $ S.scanl' (+) 0 . S.take maxValue
 takeMap    n = composeN n $ S.map (subtract 1) . S.take maxValue
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxValue)
 filterTake n = composeN n $ S.take maxValue . S.filter (<= maxValue)
-filterScan n = composeN n $ S.prescanl' (+) 0 . S.filter (<= P.maxBound)
+filterScan n = composeN n $ S.scanl' (+) 0 . S.filter (<= P.maxBound)
 filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 
 -------------------------------------------------------------------------------
