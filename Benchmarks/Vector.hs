@@ -126,7 +126,7 @@ scan, map, mapM,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
     :: Monad m => Int -> Stream m Int -> m ()
 
-scan           n = composeN n $ S.prescanl' (+) 0
+scan           n = composeN n $ S.scanl' (+) 0
 map            n = composeN n $ S.map (+1)
 mapM           n = composeN n $ S.mapM return
 filterEven     n = composeN n $ S.filter even
