@@ -4,6 +4,8 @@
   transformation operations multiple times
 * Add benchmarks to measure composition of various combinations of different
   operations multiple times.
+* Add benchmarks that iterate the same operation multiple times
+* Use the `bench-show` package for better reporting of diffs
 
 ## 0.2.0
 

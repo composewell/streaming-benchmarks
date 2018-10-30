@@ -1,7 +1,9 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
+import Control.Exception (catch, ErrorCall(..))
 import Data.Char (isSpace)
 import Data.List (reverse, sortOn)
 import Data.List.Split (splitOn)
@@ -80,8 +82,22 @@ charts =
         , "composed/drop-scan"
         ]
       )
+    , ( "Iterated Operations"
+      , [ "iterated/mapM"
+        , "iterated/scan"
+        , "iterated/filterEven"
+        , "iterated/takeAll"
+        , "iterated/dropOne"
+        , "iterated/dropWhileFalse"
+        , "iterated/dropWhileTrue"
+        ]
+      )
     , ( "Append Operation"
       , [ "append"
+        ]
+      )
+    , ( "Deep Nested mapM"
+      , [ "mapM-nested"
         ]
       )
     , ( "Zip Operation"
@@ -130,6 +146,10 @@ suffixVersion pkginfo p =
     case lookup p pkginfo of
         Nothing -> p
         Just v -> p ++ "-" ++ v
+
+ignoringErr :: IO () -> IO ()
+ignoringErr a = catch a (\(ErrorCall err :: ErrorCall) ->
+    putStrLn $ "Failed with error:\n" ++ err ++ "\nSkipping.")
 
 createCharts :: String -> String -> Bool -> Bool -> Bool -> IO ()
 createCharts input pkgList graphs delta versions = do
@@ -186,8 +206,8 @@ createCharts input pkgList graphs delta versions = do
                     then cfg' { selectBenchmarks = selectByRegression }
                     else cfg'
             if graphs
-            then graph infile (toOutfile t) cfg''
-            else report infile Nothing cfg''
+            then ignoringErr $ graph infile (toOutfile t) cfg''
+            else ignoringErr $ report infile Nothing cfg''
 
     mapM_ (makeOneGraph input) charts
 

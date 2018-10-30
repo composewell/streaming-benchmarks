@@ -113,8 +113,8 @@ matrix:
   #- env: BUILD=cabal-new GHCVER=8.2.2
   #  addons: {apt: {packages: [cabal-install-2.0,ghc-8.2.2], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal-new GHCVER=8.4.3
-    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.3], sources: [hvr-ghc]}}
+  - env: BUILD=cabal-new GHCVER=8.4.4
+    addons: {apt: {packages: [cabal-install-2.2,ghc-8.4.4], sources: [hvr-ghc]}}
 
   #- env: BUILD=cabal-new GHCVER=head
   #  addons: {apt: {packages: [cabal-install-head,ghc-head], sources: [hvr-ghc]}}
@@ -128,7 +128,7 @@ matrix:
   # --------------------------------------------------------------------------
 
   # GHC 8.2.2/cabal build using stack!
-  - env: BUILD=cabal-new RESOLVER=lts-11 GHCVER=8.2.2
+  - env: BUILD=cabal-new RESOLVER=lts-12 GHCVER=8.4
     os: osx
 
   # GHC 8.2.2/stack

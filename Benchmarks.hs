@@ -85,19 +85,43 @@ main = do
     , bgroup "append"
       [ benchIO "streamly" Streamly.appendSource Streamly.toNull
       , benchIO "conduit" Conduit.appendSource Conduit.toNull
+      -- append benchmark for all these packages hangs because of
+      -- quadratic performance slowdown.
 --    , benchIO "pipes" Pipes.appendSource Pipes.toNull
-      , bench "pipes" $ nfIO (return 1 :: IO Int)
+--    , bench "pipes" $ nfIO (return 1 :: IO Int)
 --    , benchIO "vector" Vector.appendSource Vector.toNull
-      , bench "vector" $ nfIO (return 1 :: IO Int)
+--    , bench "vector" $ nfIO (return 1 :: IO Int)
 --    , benchIO "streaming" Streaming.appendSource Streaming.toNull
-      , bench "streaming" $ nfIO (return 1 :: IO Int)
+--    , bench "streaming" $ nfIO (return 1 :: IO Int)
       ]
-      {-
       -- Perform 100,000 mapM recursively over a stream of length 10
       -- implemented only for vector and streamly.
-      bgroup "mapM-nested"
-    , [ benchIO "streamly" Streamly.mapMSource Streamly.toNull
-      , benchIO "vector" Vector.mapMSource Vector.toNull
+    , bgroup "iterated/mapM"
+      [ benchIO "streamly" Streamly.iterateMapM Streamly.toNull
+      , benchIO "vector" Vector.iterateMapM Vector.toNull
       ]
-      -}
+    , bgroup "iterated/scan"
+      [ benchIO "streamly" Streamly.iterateScan Streamly.toNull
+      , benchIO "vector" Vector.iterateScan Vector.toNull
+      ]
+    , bgroup "iterated/filterEven"
+      [ benchIO "streamly" Streamly.iterateFilterEven Streamly.toNull
+      , benchIO "vector" Vector.iterateFilterEven Vector.toNull
+      ]
+    , bgroup "iterated/takeAll"
+      [ benchIO "streamly" Streamly.iterateTakeAll Streamly.toNull
+      , benchIO "vector" Vector.iterateTakeAll Vector.toNull
+      ]
+    , bgroup "iterated/dropOne"
+      [ benchIO "streamly" Streamly.iterateDropOne Streamly.toNull
+      , benchIO "vector" Vector.iterateDropOne Vector.toNull
+      ]
+    , bgroup "iterated/dropWhileFalse"
+      [ benchIO "streamly" Streamly.iterateDropWhileFalse Streamly.toNull
+      , benchIO "vector" Vector.iterateDropWhileFalse Vector.toNull
+      ]
+    , bgroup "iterated/dropWhileTrue"
+      [ benchIO "streamly" Streamly.iterateDropWhileTrue Streamly.toNull
+      , benchIO "vector" Vector.iterateDropWhileTrue Vector.toNull
+      ]
    ]

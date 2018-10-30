@@ -6,6 +6,8 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Benchmarks.Streamly where
 
 import Benchmarks.Common (value, maxValue)
@@ -57,14 +59,6 @@ sourceN count begin = S.unfoldrM step begin
 {-# INLINE appendSource #-}
 appendSource :: Monad m => Int -> Stream m Int
 appendSource n = foldMap (S.yieldM . return) [n..n+value]
-
-{-# INLINE mapMSource #-}
-mapMSource :: S.MonadAsync m => Int -> Stream m Int
-mapMSource n = f 100000 (sourceN 10 n)
-    where
-        f :: S.MonadAsync m => Int -> Stream m Int -> Stream m Int
-        f 0 m = S.mapM return m
-        f x m = S.mapM return (f (x P.- 1) m)
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -142,6 +136,40 @@ dropOne        n = composeN n $ S.drop 1
 dropAll        n = composeN n $ S.drop maxValue
 dropWhileFalse n = composeN n $ S.dropWhile (<= 1)
 dropWhileTrue  n = composeN n $ S.dropWhile (<= maxValue)
+
+-------------------------------------------------------------------------------
+-- Iteration
+-------------------------------------------------------------------------------
+
+{-# INLINE iterateSource #-}
+iterateSource
+    :: S.MonadAsync m
+    => (Stream m Int -> Stream m Int) -> Int -> Int -> Stream m Int
+iterateSource g i n = f i (sourceN 10 n)
+    where
+        -- f :: S.MonadAsync m => Int -> Stream m Int -> Stream m Int
+        f (0 :: Int) m = g m
+        f x m = g (f (x P.- 1) m)
+
+{-# INLINE iterateMapM #-}
+{-# INLINE iterateScan #-}
+{-# INLINE iterateFilterEven #-}
+{-# INLINE iterateTakeAll #-}
+{-# INLINE iterateDropOne #-}
+{-# INLINE iterateDropWhileFalse #-}
+{-# INLINE iterateDropWhileTrue #-}
+iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
+    iterateDropWhileFalse, iterateDropWhileTrue :: S.MonadAsync m => Int -> Stream m Int
+
+-- this is quadratic
+iterateScan n = iterateSource (S.scanl' (+) 0) 1000 n
+
+iterateMapM n = iterateSource (S.mapM return) 100000 n
+iterateFilterEven n = iterateSource (S.filter even) 100000 n
+iterateTakeAll n = iterateSource (S.take maxValue) 100000 n
+iterateDropOne n = iterateSource (S.drop 1) 100000 n
+iterateDropWhileFalse n = iterateSource (S.dropWhile (<= 1)) 1000 n
+iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) 100000 n
 
 -------------------------------------------------------------------------------
 -- Mixed Composition
