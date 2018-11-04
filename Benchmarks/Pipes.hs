@@ -110,7 +110,7 @@ takeAll        n = composeN n $ S.take maxValue
 takeWhileTrue  n = composeN n $ S.takeWhile (<= maxValue)
 dropOne        n = composeN n $ S.drop 1
 dropAll        n = composeN n $ S.drop maxValue
-dropWhileFalse n = composeN n $ S.dropWhile (<= 1)
+dropWhileFalse n = composeN n $ S.dropWhile (> maxValue)
 dropWhileTrue  n = composeN n $ S.dropWhile (<= maxValue)
 
 -------------------------------------------------------------------------------

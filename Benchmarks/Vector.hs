@@ -12,7 +12,7 @@ module Benchmarks.Vector where
 
 import Benchmarks.Common (value, maxValue)
 import Prelude
-       (Monad, Int, (+), ($), (.), return, even, (>), (<=),
+       (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
         subtract, undefined, replicate, Maybe(..))
 import qualified Prelude as P
 
@@ -131,18 +131,22 @@ takeAll        n = composeN n $ S.take maxValue
 takeWhileTrue  n = composeN n $ S.takeWhile (<= maxValue)
 dropOne        n = composeN n $ S.drop 1
 dropAll        n = composeN n $ S.drop maxValue
-dropWhileFalse n = composeN n $ S.dropWhile (<= 1)
+dropWhileFalse n = composeN n $ S.dropWhile (> maxValue)
 dropWhileTrue  n = composeN n $ S.dropWhile (<= maxValue)
 
 -------------------------------------------------------------------------------
 -- Iteration
 -------------------------------------------------------------------------------
 
+iterStreamLen, maxIters :: Int
+iterStreamLen = 10
+maxIters = 100000
+
 {-# INLINE iterateSource #-}
 iterateSource
     :: Monad m
     => (Stream m Int -> Stream m Int) -> Int -> Int -> Stream m Int
-iterateSource g i n = f i (sourceN 10 n)
+iterateSource g i n = f i (sourceN iterStreamLen n)
     where
         f (0 :: Int) m = g m
         f x m = g (f (x P.- 1) m)
@@ -158,14 +162,14 @@ iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Monad m => Int -> Stream m Int
 
 -- this is quadratic
-iterateScan n = iterateSource (S.scanl' (+) 0) 1000 n
+iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `div` 100) n
+iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxValue)) (maxIters `div` 100) n
 
-iterateMapM n = iterateSource (S.mapM return) 100000 n
-iterateFilterEven n = iterateSource (S.filter even) 100000 n
-iterateTakeAll n = iterateSource (S.take maxValue) 100000 n
-iterateDropOne n = iterateSource (S.drop 1) 100000 n
-iterateDropWhileFalse n = iterateSource (S.dropWhile (<= 1)) 1000 n
-iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) 100000 n
+iterateMapM n = iterateSource (S.mapM return) maxIters n
+iterateFilterEven n = iterateSource (S.filter even) maxIters n
+iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
+iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 
 -------------------------------------------------------------------------------
 -- Mixed Composition
