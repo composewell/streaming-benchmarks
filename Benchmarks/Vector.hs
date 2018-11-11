@@ -163,7 +163,8 @@ iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
 
 -- this is quadratic
 iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `div` 100) n
-iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxValue)) (maxIters `div` 100) n
+iterateDropWhileFalse n =
+    iterateSource (S.dropWhile (> maxValue)) (maxIters `div` 100) n
 
 iterateMapM n = iterateSource (S.mapM return) maxIters n
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
