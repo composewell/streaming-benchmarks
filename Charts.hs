@@ -23,7 +23,6 @@ import qualified Data.Text.Lazy.Encoding as T
 charts :: [(String, [String])]
 charts =
     [
-      -- Operations are listed in increasing cost order
     ( "Elimination Operations"
       , [
           "elimination/drain"
@@ -38,12 +37,12 @@ charts =
         ]
       )
     , ( "Transformation Operations x 4"
-      , [ "transformationN/map"
-        , "transformationN/mapM"
-        , "transformationN/scan"
+      , [ "transformationX4/map"
+        , "transformationX4/mapM"
+        , "transformationX4/scan"
         ]
       )
-    , ( "Filtering  Operations"
+    , ( "Filtering Operations"
       , [
           "filtering/filter-all-out"
         , "filtering/filter-all-in"
@@ -56,48 +55,44 @@ charts =
         , "filtering/dropWhile-false"
         ]
       )
-    , ( "Filtering  Operations x 4"
+    , ( "Filtering Operations x 4"
       , [
-          "filteringN/filter-all-out"
-        , "filteringN/takeWhile-true"
-        , "filteringN/filter-all-in"
-        , "filteringN/take-all"
-        , "filteringN/filter-even"
-        , "filteringN/drop-all"
-        , "filteringN/dropWhile-true"
-        , "filteringN/dropWhile-false"
-        , "filteringN/drop-one"
+          "filteringX4/filter-all-out"
+        , "filteringX4/takeWhile-true"
+        , "filteringX4/filter-all-in"
+        , "filteringX4/take-all"
+        , "filteringX4/filter-even"
+        , "filteringX4/drop-all"
+        , "filteringX4/dropWhile-true"
+        , "filteringX4/dropWhile-false"
+        , "filteringX4/drop-one"
         ]
       )
-    , ( "Composed Operations x 4"
-      , [ "composed/filter-map"
-        , "composed/take-map"
-        , "composed/drop-map"
-        , "composed/filter-drop"
-        , "composed/filter-take"
-        , "composed/take-drop"
-        , "composed/scan-map"
-        , "composed/filter-scan"
-        , "composed/take-scan"
-        , "composed/drop-scan"
+    , ( "Mixed Operations x 4"
+      , [ "mixedX4/filter-map"
+        , "mixedX4/take-map"
+        , "mixedX4/drop-map"
+        , "mixedX4/filter-drop"
+        , "mixedX4/filter-take"
+        , "mixedX4/take-drop"
+        , "mixedX4/scan-map"
+        , "mixedX4/filter-scan"
+        , "mixedX4/take-scan"
+        , "mixedX4/drop-scan"
         ]
       )
     , ( "Iterated Operations"
       , [ "iterated/mapM"
-        , "iterated/scan"
+        , "iterated/scan[x0.01]"
         , "iterated/filterEven"
         , "iterated/takeAll"
         , "iterated/dropOne"
-        , "iterated/dropWhileFalse"
+        , "iterated/dropWhileFalse[x0.01]"
         , "iterated/dropWhileTrue"
         ]
       )
     , ( "Append Operation"
       , [ "append"
-        ]
-      )
-    , ( "Deep Nested mapM"
-      , [ "mapM-nested"
         ]
       )
     , ( "Zip Operation"

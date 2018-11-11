@@ -41,7 +41,7 @@ main = do
       , $(createBgroupN "map" "map" 1)
       , $(createBgroupN "mapM" "mapM" 1)
       ]
-    , bgroup "transformationN"
+    , bgroup "transformationX4"
       [ $(createBgroupN "scan" "scan" 4)
       , $(createBgroupN "map" "map" 4)
       , $(createBgroupN "mapM" "mapM" 4)
@@ -57,7 +57,7 @@ main = do
       , $(createBgroupN "dropWhile-true" "dropWhileTrue" 1)
       , $(createBgroupN "dropWhile-false" "dropWhileFalse" 1)
       ]
-    , bgroup "filteringN"
+    , bgroup "filteringX4"
       [ $(createBgroupN "filter-even" "filterEven" 4)
       , $(createBgroupN "filter-all-out" "filterAllOut" 4)
       , $(createBgroupN "filter-all-in" "filterAllIn" 4)
@@ -68,7 +68,7 @@ main = do
       , $(createBgroupN "dropWhile-true" "dropWhileTrue" 4)
       , $(createBgroupN "dropWhile-false" "dropWhileFalse" 4)
       ]
-    , bgroup "composed"
+    , bgroup "mixedX4"
       [ $(createBgroupN "scan-map" "scanMap" 4)
       , $(createBgroupN "drop-map" "dropMap" 4)
       , $(createBgroupN "drop-scan" "dropScan" 4)
@@ -100,7 +100,7 @@ main = do
       [ benchIO "streamly" Streamly.iterateMapM Streamly.toNull
       , benchIO "vector" Vector.iterateMapM Vector.toNull
       ]
-    , bgroup "iterated/scan"
+    , bgroup "iterated/scan[x0.01]"
       [ benchIO "streamly" Streamly.iterateScan Streamly.toNull
       , benchIO "vector" Vector.iterateScan Vector.toNull
       ]
@@ -116,7 +116,7 @@ main = do
       [ benchIO "streamly" Streamly.iterateDropOne Streamly.toNull
       , benchIO "vector" Vector.iterateDropOne Vector.toNull
       ]
-    , bgroup "iterated/dropWhileFalse"
+    , bgroup "iterated/dropWhileFalse[x0.01]"
       [ benchIO "streamly" Streamly.iterateDropWhileFalse Streamly.toNull
       , benchIO "vector" Vector.iterateDropWhileFalse Vector.toNull
       ]

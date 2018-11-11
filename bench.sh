@@ -2,7 +2,7 @@
 
 print_help () {
   echo "Usage: $0 "
-  echo "       [--packages <streamly,vector,streaming,pipes,conduit,machines>]"
+  echo "       [--packages <streamly,vector,pure-vector,list,streaming,pipes,conduit,machines>]"
   echo "       [--graphs]"
   echo "       [--delta]"
   echo "       [--slow]"
