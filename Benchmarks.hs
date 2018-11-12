@@ -13,7 +13,7 @@ import Benchmarks.BenchmarkTH
        (createBgroup, createBgroupN, createBgroupIter, createBgroupIterM)
 import Benchmarks.Common (benchIO, benchPure)
 
-import qualified Benchmarks.Vector as Vector
+import qualified Benchmarks.VectorMonadic as VectorMonadic
 import qualified Benchmarks.Streamly as Streamly
 import qualified Benchmarks.Streaming as Streaming
 import qualified Benchmarks.Machines as Machines
@@ -23,7 +23,7 @@ import qualified Benchmarks.Drinkery as Drinkery
 import qualified Benchmarks.List as List
 import qualified Benchmarks.DList as DList
 import qualified Benchmarks.Sequence as Sequence
-import qualified Benchmarks.VectorPure as VectorPure
+import qualified Benchmarks.Vector as Vector
 -- import qualified Benchmarks.LogicT as LogicT
 -- import qualified Benchmarks.ListT as ListT
 -- import qualified Benchmarks.ListTransformer as ListTransformer
@@ -93,8 +93,9 @@ main = do
       , benchIO "conduit" Conduit.appendSourceR Conduit.toNull
       -- append benchmark for all these packages shows
       -- quadratic performance slowdown.
-      , benchPure "vector" VectorPure.appendSourceR VectorPure.toNull
-      , benchIO "monadic-vector" Vector.appendSourceR Vector.toNull
+      , benchPure "vector" Vector.appendSourceR Vector.toNull
+      , benchIO "monadic-vector" VectorMonadic.appendSourceR
+                                 VectorMonadic.toNull
       , benchIO "pipes" Pipes.appendSourceR Pipes.toNull
       , benchIO "streaming" Streaming.appendSourceR Streaming.toNull
       ]
@@ -104,8 +105,9 @@ main = do
       , benchIO   "conduit" Conduit.appendSourceL Conduit.toNull
       -- append benchmark for all these packages shows
       -- quadratic performance slowdown.
-      , benchPure "vector" VectorPure.appendSourceL VectorPure.toNull
-      , benchIO   "monadic-vector" Vector.appendSourceL Vector.toNull
+      , benchPure "vector" Vector.appendSourceL Vector.toNull
+      , benchIO   "monadic-vector" VectorMonadic.appendSourceL
+                                   VectorMonadic.toNull
       , benchIO   "streamly" Streamly.appendSourceL Streamly.toNull
       , benchPure "list" List.appendSourceL List.toNull
       , benchIO   "pipes" Pipes.appendSourceL Pipes.toNull

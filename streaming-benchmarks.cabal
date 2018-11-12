@@ -60,20 +60,27 @@ benchmark benchmarks
   main-is:          Benchmarks.hs
   other-modules:    Benchmarks.Common
                   , Benchmarks.BenchmarkTH
-                  , Benchmarks.Streamly
+
+                  -- Pure streams
+                  , Benchmarks.List
+                  , Benchmarks.DList
+                  , Benchmarks.Sequence
                   , Benchmarks.Vector
+
+                  -- Monadic streams
+                  , Benchmarks.Streamly
+                  , Benchmarks.VectorMonadic
                   , Benchmarks.Streaming
-                -- , Benchmarks.LogicT
-                -- , Benchmarks.ListT
-                -- , Benchmarks.ListTransformer
                   , Benchmarks.Conduit
                   , Benchmarks.Pipes
                   , Benchmarks.Machines
                   , Benchmarks.Drinkery
-                  , Benchmarks.List
-                  , Benchmarks.DList
-                  , Benchmarks.Sequence
-                  , Benchmarks.VectorPure
+
+                -- List transformers
+                -- , Benchmarks.LogicT
+                -- , Benchmarks.ListT
+                -- , Benchmarks.ListTransformer
+
   ghc-options: -O2 -Wall -with-rtsopts "-T" -fspec-constr-recursive=10
   if impl(ghc >= 8.0)
     ghc-options:    -Wcompat

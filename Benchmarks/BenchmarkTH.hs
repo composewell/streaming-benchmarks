@@ -16,8 +16,8 @@ createBgroup :: String -> String -> Q Exp
 createBgroup name fname =
     [|
         bgroup name
-            [ benchIO "monadic-vector" $(varE (mkName ("Vector.source")))
-                                  $(varE (mkName ("Vector." ++ fname)))
+            [ benchIO "monadic-vector" $(varE (mkName ("VectorMonadic.source")))
+                                  $(varE (mkName ("VectorMonadic." ++ fname)))
             , benchIO "streamly" $(varE (mkName ("Streamly.source")))
                                   $(varE (mkName ("Streamly." ++ fname)))
             , benchIO "streaming" $(varE (mkName ("Streaming.source")))
@@ -32,8 +32,8 @@ createBgroup name fname =
                                   $(varE (mkName ("Drinkery." ++ fname)))
             , benchPure "list"    $(varE (mkName ("List.source")))
                                   $(varE (mkName ("List." ++ fname)))
-            , benchPure "vector" $(varE (mkName ("VectorPure.source")))
-                                  $(varE (mkName ("VectorPure." ++ fname)))
+            , benchPure "vector" $(varE (mkName ("Vector.source")))
+                                  $(varE (mkName ("Vector." ++ fname)))
             ]
     |]
 
@@ -41,8 +41,8 @@ createBgroupN :: String -> String -> Int -> Q Exp
 createBgroupN name fname n =
     [|
         bgroup name
-            [ benchIO "monadic-vector" $(varE (mkName ("Vector.source")))
-                                  ($(varE (mkName ("Vector." ++ fname))) n)
+            [ benchIO "monadic-vector" $(varE (mkName ("VectorMonadic.source")))
+                                  ($(varE (mkName ("VectorMonadic." ++ fname))) n)
             , benchIO "streamly" $(varE (mkName ("Streamly.source")))
                                   ($(varE (mkName ("Streamly." ++ fname))) n)
             , benchIO "streaming" $(varE (mkName ("Streaming.source")))
@@ -57,8 +57,8 @@ createBgroupN name fname n =
                                   ($(varE (mkName ("Drinkery." ++ fname))) n)
             , benchPure "list"    $(varE (mkName ("List.source")))
                                   ($(varE (mkName ("List." ++ fname))) n)
-            , benchPure "vector" $(varE (mkName ("VectorPure.source")))
-                                  ($(varE (mkName ("VectorPure." ++ fname))) n)
+            , benchPure "vector" $(varE (mkName ("Vector.source")))
+                                  ($(varE (mkName ("Vector." ++ fname))) n)
             ]
     |]
 
@@ -66,14 +66,14 @@ createBgroupIter :: String -> String -> Q Exp
 createBgroupIter name fname =
     [|
         bgroup name
-            [ benchIO "monadic-vector" $(varE (mkName ("Vector." ++ fname)))
-                                       $(varE (mkName ("Vector.toNull")))
+            [ benchIO "monadic-vector" $(varE (mkName ("VectorMonadic." ++ fname)))
+                                       $(varE (mkName ("VectorMonadic.toNull")))
             , benchIO "streamly"       $(varE (mkName ("Streamly." ++ fname)))
                                        $(varE (mkName ("Streamly.toNull")))
             , benchPure "list"         $(varE (mkName ("List." ++ fname)))
                                        $(varE (mkName ("List.toNull")))
-            , benchPure "vector"       $(varE (mkName ("VectorPure." ++ fname)))
-                                       $(varE (mkName ("VectorPure.toNull")))
+            , benchPure "vector"       $(varE (mkName ("Vector." ++ fname)))
+                                       $(varE (mkName ("Vector.toNull")))
             ]
     |]
 
@@ -81,8 +81,8 @@ createBgroupIterM :: String -> String -> Q Exp
 createBgroupIterM name fname =
     [|
         bgroup name
-            [ benchIO "monadic-vector" $(varE (mkName ("Vector." ++ fname)))
-                                       $(varE (mkName ("Vector.toNull")))
+            [ benchIO "monadic-vector" $(varE (mkName ("VectorMonadic." ++ fname)))
+                                       $(varE (mkName ("VectorMonadic.toNull")))
             , benchIO "streamly"       $(varE (mkName ("Streamly." ++ fname)))
                                        $(varE (mkName ("Streamly.toNull")))
             ]
