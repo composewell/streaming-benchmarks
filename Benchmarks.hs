@@ -9,8 +9,9 @@
 
 module Main (main) where
 
-import Benchmarks.BenchmarkTH (createBgroup, createBgroupN)
-import Benchmarks.Common (benchIO)
+import Benchmarks.BenchmarkTH
+       (createBgroup, createBgroupN, createBgroupIter, createBgroupIterM)
+import Benchmarks.Common (benchIO, benchPure)
 
 import qualified Benchmarks.Vector as Vector
 import qualified Benchmarks.Streamly as Streamly
@@ -20,6 +21,8 @@ import qualified Benchmarks.Pipes as Pipes
 import qualified Benchmarks.Conduit as Conduit
 import qualified Benchmarks.Drinkery as Drinkery
 import qualified Benchmarks.List as List
+import qualified Benchmarks.DList as DList
+import qualified Benchmarks.Sequence as Sequence
 import qualified Benchmarks.VectorPure as VectorPure
 -- import qualified Benchmarks.LogicT as LogicT
 -- import qualified Benchmarks.ListT as ListT
@@ -82,46 +85,40 @@ main = do
       ]
     , $(createBgroup "zip" "zip")
     , $(createBgroup "concat" "concat")
-    , bgroup "append"
-      [ benchIO "streamly" Streamly.appendSource Streamly.toNull
-      , benchIO "conduit" Conduit.appendSource Conduit.toNull
-      -- append benchmark for all these packages hangs because of
+    , bgroup "appendR[10000]"
+      [ benchPure "dlist" DList.appendSourceR DList.toNull
+      , benchPure "list" List.appendSourceR List.toNull
+      , benchPure "sequence" Sequence.appendSourceR Sequence.toNull
+      , benchIO "streamly" Streamly.appendSourceR Streamly.toNull
+      , benchIO "conduit" Conduit.appendSourceR Conduit.toNull
+      -- append benchmark for all these packages shows
       -- quadratic performance slowdown.
---    , benchIO "pipes" Pipes.appendSource Pipes.toNull
---    , bench "pipes" $ nfIO (return 1 :: IO Int)
---    , benchIO "vector" Vector.appendSource Vector.toNull
---    , bench "vector" $ nfIO (return 1 :: IO Int)
---    , benchIO "streaming" Streaming.appendSource Streaming.toNull
---    , bench "streaming" $ nfIO (return 1 :: IO Int)
+      , benchPure "vector" VectorPure.appendSourceR VectorPure.toNull
+      , benchIO "monadic-vector" Vector.appendSourceR Vector.toNull
+      , benchIO "pipes" Pipes.appendSourceR Pipes.toNull
+      , benchIO "streaming" Streaming.appendSourceR Streaming.toNull
+      ]
+    , bgroup "appendL[10000]"
+      [ benchPure "dlist" DList.appendSourceL DList.toNull
+      , benchPure "sequence" Sequence.appendSourceL Sequence.toNull
+      , benchIO   "conduit" Conduit.appendSourceL Conduit.toNull
+      -- append benchmark for all these packages shows
+      -- quadratic performance slowdown.
+      , benchPure "vector" VectorPure.appendSourceL VectorPure.toNull
+      , benchIO   "monadic-vector" Vector.appendSourceL Vector.toNull
+      , benchIO   "streamly" Streamly.appendSourceL Streamly.toNull
+      , benchPure "list" List.appendSourceL List.toNull
+      , benchIO   "pipes" Pipes.appendSourceL Pipes.toNull
+      , benchIO   "streaming" Streaming.appendSourceL Streaming.toNull
       ]
       -- Perform 100,000 mapM recursively over a stream of length 10
-      -- implemented only for vector and streamly.
-    , bgroup "iterated/mapM"
-      [ benchIO "streamly" Streamly.iterateMapM Streamly.toNull
-      , benchIO "vector" Vector.iterateMapM Vector.toNull
-      ]
-    , bgroup "iterated/scan[x0.01]"
-      [ benchIO "streamly" Streamly.iterateScan Streamly.toNull
-      , benchIO "vector" Vector.iterateScan Vector.toNull
-      ]
-    , bgroup "iterated/filterEven"
-      [ benchIO "streamly" Streamly.iterateFilterEven Streamly.toNull
-      , benchIO "vector" Vector.iterateFilterEven Vector.toNull
-      ]
-    , bgroup "iterated/takeAll"
-      [ benchIO "streamly" Streamly.iterateTakeAll Streamly.toNull
-      , benchIO "vector" Vector.iterateTakeAll Vector.toNull
-      ]
-    , bgroup "iterated/dropOne"
-      [ benchIO "streamly" Streamly.iterateDropOne Streamly.toNull
-      , benchIO "vector" Vector.iterateDropOne Vector.toNull
-      ]
-    , bgroup "iterated/dropWhileFalse[x0.01]"
-      [ benchIO "streamly" Streamly.iterateDropWhileFalse Streamly.toNull
-      , benchIO "vector" Vector.iterateDropWhileFalse Vector.toNull
-      ]
-    , bgroup "iterated/dropWhileTrue"
-      [ benchIO "streamly" Streamly.iterateDropWhileTrue Streamly.toNull
-      , benchIO "vector" Vector.iterateDropWhileTrue Vector.toNull
+    , bgroup "iterated"
+      [ $(createBgroupIterM "mapM" "iterateMapM")
+      , $(createBgroupIter "scan[10000]" "iterateScan")
+      , $(createBgroupIter "filterEven" "iterateFilterEven")
+      , $(createBgroupIter "takeAll" "iterateTakeAll")
+      , $(createBgroupIter "dropOne" "iterateDropOne")
+      , $(createBgroupIter "dropWhileFalse[10000]" "iterateDropWhileFalse")
+      , $(createBgroupIter "dropWhileTrue" "iterateDropWhileTrue")
       ]
    ]

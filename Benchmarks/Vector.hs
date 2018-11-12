@@ -10,7 +10,7 @@
 
 module Benchmarks.Vector where
 
-import Benchmarks.Common (value, maxValue)
+import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
         subtract, undefined, replicate, Maybe(..))
@@ -55,9 +55,13 @@ sourceN count begin = S.unfoldrM step begin
 -- Append
 -------------------------------------------------------------------------------
 
-{-# INLINE appendSource #-}
-appendSource :: Monad m => Int -> Stream m Int
-appendSource n = P.foldr (S.++) S.empty (P.map S.singleton [n..n+value])
+{-# INLINE appendSourceR #-}
+appendSourceR :: Monad m => Int -> Stream m Int
+appendSourceR n = P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+
+{-# INLINE appendSourceL #-}
+appendSourceL :: Monad m => Int -> Stream m Int
+appendSourceL n = P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

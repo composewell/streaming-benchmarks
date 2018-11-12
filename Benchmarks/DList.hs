@@ -1,5 +1,5 @@
 -- |
--- Module      : Benchmarks.List
+-- Module      : Benchmarks.DList
 -- Copyright   : (c) 2018 Harendra Kumar
 --
 -- License     : MIT
@@ -7,23 +7,23 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Benchmarks.List where
+module Benchmarks.DList where
 
-import Benchmarks.Common (value, maxValue, appendValue)
-import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
-                maxBound, Maybe(..))
+import Benchmarks.Common (value, appendValue)
+import Prelude (Int, (+), id, ($), (.), (>), undefined, Maybe(..))
 import qualified Prelude as P
+import qualified Data.Foldable as P
 
-import qualified Data.List          as S
+import qualified Data.DList          as S
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
 -------------------------------------------------------------------------------
 
-type Stream = []
+type Stream = S.DList
 
 {-# INLINE source #-}
-source :: Int -> [Int]
+source :: Int -> Stream Int
 -- source v = [v..v+value]
 
 source n = S.unfoldr step n
@@ -48,11 +48,11 @@ sourceN count begin = S.unfoldr step begin
 
 {-# INLINE appendSourceR #-}
 appendSourceR :: Int -> Stream Int
-appendSourceR n = P.foldr (S.++) [] (P.map (: []) [n..n+appendValue])
+appendSourceR n = P.foldr S.append S.empty (P.map S.singleton [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (S.++) [] (P.map (: []) [n..n+appendValue])
+appendSourceL n = P.foldl S.append S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -62,14 +62,14 @@ appendSourceL n = P.foldl (S.++) [] (P.map (: []) [n..n+appendValue])
 {-# INLINE toList #-}
 {-# INLINE foldl #-}
 {-# INLINE last #-}
-toNull, toList :: Stream Int -> Stream Int
+toNull, toList :: Stream Int -> [Int]
 foldl :: Stream Int -> Int
 last  :: Stream Int -> Int
 
-toNull = id
-toList = id
-foldl  = S.foldl' (+) 0
-last   = S.last
+toNull = S.toList
+toList = S.toList
+foldl  = P.foldl' (+) 0
+last   = undefined
 
 -------------------------------------------------------------------------------
 -- Transformation
@@ -108,19 +108,19 @@ scan, map, mapM,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
     :: Int -> Stream Int -> Stream Int
 
-scan           n = composeN n $ S.scanl' (+) 0
+scan             = undefined
 map            n = composeN n $ S.map (+1)
 mapM             = map
-filterEven     n = composeN n $ S.filter even
-filterAllOut   n = composeN n $ S.filter (> maxValue)
-filterAllIn    n = composeN n $ S.filter (<= maxValue)
-takeOne        n = composeN n $ S.take 1
-takeAll        n = composeN n $ S.take maxValue
-takeWhileTrue  n = composeN n $ S.takeWhile (<= maxValue)
-dropOne        n = composeN n $ S.drop 1
-dropAll        n = composeN n $ S.drop maxValue
-dropWhileFalse n = composeN n $ S.dropWhile (> maxValue)
-dropWhileTrue  n = composeN n $ S.dropWhile (<= maxValue)
+filterEven       = undefined
+filterAllOut     = undefined
+filterAllIn      = undefined
+takeOne          = undefined
+takeAll          = undefined
+takeWhileTrue    = undefined
+dropOne          = undefined
+dropAll          = undefined
+dropWhileFalse   = undefined
+dropWhileTrue    = undefined
 
 -------------------------------------------------------------------------------
 -- Iteration
@@ -147,14 +147,13 @@ iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Int
 
 -- this is quadratic
-iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `P.div` 100) n
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhile (> maxValue)) (maxIters `P.div` 100) n
+iterateScan   = undefined
+iterateDropWhileFalse   = undefined
 
-iterateFilterEven n = iterateSource (S.filter even) maxIters n
-iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
-iterateDropOne n = iterateSource (S.drop 1) maxIters n
-iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
+iterateFilterEven   = undefined
+iterateTakeAll   = undefined
+iterateDropOne   = undefined
+iterateDropWhileTrue   = undefined
 
 -------------------------------------------------------------------------------
 -- Mixed Composition
@@ -174,16 +173,16 @@ scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
     :: Int -> Stream Int -> Stream Int
 
-scanMap    n = composeN n $ S.map (subtract 1) . S.scanl' (+) 0
-dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
-dropScan   n = composeN n $ S.scanl' (+) 0 . S.drop 1
-takeDrop   n = composeN n $ S.drop 1 . S.take maxValue
-takeScan   n = composeN n $ S.scanl' (+) 0 . S.take maxValue
-takeMap    n = composeN n $ S.map (subtract 1) . S.take maxValue
-filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxValue)
-filterTake n = composeN n $ S.take maxValue . S.filter (<= maxValue)
-filterScan n = composeN n $ S.scanl' (+) 0 . S.filter (<= maxBound)
-filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
+scanMap      = undefined
+dropMap      = undefined
+dropScan     = undefined
+takeDrop     = undefined
+takeScan     = undefined
+takeMap      = undefined
+filterDrop   = undefined
+filterTake   = undefined
+filterScan   = undefined
+filterMap    = undefined
 
 -------------------------------------------------------------------------------
 -- Zipping and concat
@@ -191,8 +190,8 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 
 {-# INLINE zip #-}
 zip :: Stream Int -> Stream (Int, Int)
-zip src       = transform $ (S.zipWith (,) src src)
+zip _src       = undefined
 
 {-# INLINE concat #-}
 concat :: Stream Int -> Stream Int
-concat src    = transform $ (S.concatMap (S.replicate 3) src)
+concat _src    = undefined

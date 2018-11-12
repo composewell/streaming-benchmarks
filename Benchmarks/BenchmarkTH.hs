@@ -1,6 +1,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Benchmarks.BenchmarkTH (createBgroup, createBgroupN) where
+module Benchmarks.BenchmarkTH
+    ( createBgroup
+    , createBgroupN
+    , createBgroupIter
+    , createBgroupIterM
+    ) where
 
 import Benchmarks.Common (benchIO, benchPure)
 --import Benchmarks.Common (benchId)
@@ -11,9 +16,9 @@ createBgroup :: String -> String -> Q Exp
 createBgroup name fname =
     [|
         bgroup name
-            [ benchIO "vector"    $(varE (mkName ("Vector.source")))
+            [ benchIO "monadic-vector" $(varE (mkName ("Vector.source")))
                                   $(varE (mkName ("Vector." ++ fname)))
-            , benchIO "streamly"  $(varE (mkName ("Streamly.source")))
+            , benchIO "streamly" $(varE (mkName ("Streamly.source")))
                                   $(varE (mkName ("Streamly." ++ fname)))
             , benchIO "streaming" $(varE (mkName ("Streaming.source")))
                                   $(varE (mkName ("Streaming." ++ fname)))
@@ -27,7 +32,7 @@ createBgroup name fname =
                                   $(varE (mkName ("Drinkery." ++ fname)))
             , benchPure "list"    $(varE (mkName ("List.source")))
                                   $(varE (mkName ("List." ++ fname)))
-            , benchPure "pure-vector" $(varE (mkName ("VectorPure.source")))
+            , benchPure "vector" $(varE (mkName ("VectorPure.source")))
                                   $(varE (mkName ("VectorPure." ++ fname)))
             ]
     |]
@@ -36,9 +41,9 @@ createBgroupN :: String -> String -> Int -> Q Exp
 createBgroupN name fname n =
     [|
         bgroup name
-            [ benchIO "vector"    $(varE (mkName ("Vector.source")))
+            [ benchIO "monadic-vector" $(varE (mkName ("Vector.source")))
                                   ($(varE (mkName ("Vector." ++ fname))) n)
-            , benchIO "streamly"  $(varE (mkName ("Streamly.source")))
+            , benchIO "streamly" $(varE (mkName ("Streamly.source")))
                                   ($(varE (mkName ("Streamly." ++ fname))) n)
             , benchIO "streaming" $(varE (mkName ("Streaming.source")))
                                   ($(varE (mkName ("Streaming." ++ fname))) n)
@@ -52,7 +57,33 @@ createBgroupN name fname n =
                                   ($(varE (mkName ("Drinkery." ++ fname))) n)
             , benchPure "list"    $(varE (mkName ("List.source")))
                                   ($(varE (mkName ("List." ++ fname))) n)
-            , benchPure "pure-vector" $(varE (mkName ("VectorPure.source")))
+            , benchPure "vector" $(varE (mkName ("VectorPure.source")))
                                   ($(varE (mkName ("VectorPure." ++ fname))) n)
+            ]
+    |]
+
+createBgroupIter :: String -> String -> Q Exp
+createBgroupIter name fname =
+    [|
+        bgroup name
+            [ benchIO "monadic-vector" $(varE (mkName ("Vector." ++ fname)))
+                                       $(varE (mkName ("Vector.toNull")))
+            , benchIO "streamly"       $(varE (mkName ("Streamly." ++ fname)))
+                                       $(varE (mkName ("Streamly.toNull")))
+            , benchPure "list"         $(varE (mkName ("List." ++ fname)))
+                                       $(varE (mkName ("List.toNull")))
+            , benchPure "vector"       $(varE (mkName ("VectorPure." ++ fname)))
+                                       $(varE (mkName ("VectorPure.toNull")))
+            ]
+    |]
+
+createBgroupIterM :: String -> String -> Q Exp
+createBgroupIterM name fname =
+    [|
+        bgroup name
+            [ benchIO "monadic-vector" $(varE (mkName ("Vector." ++ fname)))
+                                       $(varE (mkName ("Vector.toNull")))
+            , benchIO "streamly"       $(varE (mkName ("Streamly." ++ fname)))
+                                       $(varE (mkName ("Streamly.toNull")))
             ]
     |]

@@ -185,7 +185,7 @@ createCharts input pkgList graphs delta versions = do
                 let gs' = map fst gs
                     i = intersect (map (suffixVersion pkgInfo) packages) gs'
                     new = i ++ (gs' \\ i)
-                in concat $ map (\x -> filter (\(y,_) -> y == x) gs) new
+                in nub $ concat $ map (\x -> filter (\(y,_) -> y == x) gs) new
             , selectBenchmarks = \g -> bsort prefixes $
                 either error (map fst) $ g (ColumnIndex 0)
             }

@@ -71,6 +71,8 @@ benchmark benchmarks
                   , Benchmarks.Machines
                   , Benchmarks.Drinkery
                   , Benchmarks.List
+                  , Benchmarks.DList
+                  , Benchmarks.Sequence
                   , Benchmarks.VectorPure
   ghc-options: -O2 -Wall -with-rtsopts "-T" -fspec-constr-recursive=10
   if impl(ghc >= 8.0)
@@ -98,7 +100,9 @@ benchmark benchmarks
     machines            >= 0.6.0 && < 0.7,
     pipes               >= 4     && < 4.4,
     conduit             >= 1.3   && < 1.4,
-    drinkery            >= 0.3   && < 0.5
+    drinkery            >= 0.3   && < 0.5,
+    dlist               >= 0.7   && < 0.9,
+    containers          >= 0.5   && < 0.7
     -- does not build with lts-11.0
     -- simple-conduit      >= 0.4.0 && < 0.7,
     -- list-transformer    >= 1.0.2 && < 1.1,

@@ -5,11 +5,14 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Benchmarks.VectorPure where
 
-import Benchmarks.Common (value, maxValue)
+import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
-                maxBound)
+                maxBound, Maybe(..))
+import qualified Prelude as P
 
 import qualified Data.Vector as S
 
@@ -17,9 +20,40 @@ import qualified Data.Vector as S
 -- Stream generation and elimination
 -------------------------------------------------------------------------------
 
+type Stream = S.Vector
+
 {-# INLINE source #-}
-source :: Int -> S.Vector Int
-source v = S.fromList [v..v+value]
+source :: Int -> Stream Int
+-- source v = S.fromList [v..v+value]
+
+source n = S.unfoldr step n
+    where
+    step cnt =
+        if cnt > n + value
+        then Nothing
+        else (Just (cnt, cnt + 1))
+
+{-# INLINE sourceN #-}
+sourceN :: Int -> Int -> Stream Int
+sourceN count begin = S.unfoldr step begin
+    where
+    step i =
+        if i > begin + count
+        then Nothing
+        else (Just (i, i + 1))
+
+-------------------------------------------------------------------------------
+-- Append
+-------------------------------------------------------------------------------
+
+{-# INLINE appendSourceR #-}
+appendSourceR :: Int -> Stream Int
+appendSourceR n =
+    P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+
+{-# INLINE appendSourceL #-}
+appendSourceL :: Int -> Stream Int
+appendSourceL n = P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -29,10 +63,10 @@ source v = S.fromList [v..v+value]
 {-# INLINE toList #-}
 {-# INLINE foldl #-}
 {-# INLINE last #-}
-toNull :: S.Vector Int -> [Int]
-toList :: S.Vector Int -> [Int]
-foldl :: S.Vector Int -> Int
-last  :: S.Vector Int -> Int
+toNull :: Stream Int -> [Int]
+toList :: Stream Int -> [Int]
+foldl :: Stream Int -> Int
+last  :: Stream Int -> Int
 
 toNull = S.toList
 toList = S.toList
@@ -44,11 +78,11 @@ last   = S.last
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: S.Vector a -> S.Vector a
+transform :: Stream a -> Stream a
 transform = id
 
 {-# INLINE composeN #-}
-composeN :: Int -> (S.Vector Int -> S.Vector Int) -> S.Vector Int -> S.Vector Int
+composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int -> Stream Int
 composeN n f =
     case n of
         1 -> transform . f
@@ -74,7 +108,7 @@ scan, map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
-    :: Int -> S.Vector Int -> S.Vector Int
+    :: Int -> Stream Int -> Stream Int
 
 scan           n = composeN n $ S.scanl' (+) 0
 map            n = composeN n $ S.map (+1)
@@ -89,6 +123,40 @@ dropOne        n = composeN n $ S.drop 1
 dropAll        n = composeN n $ S.drop maxValue
 dropWhileFalse n = composeN n $ S.dropWhile (> maxValue)
 dropWhileTrue  n = composeN n $ S.dropWhile (<= maxValue)
+
+-------------------------------------------------------------------------------
+-- Iteration
+-------------------------------------------------------------------------------
+
+iterStreamLen, maxIters :: Int
+iterStreamLen = 10
+maxIters = 100000
+
+{-# INLINE iterateSource #-}
+iterateSource :: (Stream Int -> Stream Int) -> Int -> Int -> Stream Int
+iterateSource g i n = f i (sourceN iterStreamLen n)
+    where
+        f (0 :: Int) m = g m
+        f x m = g (f (x P.- 1) m)
+
+{-# INLINE iterateScan #-}
+{-# INLINE iterateFilterEven #-}
+{-# INLINE iterateTakeAll #-}
+{-# INLINE iterateDropOne #-}
+{-# INLINE iterateDropWhileFalse #-}
+{-# INLINE iterateDropWhileTrue #-}
+iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
+    iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Int
+
+-- this is quadratic
+iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `P.div` 100) n
+iterateDropWhileFalse n =
+    iterateSource (S.dropWhile (> maxValue)) (maxIters `P.div` 100) n
+
+iterateFilterEven n = iterateSource (S.filter even) maxIters n
+iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
+iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 
 -------------------------------------------------------------------------------
 -- Mixed Composition
@@ -106,7 +174,7 @@ dropWhileTrue  n = composeN n $ S.dropWhile (<= maxValue)
 {-# INLINE filterMap #-}
 scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
-    :: Int -> S.Vector Int -> S.Vector Int
+    :: Int -> Stream Int -> Stream Int
 
 scanMap    n = composeN n $ S.map (subtract 1) . S.scanl' (+) 0
 dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
@@ -124,9 +192,9 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: S.Vector Int -> S.Vector (Int, Int)
+zip :: Stream Int -> Stream (Int, Int)
 zip src       = transform $ (S.zipWith (,) src src)
 
 {-# INLINE concat #-}
-concat :: S.Vector Int -> S.Vector Int
+concat :: Stream Int -> Stream Int
 concat src    = transform $ (S.concatMap (S.replicate 3) src)

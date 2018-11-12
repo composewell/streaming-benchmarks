@@ -9,11 +9,12 @@
 
 module Benchmarks.Pipes where
 
-import Benchmarks.Common (value, maxValue)
+import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Void (Void)
 import Prelude
        (Monad, Int, (+), ($), id, return, even, (>), (<=),
         subtract, undefined, replicate, Maybe, Either(..), foldMap, maxBound)
+import qualified Prelude as P
 
 import qualified Pipes             as S
 import qualified Pipes.Prelude     as S
@@ -40,9 +41,13 @@ source n = S.unfoldr step n
 -- Append
 -------------------------------------------------------------------------------
 
-{-# INLINE appendSource #-}
-appendSource :: Monad m => Int -> Source m () Int
-appendSource n = foldMap S.yield [n..n+value]
+{-# INLINE appendSourceR #-}
+appendSourceR :: Monad m => Int -> Source m () Int
+appendSourceR n = foldMap S.yield [n..n+appendValue]
+
+{-# INLINE appendSourceL #-}
+appendSourceL :: Monad m => Int -> Source m () Int
+appendSourceL n = P.foldl (P.<>) P.mempty (P.map S.yield [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

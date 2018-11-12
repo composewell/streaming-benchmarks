@@ -7,11 +7,12 @@
 
 module Benchmarks.Conduit where
 
-import Benchmarks.Common (value, maxValue)
+import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
         subtract, undefined, replicate, (<$>), (<*>), Maybe(..), foldMap, (.),
         maxBound)
+import qualified Prelude as P
 
 import qualified Data.Conduit as S
 import qualified Data.Conduit.Combinators as S
@@ -40,9 +41,14 @@ source n = SL.unfoldM step n
 -- Append
 -------------------------------------------------------------------------------
 
-{-# INLINE appendSource #-}
-appendSource :: Monad m => Int -> Source m () Int
-appendSource n = foldMap (S.yieldM . return) [n..n+value]
+{-# INLINE appendSourceR #-}
+appendSourceR :: Monad m => Int -> Source m () Int
+appendSourceR n = foldMap (S.yieldM . return) [n..n+appendValue]
+
+{-# INLINE appendSourceL #-}
+appendSourceL :: Monad m => Int -> Source m () Int
+appendSourceL n =
+    P.foldl (P.<>) P.mempty (P.map (S.yieldM . return) [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

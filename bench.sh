@@ -2,7 +2,7 @@
 
 print_help () {
   echo "Usage: $0 "
-  echo "       [--packages <streamly,vector,pure-vector,list,streaming,pipes,conduit,machines>]"
+  echo "       [--packages <streamly,vector,...>]"
   echo "       [--graphs]"
   echo "       [--delta]"
   echo "       [--slow]"
@@ -11,6 +11,9 @@ print_help () {
   echo "       [--versions] "
   echo "       -- <gauge options>"
   echo
+  echo "Available package names are: "
+  echo "Pure streams: list, vector, sequence, dlist"
+  echo "Monadic streams: streamly, monadic-vector, streaming, pipes, conduit, machines, drinkery"
   echo "--graphs: generate SVG graphs instead of text reports"
   echo "--delta: show diff of subsequent packages from the first package"
   echo "--slow: slower but a bit more precise benchmarking"
