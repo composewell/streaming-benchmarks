@@ -66,6 +66,7 @@ benchmark benchmarks
                   , Benchmarks.DList
                   , Benchmarks.Sequence
                   , Benchmarks.Vector
+                  , Benchmarks.StreamlyPure
 
                   -- Monadic streams
                   , Benchmarks.Streamly

@@ -91,8 +91,9 @@ charts =
         , "iterated/dropWhileTrue"
         ]
       )
-    , ( "Append Operation"
-      , [ "append"
+    , ( "Append Operations"
+      , [ "appendR"
+        , "appendL"
         ]
       )
     , ( "Zip Operation"

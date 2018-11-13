@@ -15,6 +15,7 @@ import Benchmarks.Common (benchIO, benchPure)
 
 import qualified Benchmarks.VectorMonadic as VectorMonadic
 import qualified Benchmarks.Streamly as Streamly
+import qualified Benchmarks.StreamlyPure as StreamlyPure
 import qualified Benchmarks.Streaming as Streaming
 import qualified Benchmarks.Machines as Machines
 import qualified Benchmarks.Pipes as Pipes
@@ -90,6 +91,8 @@ main = do
       , benchPure "list" List.appendSourceR List.toNull
       , benchPure "sequence" Sequence.appendSourceR Sequence.toNull
       , benchIO "streamly" Streamly.appendSourceR Streamly.toNull
+      , benchPure "streamly-pure" StreamlyPure.appendSourceR
+                                  StreamlyPure.toNull
       , benchIO "conduit" Conduit.appendSourceR Conduit.toNull
       -- append benchmark for all these packages shows
       -- quadratic performance slowdown.
@@ -109,6 +112,8 @@ main = do
       , benchIO   "monadic-vector" VectorMonadic.appendSourceL
                                    VectorMonadic.toNull
       , benchIO   "streamly" Streamly.appendSourceL Streamly.toNull
+      , benchPure "streamly-pure" StreamlyPure.appendSourceL
+                                  StreamlyPure.toNull
       , benchPure "list" List.appendSourceL List.toNull
       , benchIO   "pipes" Pipes.appendSourceL Pipes.toNull
       , benchIO   "streaming" Streaming.appendSourceL Streaming.toNull

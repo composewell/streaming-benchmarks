@@ -34,6 +34,8 @@ createBgroup name fname =
                                   $(varE (mkName ("List." ++ fname)))
             , benchPure "vector" $(varE (mkName ("Vector.source")))
                                   $(varE (mkName ("Vector." ++ fname)))
+            , benchPure "streamly-pure" $(varE (mkName ("StreamlyPure.source")))
+                                  $(varE (mkName ("StreamlyPure." ++ fname)))
             ]
     |]
 
@@ -59,6 +61,8 @@ createBgroupN name fname n =
                                   ($(varE (mkName ("List." ++ fname))) n)
             , benchPure "vector" $(varE (mkName ("Vector.source")))
                                   ($(varE (mkName ("Vector." ++ fname))) n)
+            , benchPure "streamly-pure" $(varE (mkName ("StreamlyPure.source")))
+                                  ($(varE (mkName ("StreamlyPure." ++ fname))) n)
             ]
     |]
 
@@ -74,6 +78,8 @@ createBgroupIter name fname =
                                        $(varE (mkName ("List.toNull")))
             , benchPure "vector"       $(varE (mkName ("Vector." ++ fname)))
                                        $(varE (mkName ("Vector.toNull")))
+            , benchPure "streamly-pure"  $(varE (mkName ("StreamlyPure." ++ fname)))
+                                       $(varE (mkName ("StreamlyPure.toNull")))
             ]
     |]
 
