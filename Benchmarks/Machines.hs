@@ -9,10 +9,11 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Benchmarks.Machines where
 
-import Benchmarks.Common (value, maxValue)
+import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
-       (Monad, Int, (+), ($), return, even, (>), (<=),
-        subtract, replicate, Maybe(..), maxBound)
+       (Monad, Int, (.), (+), ($), return, even, (>), (<=),
+        subtract, replicate, Maybe(..), maxBound, foldMap)
+import qualified Prelude as P
 
 import qualified Data.Machine      as S
 
@@ -31,6 +32,19 @@ source n = S.unfoldT step n
         if cnt > n + value
         then return Nothing
         else return (Just (cnt, cnt + 1))
+
+-------------------------------------------------------------------------------
+-- Append
+-------------------------------------------------------------------------------
+
+{-# INLINE appendSourceR #-}
+appendSourceR :: Monad m => Int -> Source m Int
+appendSourceR n = foldMap (S.construct . S.yield) [n..n+appendValue]
+
+-- XXX use S.prepended instead?
+{-# INLINE appendSourceL #-}
+appendSourceL :: Monad m => Int -> Source m Int
+appendSourceL n = P.foldl (P.<>) P.mempty (P.map (S.construct . S.yield) [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

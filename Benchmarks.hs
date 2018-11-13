@@ -9,9 +9,10 @@
 
 module Main (main) where
 
+import Data.List ((\\))
+import Gauge
+
 import Benchmarks.BenchmarkTH
-       (createBgroup, createBgroupN, createBgroupIter, createBgroupIterM)
-import Benchmarks.Common (benchIO, benchPure)
 
 import qualified Benchmarks.VectorMonadic as VectorMonadic
 import qualified Benchmarks.Streamly as Streamly
@@ -29,103 +30,76 @@ import qualified Benchmarks.Vector as Vector
 -- import qualified Benchmarks.ListT as ListT
 -- import qualified Benchmarks.ListTransformer as ListTransformer
 
-import Gauge
-
 main :: IO ()
 main = do
   defaultMain
     [ bgroup "elimination"
-      [ $(createBgroup "drain" "toNull")
-      , $(createBgroup "toList" "toList")
-      , $(createBgroup "fold" "foldl")
-      , $(createBgroup "last" "last")
+      [ $(createBgroupSink (benchMods ++ ["DList"]) "drain" "toNull")
+      , $(createBgroupSink (benchMods ++ ["DList"]) "toList" "toList")
+      , $(createBgroupSink (benchMods ++ ["DList"]) "foldl'" "foldl")
+      , $(createBgroupSink benchMods "last" "last")
       ]
     , bgroup "transformation"
-      [ $(createBgroupN "scan" "scan" 1)
-      , $(createBgroupN "map" "map" 1)
-      , $(createBgroupN "mapM" "mapM" 1)
+      [ $(createBgroupSinkN (benchMods \\ ["Sequence"]) "scan" "scan" 1)
+      , $(createBgroupSinkN (benchMods ++ ["DList"]) "map" "map" 1)
+      , $(createBgroupSinkN benchMods "mapM" "mapM" 1)
       ]
     , bgroup "transformationX4"
-      [ $(createBgroupN "scan" "scan" 4)
-      , $(createBgroupN "map" "map" 4)
-      , $(createBgroupN "mapM" "mapM" 4)
+      [ $(createBgroupSinkN (benchMods \\ ["Sequence"]) "scan" "scan" 4)
+      , $(createBgroupSinkN (benchMods ++ ["DList"]) "map" "map" 4)
+      , $(createBgroupSinkN benchMods "mapM" "mapM" 4)
       ]
     , bgroup "filtering"
-      [ $(createBgroupN "filter-all-out" "filterAllOut" 1)
-      , $(createBgroupN "filter-all-in" "filterAllIn" 1)
-      , $(createBgroupN "drop-all" "dropAll" 1)
-      , $(createBgroupN "takeWhile-true" "takeWhileTrue" 1)
-      , $(createBgroupN "filter-even" "filterEven" 1)
-      , $(createBgroupN "take-all" "takeAll" 1)
-      , $(createBgroupN "drop-one" "dropOne" 1)
-      , $(createBgroupN "dropWhile-true" "dropWhileTrue" 1)
-      , $(createBgroupN "dropWhile-false" "dropWhileFalse" 1)
+      [ $(createBgroupSinkN benchMods "filter-all-out" "filterAllOut" 1)
+      , $(createBgroupSinkN benchMods "filter-all-in" "filterAllIn" 1)
+      , $(createBgroupSinkN benchMods "drop-all" "dropAll" 1)
+      , $(createBgroupSinkN benchMods "takeWhile-true" "takeWhileTrue" 1)
+      , $(createBgroupSinkN benchMods "filter-even" "filterEven" 1)
+      , $(createBgroupSinkN benchMods "take-all" "takeAll" 1)
+      , $(createBgroupSinkN benchMods "drop-one" "dropOne" 1)
+      , $(createBgroupSinkN benchMods "dropWhile-true" "dropWhileTrue" 1)
+      , $(createBgroupSinkN benchMods "dropWhile-false" "dropWhileFalse" 1)
       ]
     , bgroup "filteringX4"
-      [ $(createBgroupN "filter-even" "filterEven" 4)
-      , $(createBgroupN "filter-all-out" "filterAllOut" 4)
-      , $(createBgroupN "filter-all-in" "filterAllIn" 4)
-      , $(createBgroupN "take-all" "takeAll" 4)
-      , $(createBgroupN "takeWhile-true" "takeWhileTrue" 4)
-      , $(createBgroupN "drop-one" "dropOne" 4)
-      , $(createBgroupN "drop-all" "dropAll" 4)
-      , $(createBgroupN "dropWhile-true" "dropWhileTrue" 4)
-      , $(createBgroupN "dropWhile-false" "dropWhileFalse" 4)
+      [ $(createBgroupSinkN benchMods "filter-even" "filterEven" 4)
+      , $(createBgroupSinkN benchMods "filter-all-out" "filterAllOut" 4)
+      , $(createBgroupSinkN benchMods "filter-all-in" "filterAllIn" 4)
+      , $(createBgroupSinkN benchMods "take-all" "takeAll" 4)
+      , $(createBgroupSinkN benchMods "takeWhile-true" "takeWhileTrue" 4)
+      , $(createBgroupSinkN benchMods "drop-one" "dropOne" 4)
+      , $(createBgroupSinkN benchMods "drop-all" "dropAll" 4)
+      , $(createBgroupSinkN benchMods "dropWhile-true" "dropWhileTrue" 4)
+      , $(createBgroupSinkN benchMods "dropWhile-false" "dropWhileFalse" 4)
       ]
     , bgroup "mixedX4"
-      [ $(createBgroupN "scan-map" "scanMap" 4)
-      , $(createBgroupN "drop-map" "dropMap" 4)
-      , $(createBgroupN "drop-scan" "dropScan" 4)
-      , $(createBgroupN "take-drop" "takeDrop" 4)
-      , $(createBgroupN "take-scan" "takeScan" 4)
-      , $(createBgroupN "take-map" "takeMap" 4)
-      , $(createBgroupN "filter-drop" "filterDrop" 4)
-      , $(createBgroupN "filter-take" "filterTake" 4)
-      , $(createBgroupN "filter-scan" "filterScan" 4)
-      , $(createBgroupN "filter-map" "filterMap" 4)
+      [ $(createBgroupSinkN (benchMods \\ ["Sequence"]) "scan-map" "scanMap" 4)
+      , $(createBgroupSinkN (benchMods \\ ["Sequence"]) "drop-scan" "dropScan" 4)
+      , $(createBgroupSinkN (benchMods \\ ["Sequence"]) "take-scan" "takeScan" 4)
+      , $(createBgroupSinkN (benchMods \\ ["Sequence"]) "filter-scan" "filterScan" 4)
+      , $(createBgroupSinkN benchMods "drop-map" "dropMap" 4)
+      , $(createBgroupSinkN benchMods "take-drop" "takeDrop" 4)
+      , $(createBgroupSinkN benchMods "take-map" "takeMap" 4)
+      , $(createBgroupSinkN benchMods "filter-drop" "filterDrop" 4)
+      , $(createBgroupSinkN benchMods "filter-take" "filterTake" 4)
+      , $(createBgroupSinkN benchMods "filter-map" "filterMap" 4)
       ]
-    , $(createBgroup "zip" "zip")
-    , $(createBgroup "concat" "concat")
-    , bgroup "appendR[10000]"
-      [ benchPure "dlist" DList.appendSourceR DList.toNull
-      , benchPure "list" List.appendSourceR List.toNull
-      , benchPure "sequence" Sequence.appendSourceR Sequence.toNull
-      , benchIO "streamly" Streamly.appendSourceR Streamly.toNull
-      , benchPure "streamly-pure" StreamlyPure.appendSourceR
-                                  StreamlyPure.toNull
-      , benchIO "conduit" Conduit.appendSourceR Conduit.toNull
-      -- append benchmark for all these packages shows
-      -- quadratic performance slowdown.
-      , benchPure "vector" Vector.appendSourceR Vector.toNull
-      , benchIO "monadic-vector" VectorMonadic.appendSourceR
-                                 VectorMonadic.toNull
-      , benchIO "pipes" Pipes.appendSourceR Pipes.toNull
-      , benchIO "streaming" Streaming.appendSourceR Streaming.toNull
-      ]
-    , bgroup "appendL[10000]"
-      [ benchPure "dlist" DList.appendSourceL DList.toNull
-      , benchPure "sequence" Sequence.appendSourceL Sequence.toNull
-      , benchIO   "conduit" Conduit.appendSourceL Conduit.toNull
-      -- append benchmark for all these packages shows
-      -- quadratic performance slowdown.
-      , benchPure "vector" Vector.appendSourceL Vector.toNull
-      , benchIO   "monadic-vector" VectorMonadic.appendSourceL
-                                   VectorMonadic.toNull
-      , benchIO   "streamly" Streamly.appendSourceL Streamly.toNull
-      , benchPure "streamly-pure" StreamlyPure.appendSourceL
-                                  StreamlyPure.toNull
-      , benchPure "list" List.appendSourceL List.toNull
-      , benchIO   "pipes" Pipes.appendSourceL Pipes.toNull
-      , benchIO   "streaming" Streaming.appendSourceL Streaming.toNull
-      ]
+    , $(createBgroupSink benchMods "zip" "zip")
+    , $(createBgroupSink (benchMods \\ ["Streamly", "Sequence"])
+                         "concat" "concat")
+
+    , $(createBgroupSrc ((benchMods ++ ["DList"]) \\ ["Drinkery"])
+                        "appendR[10000]" "appendSourceR")
+    , $(createBgroupSrc ((benchMods ++ ["DList"]) \\ ["Drinkery"])
+                        "appendL[10000]" "appendSourceL")
+
       -- Perform 100,000 mapM recursively over a stream of length 10
     , bgroup "iterated"
-      [ $(createBgroupIterM "mapM" "iterateMapM")
-      , $(createBgroupIter "scan[10000]" "iterateScan")
-      , $(createBgroupIter "filterEven" "iterateFilterEven")
-      , $(createBgroupIter "takeAll" "iterateTakeAll")
-      , $(createBgroupIter "dropOne" "iterateDropOne")
-      , $(createBgroupIter "dropWhileFalse[10000]" "iterateDropWhileFalse")
-      , $(createBgroupIter "dropWhileTrue" "iterateDropWhileTrue")
+      [ $(createBgroupSrc (iterMods \\ pureMods) "mapM" "iterateMapM")
+      , $(createBgroupSrc (iterMods \\ ["Sequence"]) "scan[10000]" "iterateScan")
+      , $(createBgroupSrc iterMods "filterEven" "iterateFilterEven")
+      , $(createBgroupSrc iterMods "takeAll" "iterateTakeAll")
+      , $(createBgroupSrc iterMods "dropOne" "iterateDropOne")
+      , $(createBgroupSrc iterMods "dropWhileFalse[10000]" "iterateDropWhileFalse")
+      , $(createBgroupSrc iterMods "dropWhileTrue" "iterateDropWhileTrue")
       ]
    ]

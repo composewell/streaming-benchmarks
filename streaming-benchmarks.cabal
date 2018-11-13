@@ -59,6 +59,7 @@ benchmark benchmarks
   hs-source-dirs:   .
   main-is:          Benchmarks.hs
   other-modules:    Benchmarks.Common
+                  , Benchmarks.BenchTH
                   , Benchmarks.BenchmarkTH
 
                   -- Pure streams

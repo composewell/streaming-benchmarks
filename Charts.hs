@@ -27,7 +27,7 @@ charts =
       , [
           "elimination/drain"
         , "elimination/last"
-        , "elimination/fold"
+        , "elimination/foldl'"
         ]
       )
     , ( "Transformation Operations"

@@ -213,10 +213,12 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-{-# INLINE concat #-}
-zip, concat :: Monad m => Stream m Int -> m ()
+zip :: Monad m => Stream m Int -> m ()
 
 zip src       = transform $ (S.zipWith (,) src src)
-concat _n     = return ()
+
+{-# INLINE concat #-}
+concat :: Stream m Int -> m ()
+concat _src   = undefined
 
 -- XXX composed zip and concat
