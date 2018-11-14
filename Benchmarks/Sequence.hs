@@ -64,12 +64,12 @@ appendSourceL n = P.foldl (S.><) S.empty (P.map S.singleton [n..n+appendValue])
 {-# INLINE toList #-}
 {-# INLINE foldl #-}
 {-# INLINE last #-}
-toNull :: Stream Int -> [Int]
+toNull :: Stream Int -> Stream Int
 toList :: Stream Int -> [Int]
 foldl :: Stream Int -> Int
 last  :: Stream Int -> Int
 
-toNull = P.toList
+toNull = id
 toList = P.toList
 foldl  = P.foldl' (+) 0
 last xs =

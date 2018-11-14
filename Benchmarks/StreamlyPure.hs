@@ -5,6 +5,7 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -62,12 +63,17 @@ appendSourceL n = P.foldl (S.<>) S.nil (P.map S.yield [n..n+appendValue])
 -------------------------------------------------------------------------------
 
 {-# INLINE toNull #-}
-toNull :: Stream Int -> [Int]
-toNull = runIdentity. S.toList
+#ifdef RUNSTREAM
+toNull :: Stream Int -> ()
+toNull = runIdentity . S.runStream
+#else
+toNull :: Stream Int -> Stream Int
+toNull = id
+#endif
 
 {-# INLINE toList #-}
 toList :: Stream Int -> [Int]
-toList = toNull
+toList = runIdentity . S.toList
 
 {-# INLINE foldl #-}
 foldl  :: Stream Int -> Int
@@ -82,11 +88,22 @@ last   = runIdentity . S.last
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
+#ifdef RUNSTREAM
+transform :: Stream a -> ()
+transform = runIdentity . S.runStream
+#else
 transform :: Stream a -> Stream a
 transform = id
+#endif
 
 {-# INLINE composeN #-}
-composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int -> Stream Int
+composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int
+#ifdef RUNSTREAM
+     -> ()
+#else
+     -> Stream Int
+#endif
+
 composeN n f =
     case n of
         1 -> transform . f
@@ -112,7 +129,12 @@ scan, map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
-    :: Int -> Stream Int -> Stream Int
+    :: Int -> Stream Int
+#ifdef RUNSTREAM
+     -> ()
+#else
+     -> Stream Int
+#endif
 
 scan           n = composeN n $ S.scanl' (+) 0
 map            n = composeN n $ S.map (+1)
@@ -178,7 +200,13 @@ iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 {-# INLINE filterMap #-}
 scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
-    :: Int -> Stream Int -> Stream Int
+    :: Int -> Stream Int
+#ifdef RUNSTREAM
+     -> ()
+#else
+     -> Stream Int
+#endif
+
 
 scanMap    n = composeN n $ S.map (subtract 1) . S.scanl' (+) 0
 dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
@@ -196,7 +224,13 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: Stream Int -> Stream (Int, Int)
+zip :: Stream Int
+#ifdef RUNSTREAM
+     -> ()
+#else
+     -> Stream (Int, Int)
+#endif
+
 zip src       = transform $ (S.zipWith (,) src src)
 
 {-# INLINE concat #-}
