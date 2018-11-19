@@ -12,6 +12,9 @@ import Benchmarks.Common (benchIO, benchPure)
 import Language.Haskell.TH.Syntax (Q, Exp, mkName)
 import Language.Haskell.TH.Lib (varE)
 
+-- First item in the tuple is the module name and the second one is the
+-- corresponding benchmark group name.
+--
 monadicPackages :: [(String, String)]
 monadicPackages =
     [ ("Streamly", "streamly")
@@ -28,7 +31,7 @@ purePackages =
     [ ("List", "list")
     , ("DList", "dlist")
     , ("Sequence", "sequence")
-    , ("StreamlyPure", "streamly-pure")
+    , ("StreamlyPure", "pure-streamly")
     , ("Vector", "vector")
     ]
 
