@@ -30,6 +30,8 @@ purePackages :: [(String, String)]
 purePackages =
     [ ("List", "list")
     , ("DList", "dlist")
+    , ("ByteString", "bytestring")
+    , ("Text", "text")
     , ("Sequence", "sequence")
     , ("StreamlyPure", "pure-streamly")
     , ("Vector", "vector")
