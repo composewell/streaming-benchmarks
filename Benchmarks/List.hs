@@ -42,6 +42,10 @@ sourceN count begin = S.unfoldr step begin
         then Nothing
         else (Just (i, i + 1))
 
+{-# INLINE sourceIntFromThenTo #-}
+sourceIntFromThenTo :: Int -> Stream Int
+sourceIntFromThenTo n = P.enumFromThenTo n (n + 1) (n + value)
+
 -------------------------------------------------------------------------------
 -- Append
 -------------------------------------------------------------------------------

@@ -51,6 +51,10 @@ sourceN count begin = S.unfoldrM step begin
         then return Nothing
         else return (Just (i, i + 1))
 
+{-# INLINE sourceIntFromThenTo #-}
+sourceIntFromThenTo :: Monad m => Int -> Stream m Int
+sourceIntFromThenTo n = S.enumFromStepN n 1 value
+
 -------------------------------------------------------------------------------
 -- Append
 -------------------------------------------------------------------------------

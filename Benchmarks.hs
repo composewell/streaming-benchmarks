@@ -40,6 +40,8 @@ main = do
       , $(createBgroupSink (benchMods ++ ["DList"]) "toList" "toList")
       , $(createBgroupSink (benchMods ++ ["DList"]) "foldl'" "foldl")
       , $(createBgroupSink benchMods "last" "last")
+      , $(createBgroupSrc (["Streamly", "List", "VectorMonadic"])
+            "enumInt" "sourceIntFromThenTo")
       ]
     , bgroup "transformation"
       [ $(createBgroupSinkN (benchMods \\ ["Sequence"]) "scan" "scan" 1)

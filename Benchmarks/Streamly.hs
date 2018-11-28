@@ -52,6 +52,11 @@ sourceN count begin = S.unfoldrM step begin
         then return Nothing
         else return (Just (i, i + 1))
 
+{-# INLINE sourceIntFromThenTo #-}
+sourceIntFromThenTo :: (Monad m, S.IsStream t) => Int -> t m Int
+-- sourceIntFromThenTo n = S.intFromThenTo n (n + 1) (n + value)
+sourceIntFromThenTo n = S.take value $ S.intFromStep n 1
+
 -------------------------------------------------------------------------------
 -- Append
 -------------------------------------------------------------------------------
