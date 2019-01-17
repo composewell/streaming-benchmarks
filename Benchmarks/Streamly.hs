@@ -54,8 +54,7 @@ sourceN count begin = S.unfoldrM step begin
 
 {-# INLINE sourceIntFromThenTo #-}
 sourceIntFromThenTo :: (Monad m, S.IsStream t) => Int -> t m Int
--- sourceIntFromThenTo n = S.intFromThenTo n (n + 1) (n + value)
-sourceIntFromThenTo n = S.take value $ S.intFromStep n 1
+sourceIntFromThenTo n = S.enumerateFromThenTo n (n + 1) (n + value)
 
 -------------------------------------------------------------------------------
 -- Append
@@ -223,7 +222,7 @@ zip :: Monad m => Stream m Int -> m ()
 zip src       = transform $ (S.zipWith (,) src src)
 
 {-# INLINE concat #-}
-concat :: Stream m Int -> m ()
-concat _src   = undefined
+concat :: Monad m => Stream m Int -> m ()
+concat src    = transform $ (S.concatMap (S.replicate 3) src)
 
 -- XXX composed zip and concat

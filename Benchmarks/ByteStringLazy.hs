@@ -1,23 +1,25 @@
 -- |
--- Module      : Benchmarks.ByteString
--- Copyright   : (c) 2018 Harendra Kumar
+-- Module      : Benchmarks.ByteStringLazy
+-- Copyright   : (c) 2019 Harendra Kumar
 --
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Benchmarks.ByteString where
+module Benchmarks.ByteStringLazy where
 
 -- import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
                 maxBound, Maybe(..))
 import qualified Prelude as P
 import Data.Word (Word8)
+import Data.Int (Int64) -- for lazy bytestring
 
-import qualified Data.ByteString as S
+import qualified Data.ByteString.Lazy as S
 
-nElements, nAppends :: Int
+nAppends :: Int
+nElements :: Int64
 nElements = 1000000
 nAppends = 10000
 
@@ -43,7 +45,7 @@ sourceN count begin = S.unfoldr step begin
 
 {-# INLINE source #-}
 source :: Int -> Stream Element
-source = sourceN nElements
+source = sourceN (P.fromIntegral nElements)
 
 -------------------------------------------------------------------------------
 -- Append
@@ -118,7 +120,9 @@ scan, map, mapM,
     :: Int -> Stream Int -> Stream Int
 
 -- XXX there is no scanl'
-scan           n = composeN n $ S.scanl (+) 0
+-- XXX All scan ops hang for lazy bytestring, disabled for now
+-- scan           n = composeN n $ S.scanl (+) 0
+scan           n = composeN n $ id
 map            n = composeN n $ S.map (+1)
 mapM             = map
 filterEven     n = composeN n $ S.filter even
@@ -161,7 +165,8 @@ iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
 
 -- this is quadratic
 -- XXX using scanl instead of scanl'
-iterateScan n = iterateSource (S.scanl (+) 0) (maxIters `P.div` 100) n
+-- XXX All scan ops hang for lazy bytestring, disabled for now
+iterateScan n = iterateSource id (maxIters `P.div` 100) n
 iterateDropWhileFalse n =
     iterateSource (S.dropWhile (> maxElem)) (maxIters `P.div` 100) n
 
@@ -189,15 +194,16 @@ scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     :: Int -> Stream Element -> Stream Element
 
 -- XXX using scanl instead of scanl'
-scanMap    n = composeN n $ S.map (subtract 1) . S.scanl (+) 0
+-- XXX All scan ops hang for lazy bytestring, disabled for now
+scanMap    n = composeN n $ id
 dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
-dropScan   n = composeN n $ S.scanl (+) 0 . S.drop 1
+dropScan   n = composeN n $ id
 takeDrop   n = composeN n $ S.drop 1 . S.take nElements
-takeScan   n = composeN n $ S.scanl (+) 0 . S.take nElements
+takeScan   n = composeN n $ id
 takeMap    n = composeN n $ S.map (subtract 1) . S.take nElements
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxElem)
 filterTake n = composeN n $ S.take nElements . S.filter (<= maxElem)
-filterScan n = composeN n $ S.scanl (+) 0 . S.filter (<= maxElem)
+filterScan n = composeN n $ id
 filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxElem)
 
 -------------------------------------------------------------------------------

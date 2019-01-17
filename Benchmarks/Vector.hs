@@ -15,6 +15,8 @@ import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
 import qualified Prelude as P
 
 import qualified Data.Vector as S
+-- import qualified Data.Vector.Storable as S
+-- import qualified Data.Vector.Unboxed as S
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination

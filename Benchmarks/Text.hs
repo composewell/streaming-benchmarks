@@ -1,5 +1,5 @@
 -- |
--- Module      : Benchmarks.ByteString
+-- Module      : Benchmarks.Text
 -- Copyright   : (c) 2018 Harendra Kumar
 --
 -- License     : MIT
@@ -10,7 +10,7 @@
 module Benchmarks.Text where
 
 -- import Benchmarks.Common (value, maxValue, appendValue)
-import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
+import Prelude (Int, (+), id, ($), (.), even, (>), (<=), undefined,
                 Maybe(..), Char)
 import qualified Prelude as P
 import Data.Char (chr, ord)

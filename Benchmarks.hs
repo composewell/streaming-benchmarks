@@ -24,6 +24,7 @@ import qualified Benchmarks.Conduit as Conduit
 import qualified Benchmarks.Drinkery as Drinkery
 import qualified Benchmarks.List as List
 import qualified Benchmarks.ByteString as ByteString
+import qualified Benchmarks.ByteStringLazy as ByteStringLazy
 import qualified Benchmarks.Text as Text
 import qualified Benchmarks.DList as DList
 import qualified Benchmarks.Sequence as Sequence

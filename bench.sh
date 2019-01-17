@@ -11,9 +11,12 @@ print_help () {
   echo "       [--versions] "
   echo "       -- <gauge options>"
   echo
+  echo "--packages: specify comma separated list of packages to be compared"
+  echo
   echo "Available package names are: "
-  echo "Pure streams: list, pure-streamly, vector, sequence, dlist"
+  echo "Pure streams: list, pure-streamly, vector, sequence, dlist, bytestring, text"
   echo "Monadic streams: streamly, monadic-vector, streaming, pipes, conduit, machines, drinkery"
+  echo
   echo "--graphs: generate SVG graphs instead of text reports"
   echo "--delta: show diff of subsequent packages from the first package"
   echo "--slow: slower but a bit more precise benchmarking"

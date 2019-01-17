@@ -31,6 +31,7 @@ purePackages =
     [ ("List", "list")
     , ("DList", "dlist")
     , ("ByteString", "bytestring")
+    , ("ByteStringLazy", "lazy-bytestring")
     , ("Text", "text")
     , ("Sequence", "sequence")
     , ("StreamlyPure", "pure-streamly")
