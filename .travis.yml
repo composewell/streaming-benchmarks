@@ -84,8 +84,9 @@ matrix:
   #- env: BUILD=cabal-new GHCVER=head
   #  addons: {apt: {packages: [cabal-install-head,ghc-head], sources: [hvr-ghc]}}
 
-  - env: BUILD=cabal-new GHCVER=8.6.3
-    addons: {apt: {packages: [cabal-install-2.4,ghc-8.6.3], sources: [hvr-ghc]}}
+  # Chart needs to be fixed for ghc-8.6
+  #- env: BUILD=cabal-new GHCVER=8.6.3 CABAL_NEWBUILD_OPTIONS="--allow-newer"
+    #addons: {apt: {packages: [cabal-install-2.4,ghc-8.6.3], sources: [hvr-ghc]}}
 
   - env: BUILD=cabal-new GHCVER=8.4.4
     addons: {apt: {packages: [cabal-install-2.4,ghc-8.4.4], sources: [hvr-ghc]}}
@@ -156,12 +157,13 @@ matrix:
   # --------------------------------------------------------------------------
 
   # GHC 8.6 cabal build using stack!
-  - env: BUILD=cabal-new RESOLVER=lts-13 GHCVER=8.6
-    os: osx
+  # Chart needs to be fixed for ghc-8.6
+  #- env: BUILD=cabal-new RESOLVER=lts-13 GHCVER=8.6 CABAL_NEWBUILD_OPTIONS="--allow-newer"
+  #  os: osx
 
   # GHC 8.4/stack
-  #- env: BUILD=stack RESOLVER=lts-12 GHCVER=8.4
-  #  os: osx
+  - env: BUILD=stack RESOLVER=lts-12 GHCVER=8.4
+    os: osx
 
   # --------------------------------------------------------------------------
   # Lint e.g. HLINT_COMMANDS="hlint lint src; hlint lint test"

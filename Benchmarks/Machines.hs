@@ -14,6 +14,7 @@ import Prelude
        (Monad, Int, (.), (+), ($), return, even, (>), (<=),
         subtract, replicate, Maybe(..), maxBound, foldMap)
 import qualified Prelude as P
+import Data.Semigroup ((<>))
 
 import qualified Data.Machine      as S
 
@@ -44,7 +45,7 @@ appendSourceR n = foldMap (S.construct . S.yield) [n..n+appendValue]
 -- XXX use S.prepended instead?
 {-# INLINE appendSourceL #-}
 appendSourceL :: Monad m => Int -> Source m Int
-appendSourceL n = P.foldl (P.<>) P.mempty (P.map (S.construct . S.yield) [n..n+appendValue])
+appendSourceL n = P.foldl (<>) P.mempty (P.map (S.construct . S.yield) [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

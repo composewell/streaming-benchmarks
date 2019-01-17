@@ -13,6 +13,7 @@ import Prelude
         subtract, undefined, replicate, (<$>), (<*>), Maybe(..), foldMap, (.),
         maxBound)
 import qualified Prelude as P
+import Data.Semigroup ((<>))
 
 import qualified Data.Conduit as S
 import qualified Data.Conduit.Combinators as S
@@ -48,7 +49,7 @@ appendSourceR n = foldMap (S.yieldM . return) [n..n+appendValue]
 {-# INLINE appendSourceL #-}
 appendSourceL :: Monad m => Int -> Source m () Int
 appendSourceL n =
-    P.foldl (P.<>) P.mempty (P.map (S.yieldM . return) [n..n+appendValue])
+    P.foldl (<>) P.mempty (P.map (S.yieldM . return) [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
