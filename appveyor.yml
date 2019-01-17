@@ -1,3 +1,4 @@
+# packcheck-0.4.0
 # You can use any of the options supported by packcheck as environment
 # variables here.  See https://github.com/harendra-kumar/packcheck for all
 # options and their explanation.
@@ -20,6 +21,7 @@ environment:
     # DISABLE_BENCH: "y"
     # DISABLE_DOCS: "y"
     DISABLE_SDIST_BUILD: "y"
+    # DISABLE_DIST_CHECKS: "y"
     # ENABLE_INSTALL: "y"
 
     # ------------------------------------------------------------------------
@@ -30,7 +32,7 @@ environment:
     # version.
     #STACKVER: "1.6.5"
     STACK_UPGRADE: "y"
-    RESOLVER: "lts-12"
+    RESOLVER: "lts-13"
     STACK_ROOT: "c:\\sr"
 
     # ------------------------------------------------------------------------
@@ -57,7 +59,11 @@ environment:
     # If you have not committed packcheck.sh in your repo at PACKCHECK_LOCAL_PATH
     # then it is automatically pulled from this URL.
     PACKCHECK_GITHUB_URL: "https://raw.githubusercontent.com/harendra-kumar/packcheck"
-    PACKCHECK_GITHUB_COMMIT: "359852abfed5a445ae7d5053d9324ecddf0d42a1"
+    PACKCHECK_GITHUB_COMMIT: "8a9019c1b4b1d9ed9af2bd4108a762b4fa3602ea"
+
+    # Override the temp directory to avoid sed escaping issues
+    # See https://github.com/haskell/cabal/issues/5386
+    TMP: "c:\\tmp"
 
 cache:
   - "%STACK_ROOT%"
@@ -78,4 +84,6 @@ before_test:
 
 test_script:
 - stack setup > nul
-- chcp 65001 && stack exec bash -- -c "chmod +x %PACKCHECK_LOCAL_PATH%; %PACKCHECK_LOCAL_PATH% stack"
+- for /f "usebackq tokens=*" %%i in (`where 7z.exe`) do set PATH7Z=%%i\..
+- for /f "usebackq tokens=*" %%i in (`where git.exe`) do set PATHGIT=%%i\..
+- chcp 65001 && stack exec bash -- -c "chmod +x %PACKCHECK_LOCAL_PATH%; %PACKCHECK_LOCAL_PATH% stack PATH=/usr/bin:\"%PATH7Z%\":\"%PATHGIT%\""
