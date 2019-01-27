@@ -1,0 +1,42 @@
+{-# LANGUAGE KindSignatures #-}
+
+signature Stream where
+
+-- A Stream is a list expressed over time.
+data Stream :: (* -> *) -> * -> *
+
+-- We need this to instantiate some functions in streamly to MonadAsync.
+-- Alternatively we can just put a MonadAsync constraint in the benchmarking
+-- code.
+class C (m :: * -> *)
+
+unfoldrM :: (C m, Monad m) => (s -> m (Maybe (a, s))) -> s -> Stream m a
+nil :: Monad m => Stream m a
+yield :: Monad m => a -> Stream m a
+replicate :: Monad m => Int -> a -> Stream m a
+fromList :: Monad m => [a] -> Stream m a
+append :: Monad m => Stream m a -> Stream m a -> Stream m a
+enumFromStepN :: Monad m => Int -> Int -> Int -> Stream m Int
+
+-- Elimination
+runStream :: Monad m => Stream m a -> m ()
+toList :: Monad m => Stream m a -> m [a]
+foldl' :: Monad m => (b -> a -> b) -> b -> Stream m a -> m b
+last :: Monad m => Stream m a -> m (Maybe a)
+
+-- Transformation
+scanl' :: Monad m => (b -> a -> b) -> b -> Stream m a -> Stream m b
+map :: Monad m => (a -> b) -> Stream m a -> Stream m b
+mapM :: (C m, Monad m) => (a -> m b) -> Stream m a -> Stream m b
+mapM_ :: Monad m => (a -> m b) -> Stream m a -> m ()
+filter :: Monad m => (a -> Bool) -> Stream m a -> Stream m a
+take :: Monad m => Int -> Stream m a -> Stream m a
+takeWhile :: Monad m => (a -> Bool) -> Stream m a -> Stream m a
+drop :: Monad m => Int -> Stream m a -> Stream m a
+dropWhile :: Monad m => (a -> Bool) -> Stream m a -> Stream m a
+
+-- Zipping
+zipWith :: Monad m => (a -> b -> c) -> Stream m a -> Stream m b -> Stream m c
+
+-- Concat
+concatMap :: Monad m => (a -> Stream m b) -> Stream m a -> Stream m b

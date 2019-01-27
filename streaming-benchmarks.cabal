@@ -1,3 +1,4 @@
+cabal-version: 2.2
 name:          streaming-benchmarks
 category:      Benchmark
 version:       0.2.0
@@ -36,7 +37,6 @@ description:
   <https://github.com/composewell/streaming-benchmarks in the github repo>
   for more details. The github repo also shows the latest comparative graphs.
 
-cabal-version: >= 1.10
 tested-with: GHC==8.2.2, GHC==8.4.3
 build-type:    Simple
 extra-source-files:
@@ -53,13 +53,41 @@ source-repository head
   type: git
   location: git://github.com/composewell/streaming-benchmarks.git
 
+common common-benchmarks
+  build-depends:    base    == 4.*
+                  , deepseq >= 1.4.0 && < 1.5
+                  , gauge   >= 0.2.3 && < 0.3
+                  , random  >= 1.0   && < 2.0
+  hs-source-dirs:   .
+  other-modules:    Benchmarks.Common
+
+library streaming-benchmarks-indef
+  import: common-benchmarks
+  default-language: Haskell2010
+  signatures:       Stream
+  exposed-modules:  StreamBenchmark
+  hs-source-dirs:   streaming-benchmarks-indef
+
+library stream-vector
+  import: common-benchmarks
+  default-language: Haskell2010
+  build-depends:    vector >= 0.12  && < 0.13
+  exposed-modules:  Vector
+  hs-source-dirs:   stream-vector
+
+library stream-streamly
+  import: common-benchmarks
+  default-language: Haskell2010
+  build-depends:    streamly >= 0.2.1 && < 0.7
+  exposed-modules:  StrStreamly
+  hs-source-dirs:   stream-streamly
+
 benchmark benchmarks
+  import: common-benchmarks
   default-language: Haskell2010
   type:             exitcode-stdio-1.0
-  hs-source-dirs:   .
   main-is:          Benchmarks.hs
-  other-modules:    Benchmarks.Common
-                  , Benchmarks.BenchTH
+  other-modules:    Benchmarks.BenchTH
                   , Benchmarks.BenchmarkTH
 
                   -- Pure streams
@@ -73,8 +101,6 @@ benchmark benchmarks
                   , Benchmarks.Text
 
                   -- Monadic streams
-                  , Benchmarks.Streamly
-                  , Benchmarks.VectorMonadic
                   , Benchmarks.Streaming
                   , Benchmarks.Conduit
                   , Benchmarks.Pipes
@@ -98,14 +124,13 @@ benchmark benchmarks
                     -Wnoncanonical-monadfail-instances
 
   build-depends:
-    base                == 4.*,
-    deepseq             >= 1.4.0 && < 1.5,
-    gauge               >= 0.2.3 && < 0.3,
+    streaming-benchmarks-indef,
+    stream-vector,
+    stream-streamly,
     mtl                 >= 2     && < 2.3,
     random              >= 1.0   && < 2.0,
     transformers        >= 0.4   && < 0.6,
     template-haskell    >= 2.10  && < 2.15,
-
     bytestring          >= 0.9   && < 0.11,
     text                >= 1.0   && < 1.3,
     vector              >= 0.12  && < 0.13,
@@ -122,6 +147,10 @@ benchmark benchmarks
     -- list-transformer    >= 1.0.2 && < 1.1,
     -- list-t              >= 0.4.6 && < 1.1,
     -- logict              >= 0.5.0 && < 0.7,
+  mixins:  streaming-benchmarks-indef (StreamBenchmark as Benchmarks.VectorMonadic)
+             requires (Stream as Vector),
+           streaming-benchmarks-indef (StreamBenchmark as Benchmarks.Streamly)
+             requires (Stream as StrStreamly)
 
 executable makecharts
   default-language: Haskell2010

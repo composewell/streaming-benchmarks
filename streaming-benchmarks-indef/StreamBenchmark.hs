@@ -1,33 +1,32 @@
 -- |
--- Module      : Benchmarks.Streamly
+-- Module      : Benchmarks.VectorMonadic
 -- Copyright   : (c) 2018 Harendra Kumar
+--               (c) 2018 Philipp Schuster
 --
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Benchmarks.Streamly where
+module StreamBenchmark where
 
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
-        subtract, undefined, Maybe(..), foldMap, maxBound)
+        subtract, undefined, replicate, Maybe(..))
 import qualified Prelude as P
 
-import qualified Streamly          as S
-import qualified Streamly.Prelude  as S
+import qualified Stream as S
+import Stream (Stream, C)
 
 -------------------------------------------------------------------------------
--- Stream generation
+-- Stream generation and elimination
 -------------------------------------------------------------------------------
-
-type Stream m a = S.SerialT m a
 
 {-# INLINE source #-}
-source :: S.MonadAsync m => Int -> Stream m Int
--- source n = S.fromFoldable [n..n+value]
+source :: (C m, Monad m) => Int -> Stream m Int
+--source n = S.fromList [n..n+value]
 source n = S.unfoldrM step n
     where
     step cnt =
@@ -44,7 +43,7 @@ source n = S.unfoldr step n
             -}
 
 {-# INLINE sourceN #-}
-sourceN :: S.MonadAsync m => Int -> Int -> Stream m Int
+sourceN :: (C m, Monad m) => Int -> Int -> Stream m Int
 sourceN count begin = S.unfoldrM step begin
     where
     step i =
@@ -53,20 +52,20 @@ sourceN count begin = S.unfoldrM step begin
         else return (Just (i, i + 1))
 
 {-# INLINE sourceIntFromThenTo #-}
-sourceIntFromThenTo :: (Monad m, S.IsStream t) => Int -> t m Int
-sourceIntFromThenTo n = S.enumerateFromThenTo n (n + 1) (n + value)
+sourceIntFromThenTo :: Monad m => Int -> Stream m Int
+sourceIntFromThenTo n = S.enumFromStepN n 1 value
 
 -------------------------------------------------------------------------------
 -- Append
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream m Int
-appendSourceR n = foldMap S.yield [n..n+appendValue]
+appendSourceR :: Monad m => Int -> Stream m Int
+appendSourceR n = P.foldr (S.append) S.nil (P.map S.yield [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream m Int
-appendSourceL n = P.foldl (S.<>) S.nil (P.map S.yield [n..n+appendValue])
+appendSourceL :: Monad m => Int -> Stream m Int
+appendSourceL n = P.foldl (S.append) S.nil (P.map S.yield [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -74,7 +73,7 @@ appendSourceL n = P.foldl (S.<>) S.nil (P.map S.yield [n..n+appendValue])
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()
-runStream = S.runStream
+runStream = S.mapM_ (\_ -> return ())
 
 {-# INLINE toNull #-}
 {-# INLINE toList #-}
@@ -129,7 +128,7 @@ scan, map,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
     :: Monad m => Int -> Stream m Int -> m ()
 
-mapM :: S.MonadAsync m => Int -> Stream m Int -> m ()
+mapM :: (C m, Monad m) => Int -> Stream m Int -> m ()
 
 scan           n = composeN n $ S.scanl' (+) 0
 map            n = composeN n $ S.map (+1)
@@ -155,7 +154,7 @@ maxIters = 100000
 
 {-# INLINE iterateSource #-}
 iterateSource
-    :: S.MonadAsync m
+    :: (C m, Monad m)
     => (Stream m Int -> Stream m Int) -> Int -> Int -> Stream m Int
 iterateSource g i n = f i (sourceN iterStreamLen n)
     where
@@ -170,7 +169,7 @@ iterateSource g i n = f i (sourceN iterStreamLen n)
 {-# INLINE iterateDropWhileFalse #-}
 {-# INLINE iterateDropWhileTrue #-}
 iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
-    iterateDropWhileFalse, iterateDropWhileTrue :: S.MonadAsync m => Int -> Stream m Int
+    iterateDropWhileFalse, iterateDropWhileTrue :: (C m, Monad m) => Int -> Stream m Int
 
 -- this is quadratic
 iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `div` 100) n
@@ -209,7 +208,7 @@ takeScan   n = composeN n $ S.scanl' (+) 0 . S.take maxValue
 takeMap    n = composeN n $ S.map (subtract 1) . S.take maxValue
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxValue)
 filterTake n = composeN n $ S.take maxValue . S.filter (<= maxValue)
-filterScan n = composeN n $ S.scanl' (+) 0 . S.filter (<= maxBound)
+filterScan n = composeN n $ S.scanl' (+) 0 . S.filter (<= P.maxBound)
 filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 
 -------------------------------------------------------------------------------
@@ -217,12 +216,8 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: Monad m => Stream m Int -> m ()
+{-# INLINE concat #-}
+zip, concat :: Monad m => Stream m Int -> m ()
 
 zip src       = transform $ (S.zipWith (,) src src)
-
-{-# INLINE concat #-}
-concat :: Monad m => Stream m Int -> m ()
-concat src    = transform $ (S.concatMap (S.replicate 3) src)
-
--- XXX composed zip and concat
+concat src    = transform $ (S.concatMap (S.fromList . replicate 3) src)
