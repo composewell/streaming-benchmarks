@@ -1,8 +1,8 @@
 {-# LANGUAGE ConstraintKinds #-}
 
-module Vector
+module StrVector
     ( module Data.Vector.Fusion.Stream.Monadic
-    , module Vector
+    , module StrVector
     ) where
 
 import Prelude hiding ((++), foldl', last, mapM_, mapM)

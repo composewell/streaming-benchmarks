@@ -1,35 +1,31 @@
 -- |
--- Module      : Benchmarks.StreamlyPure
+-- Module      : Benchmarks.Vector
 -- Copyright   : (c) 2018 Harendra Kumar
 --
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
-{-# LANGUAGE CPP #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Benchmarks.StreamlyPure where
+module ListBenchmark where
 
 import Benchmarks.Common (value, maxValue, appendValue)
-import Data.Functor.Identity (Identity, runIdentity)
-import Prelude
-       (Int, (+), id, ($), (.), even, (>), (<=),
-        subtract, undefined, Maybe(..), foldMap, maxBound)
+import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
+                maxBound, Maybe(..))
 import qualified Prelude as P
 
-import qualified Streamly          as S
-import qualified Streamly.Prelude  as S
+import qualified List as S
+import List (List)
 
 -------------------------------------------------------------------------------
--- Stream generation
+-- Stream generation and elimination
 -------------------------------------------------------------------------------
 
-type Stream = S.SerialT Identity
+-- Remove this type synonym, and use List.
+type Stream = List
 
 {-# INLINE source #-}
 source :: Int -> Stream Int
-
 source n = S.unfoldr step n
     where
     step cnt =
@@ -52,58 +48,41 @@ sourceN count begin = S.unfoldr step begin
 
 {-# INLINE appendSourceR #-}
 appendSourceR :: Int -> Stream Int
-appendSourceR n = foldMap S.yield [n..n+appendValue]
+appendSourceR n =
+    P.foldr (S.append) S.nil (P.map S.yield [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (S.<>) S.nil (P.map S.yield [n..n+appendValue])
+appendSourceL n = P.foldl (S.append) S.nil (P.map S.yield [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
 -------------------------------------------------------------------------------
 
 {-# INLINE toNull #-}
-#ifdef RUNSTREAM
-toNull :: Stream Int -> ()
-toNull = runIdentity . S.runStream
-#else
-toNull :: Stream Int -> Stream Int
-toNull = id
-#endif
-
 {-# INLINE toList #-}
-toList :: Stream Int -> [Int]
-toList = runIdentity . S.toList
-
 {-# INLINE foldl #-}
-foldl  :: Stream Int -> Int
-foldl  = runIdentity . S.foldl' (+) 0
-
 {-# INLINE last #-}
-last   :: Stream Int -> Maybe Int
-last   = runIdentity . S.last
+toNull :: Stream Int -> Stream Int
+toList :: Stream Int -> [Int]
+foldl :: Stream Int -> Int
+last  :: Stream Int -> Maybe Int
+
+toNull = id
+toList = S.toList
+foldl  = S.foldl' (+) 0
+last   = S.last
 
 -------------------------------------------------------------------------------
 -- Transformation
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-#ifdef RUNSTREAM
-transform :: Stream a -> ()
-transform = runIdentity . S.runStream
-#else
 transform :: Stream a -> Stream a
 transform = id
-#endif
 
 {-# INLINE composeN #-}
-composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int
-#ifdef RUNSTREAM
-     -> ()
-#else
-     -> Stream Int
-#endif
-
+composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int -> Stream Int
 composeN n f =
     case n of
         1 -> transform . f
@@ -129,12 +108,7 @@ scan, map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
-    :: Int -> Stream Int
-#ifdef RUNSTREAM
-     -> ()
-#else
-     -> Stream Int
-#endif
+    :: Int -> Stream Int -> Stream Int
 
 scan           n = composeN n $ S.scanl' (+) 0
 map            n = composeN n $ S.map (+1)
@@ -200,13 +174,7 @@ iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 {-# INLINE filterMap #-}
 scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
-    :: Int -> Stream Int
-#ifdef RUNSTREAM
-     -> ()
-#else
-     -> Stream Int
-#endif
-
+    :: Int -> Stream Int -> Stream Int
 
 scanMap    n = composeN n $ S.map (subtract 1) . S.scanl' (+) 0
 dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
@@ -224,15 +192,9 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: Stream Int
-#ifdef RUNSTREAM
-     -> ()
-#else
-     -> Stream (Int, Int)
-#endif
-
+zip :: Stream Int -> Stream (Int, Int)
 zip src       = transform $ (S.zipWith (,) src src)
 
 {-# INLINE concat #-}
 concat :: Stream Int -> Stream Int
-concat = id
+concat src    = transform $ (S.concatMap (S.replicate 3) src)

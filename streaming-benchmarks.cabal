@@ -72,7 +72,7 @@ library stream-vector
   import: common-benchmarks
   default-language: Haskell2010
   build-depends:    vector >= 0.12  && < 0.13
-  exposed-modules:  Vector
+  exposed-modules:  StrVector
   hs-source-dirs:   stream-vector
 
 library stream-streamly
@@ -81,6 +81,27 @@ library stream-streamly
   build-depends:    streamly >= 0.2.1 && < 0.7
   exposed-modules:  StrStreamly
   hs-source-dirs:   stream-streamly
+
+library list-benchmarks-indef
+  import: common-benchmarks
+  default-language: Haskell2010
+  signatures:       List
+  exposed-modules:  ListBenchmark
+  hs-source-dirs:   list-benchmarks-indef
+
+library list-streamly
+  import: common-benchmarks
+  default-language: Haskell2010
+  build-depends:    streamly >= 0.2.1 && < 0.7
+  exposed-modules:  ListStreamly
+  hs-source-dirs:   list-streamly
+
+library list-vector
+  import: common-benchmarks
+  default-language: Haskell2010
+  build-depends:    vector >= 0.12  && < 0.13
+  exposed-modules:  ListVector
+  hs-source-dirs:   list-vector
 
 benchmark benchmarks
   import: common-benchmarks
@@ -94,8 +115,6 @@ benchmark benchmarks
                   , Benchmarks.List
                   , Benchmarks.DList
                   , Benchmarks.Sequence
-                  , Benchmarks.Vector
-                  , Benchmarks.StreamlyPure
                   , Benchmarks.ByteString
                   , Benchmarks.ByteStringLazy
                   , Benchmarks.Text
@@ -127,14 +146,15 @@ benchmark benchmarks
     streaming-benchmarks-indef,
     stream-vector,
     stream-streamly,
+    list-benchmarks-indef,
+    list-streamly,
+    list-vector,
     mtl                 >= 2     && < 2.3,
     random              >= 1.0   && < 2.0,
     transformers        >= 0.4   && < 0.6,
     template-haskell    >= 2.10  && < 2.15,
     bytestring          >= 0.9   && < 0.11,
     text                >= 1.0   && < 1.3,
-    vector              >= 0.12  && < 0.13,
-    streamly            >= 0.2.1 && < 0.7,
     streaming           >= 0.1.4 && < 0.3,
     machines            >= 0.6.0 && < 0.7,
     pipes               >= 4     && < 4.4,
@@ -148,9 +168,13 @@ benchmark benchmarks
     -- list-t              >= 0.4.6 && < 1.1,
     -- logict              >= 0.5.0 && < 0.7,
   mixins:  streaming-benchmarks-indef (StreamBenchmark as Benchmarks.VectorMonadic)
-             requires (Stream as Vector),
+             requires (Stream as StrVector),
            streaming-benchmarks-indef (StreamBenchmark as Benchmarks.Streamly)
-             requires (Stream as StrStreamly)
+             requires (Stream as StrStreamly),
+           list-benchmarks-indef (ListBenchmark as Benchmarks.StreamlyPure)
+             requires (List as ListStreamly),
+           list-benchmarks-indef (ListBenchmark as Benchmarks.Vector)
+             requires (List as ListVector)
 
 executable makecharts
   default-language: Haskell2010

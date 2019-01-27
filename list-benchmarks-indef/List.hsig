@@ -1,0 +1,33 @@
+{-# LANGUAGE KindSignatures #-}
+
+signature List where
+
+data List :: * -> *
+
+unfoldr :: (s -> Maybe (a, s)) -> s -> List a
+nil :: List a
+yield :: a -> List a
+replicate :: Int -> a -> List a
+fromList :: [a] -> List a
+append :: List a -> List a -> List a
+
+-- Elimination
+runStream :: List a -> List a
+toList :: List a -> [a]
+foldl' :: (b -> a -> b) -> b -> List a -> b
+last :: List a -> Maybe a
+
+-- Transformation
+scanl' :: (b -> a -> b) -> b -> List a -> List b
+map :: (a -> b) -> List a -> List b
+filter :: (a -> Bool) -> List a -> List a
+take :: Int -> List a -> List a
+takeWhile :: (a -> Bool) -> List a -> List a
+drop :: Int -> List a -> List a
+dropWhile :: (a -> Bool) -> List a -> List a
+
+-- Zipping
+zipWith :: (a -> b -> c) -> List a -> List b -> List c
+
+-- Concat
+concatMap :: (a -> List b) -> List a -> List b
