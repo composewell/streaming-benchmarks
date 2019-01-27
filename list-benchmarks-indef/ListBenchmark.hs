@@ -42,6 +42,11 @@ sourceN count begin = S.unfoldr step begin
         then Nothing
         else (Just (i, i + 1))
 
+-- HACK, this should be in the Benchmarking TH code.
+{-# INLINE sourceIntFromThenTo #-}
+sourceIntFromThenTo :: Int -> [Int]
+sourceIntFromThenTo n = P.enumFromThenTo n (n + 1) (n + value)
+
 -------------------------------------------------------------------------------
 -- Append
 -------------------------------------------------------------------------------

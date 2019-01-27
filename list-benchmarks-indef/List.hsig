@@ -4,6 +4,8 @@ signature List where
 
 data List :: * -> *
 
+-- TODO: Add functor, foldable constraints?
+
 unfoldr :: (s -> Maybe (a, s)) -> s -> List a
 nil :: List a
 yield :: a -> List a
