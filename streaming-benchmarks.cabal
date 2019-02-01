@@ -82,6 +82,12 @@ library stream-streamly
   exposed-modules:  StrStreamly
   hs-source-dirs:   stream-streamly
 
+library stream-streaming
+  default-language: Haskell2010
+  build-depends:    base   == 4.*
+                  , streaming >= 0.1.4 && < 0.3,
+  exposed-modules:  StrStreaming
+  hs-source-dirs:   stream-streaming
 library list-benchmarks-indef
   import: common-deps
   default-language: Haskell2010
@@ -131,7 +137,6 @@ benchmark benchmarks
                   , Benchmarks.Text
 
                   -- Monadic streams
-                  , Benchmarks.Streaming
                   , Benchmarks.Conduit
                   , Benchmarks.Pipes
                   , Benchmarks.Machines
@@ -157,6 +162,7 @@ benchmark benchmarks
     streaming-benchmarks-indef,
     stream-vector,
     stream-streamly,
+    stream-streaming,
     list-benchmarks-indef,
     list-streamly,
     list-vector,
@@ -168,7 +174,6 @@ benchmark benchmarks
     template-haskell    >= 2.10  && < 2.15,
     bytestring          >= 0.9   && < 0.11,
     text                >= 1.0   && < 1.3,
-    streaming           >= 0.1.4 && < 0.3,
     machines            >= 0.6.0 && < 0.7,
     pipes               >= 4     && < 4.4,
     conduit             >= 1.3   && < 1.4,
@@ -183,6 +188,8 @@ benchmark benchmarks
              requires (Stream as StrVector)
          , streaming-benchmarks-indef (StreamBenchmark as Benchmarks.Streamly)
              requires (Stream as StrStreamly)
+         , streaming-benchmarks-indef (StreamBenchmark as Benchmarks.Streaming)
+             requires (Stream as StrStreaming)
          , list-benchmarks-indef (ListBenchmark as Benchmarks.StreamlyPure)
              requires (List as ListStreamly)
          , list-benchmarks-indef (ListBenchmark as Benchmarks.Vector)
