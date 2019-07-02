@@ -37,9 +37,9 @@ charts =
         ]
       )
     , ( "Transformation Operations x 4"
-      , [ "transformationX4/map"
-        , "transformationX4/mapM"
-        , "transformationX4/scan"
+      , [ "transformationX4/map x 4"
+        , "transformationX4/mapM x 4"
+        , "transformationX4/scan x 4"
         ]
       )
     , ( "Filtering Operations"
@@ -57,28 +57,28 @@ charts =
       )
     , ( "Filtering Operations x 4"
       , [
-          "filteringX4/filter-all-out"
-        , "filteringX4/takeWhile-true"
-        , "filteringX4/filter-all-in"
-        , "filteringX4/take-all"
-        , "filteringX4/filter-even"
-        , "filteringX4/drop-all"
-        , "filteringX4/dropWhile-true"
-        , "filteringX4/dropWhile-false"
-        , "filteringX4/drop-one"
+          "filteringX4/filter-all-out x 4"
+        , "filteringX4/takeWhile-true x 4"
+        , "filteringX4/filter-all-in x 4"
+        , "filteringX4/take-all x 4"
+        , "filteringX4/filter-even x 4"
+        , "filteringX4/drop-all x 4"
+        , "filteringX4/dropWhile-true x 4"
+        , "filteringX4/dropWhile-false x 4"
+        , "filteringX4/drop-one x 4"
         ]
       )
     , ( "Mixed Operations x 4"
-      , [ "mixedX4/filter-map"
-        , "mixedX4/take-map"
-        , "mixedX4/drop-map"
-        , "mixedX4/filter-drop"
-        , "mixedX4/filter-take"
-        , "mixedX4/take-drop"
-        , "mixedX4/scan-map"
-        , "mixedX4/filter-scan"
-        , "mixedX4/take-scan"
-        , "mixedX4/drop-scan"
+      , [ "mixedX4/filter-map x 4"
+        , "mixedX4/take-map x 4"
+        , "mixedX4/drop-map x 4"
+        , "mixedX4/filter-drop x 4"
+        , "mixedX4/filter-take x 4"
+        , "mixedX4/take-drop x 4"
+        , "mixedX4/scan-map x 4"
+        , "mixedX4/filter-scan x 4"
+        , "mixedX4/take-scan x 4"
+        , "mixedX4/drop-scan x 4"
         ]
       )
     , ( "Iterated Operations"
@@ -159,12 +159,20 @@ createCharts input pkgList graphs delta versions = do
     let bsort pxs bs =
                 let i = intersect (map (last . splitOn "/") pxs) bs
                 in i ++ (bs \\ i)
-        selectByRegression f =
+    let selectByRegression f =
             reverse
           $ fmap fst
           $ either
               (const $ either error id $ f $ ColumnIndex 0)
               (sortOn snd)
+              $ f $ ColumnIndex 1
+
+    let cutOffByRegression f =
+            reverse
+          $ fmap fst
+          $ either
+              (const $ either error id $ f $ ColumnIndex 0)
+              (filter (\(_,y) -> y > 10 || y < (-10)) . (sortOn snd))
               $ f $ ColumnIndex 1
 
     let cfg (t, prefixes) = defaultConfig
@@ -192,9 +200,9 @@ createCharts input pkgList graphs delta versions = do
             }
 
         -- links in README.rst eat up the space so we match the same
-        toOutfile t = filter (not . isSpace) (takeWhile (/= '(') t)
+    let toOutfile t = filter (not . isSpace) (takeWhile (/= '(') t)
 
-        makeOneGraph infile (t, prefixes) = do
+    let makeOneGraph infile (t, prefixes) = do
             let title' = t ++ " (Lower is Better)"
                 cfg' = cfg (title', prefixes)
                 cfg'' =
@@ -205,7 +213,22 @@ createCharts input pkgList graphs delta versions = do
             then ignoringErr $ graph infile (toOutfile t) cfg''
             else ignoringErr $ report infile Nothing cfg''
 
+    let makeDiffGraph infile prefixes = do
+            let t = "All Operations"
+                title' = t ++ " (Lower is Better)"
+                cfg' = cfg (title', prefixes)
+                cfg'' =
+                    if delta
+                    then cfg' { selectBenchmarks = cutOffByRegression }
+                    else cfg'
+            if graphs
+            then ignoringErr $ graph infile (toOutfile t) cfg''
+            else ignoringErr $ report infile Nothing cfg''
+
     mapM_ (makeOneGraph input) charts
+    if delta
+    then makeDiffGraph input (concatMap snd charts)
+    else return ()
 
 -- Pass <input file> <comma separated list of packages> <True/False>
 main :: IO ()
