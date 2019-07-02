@@ -89,8 +89,7 @@ main = do
       , $(createBgroupSinkN benchMods "filter-map" "filterMap" 4)
       ]
     , $(createBgroupSink benchMods "zip" "zip")
-    , $(createBgroupSink (benchMods \\ ["Streamly", "Sequence"])
-                         "concat" "concat")
+    , $(createBgroupSink (benchMods \\ ["Sequence"]) "concat" "concat")
 
     , $(createBgroupSrc ((benchMods ++ ["DList"]) \\ ["Drinkery"])
                         "appendR[10000]" "appendSourceR")
