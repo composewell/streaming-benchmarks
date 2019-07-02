@@ -16,7 +16,7 @@ import Prelude
         subtract, undefined, Maybe(..), foldMap, maxBound)
 import qualified Prelude as P
 
-import qualified Streamly          as S
+import qualified Streamly          as S hiding (runStream)
 import qualified Streamly.Prelude  as S
 
 -------------------------------------------------------------------------------
