@@ -2,23 +2,23 @@
 
 print_help () {
   echo "Usage: $0 "
-  echo "       [--packages <streamly,vector,...>]"
+  echo "       [--benchmarks <streamly,vector,...>]"
+  echo "       [--diff]"
   echo "       [--graphs]"
-  echo "       [--delta]"
-  echo "       [--slow]"
   echo "       [--no-measure]"
   echo "       [--append] "
+  echo "       [--slow]"
   echo "       [--versions] "
   echo "       -- <gauge options>"
   echo
-  echo "--packages: specify comma separated list of packages to be compared"
+  echo "--benchmarks: specify comma separated list of packages to be compared"
   echo
-  echo "Available package names are: "
+  echo "Available benchmarks are: "
   echo "Pure streams: list, pure-streamly, vector, sequence, dlist, bytestring, text"
   echo "Monadic streams: streamly, monadic-vector, streaming, pipes, conduit, machines, drinkery"
   echo
   echo "--graphs: generate SVG graphs instead of text reports"
-  echo "--delta: show diff of subsequent packages from the first package"
+  echo "--diff: show diff of subsequent packages from the first package"
   echo "--slow: slower but a bit more precise benchmarking"
   echo "--no-measure: don't measure, generate reports from previous measurements"
   echo "--append: append the new measurement results to previous ones for comparison"
@@ -34,15 +34,57 @@ die () {
   exit 1
 }
 
-set_packages() {
-  if test -z "$PACKAGES"
+set_benchmarks() {
+  if test -z "$BENCHMARKS"
   then
-    PACKAGES=$DEFAULT_PACKAGES
-  elif test "$PACKAGES" = "all"
+    BENCHMARKS=$DEFAULT_BENCHMARKS
+  elif test "$BENCHMARKS" = "all"
   then
-    PACKAGES=$ALL_PACKAGES
+    BENCHMARKS=$ALL_BENCHMARKS
   fi
-  echo "Using packages [$PACKAGES]"
+  echo "Using benchmark suites [$BENCHMARKS]"
+}
+
+# $1: benchmark name (linear, nested, base)
+find_report_prog() {
+    local prog_name="makecharts"
+    hash -r
+    local prog_path=$($WHICH_COMMAND $prog_name)
+    if test -x "$prog_path"
+    then
+      echo $prog_path
+    else
+      return 1
+    fi
+}
+
+# $1: benchmark name (linear, nested, base)
+build_report_prog() {
+    local prog_name="makecharts"
+    local prog_path=$($WHICH_COMMAND $prog_name)
+
+    hash -r
+    if test ! -x "$prog_path" -a "$BUILD_ONCE" = "0"
+    then
+      echo "Building bench-graph executables"
+      BUILD_ONCE=1
+      $BUILD_CHART_EXE || die "build failed"
+    elif test ! -x "$prog_path"
+    then
+      return 1
+    fi
+    return 0
+}
+
+build_report_progs() {
+  if test "$RAW" = "0"
+  then
+      build_report_prog || exit 1
+      local prog
+      prog=$(find_report_prog) || \
+          die "Cannot find bench-graph executable"
+      echo "Using bench-graph executable [$prog]"
+  fi
 }
 
 # We run the benchmarks in isolation in a separate process so that different
@@ -54,9 +96,20 @@ set_packages() {
 # Use this command to find the exe if this script fails with an error:
 # find .stack-work/ -type f -name "benchmarks"
 
-find_bench_prog () {
+stack_bench_prog () {
   local bench_name=$1
-  local bench_prog=`$STACK path --dist-dir`/build/$bench_name/$bench_name
+  local bench_prog=`stack path --dist-dir`/build/$bench_name/$bench_name
+  if test -x "$bench_prog"
+  then
+    echo $bench_prog
+  else
+    return 1
+  fi
+}
+
+cabal_bench_prog () {
+  local bench_name=$1
+  local bench_prog=`$WHICH_COMMAND $1`
   if test -x "$bench_prog"
   then
     echo $bench_prog
@@ -83,10 +136,10 @@ bench_output_file() {
 # after the benchmark name in case we want to use more than one sample.
 
 run_bench () {
-  local bench_name=benchmarks
-  local output_file=$(bench_output_file)
+  local bench_name=$1
+  local output_file=$(bench_output_file $bench_name)
   local bench_prog
-  bench_prog=$(find_bench_prog $bench_name) || \
+  bench_prog=$($GET_BENCH_PROG $bench_name) || \
     die "Cannot find benchmark executable for benchmark $bench_name"
 
   mkdir -p `dirname $output_file`
@@ -94,7 +147,7 @@ run_bench () {
   echo "Running benchmark $bench_name ..."
 
   local MATCH_ARGS=""
-  for i in $(echo $PACKAGES | tr "," "\n")
+  for i in $(echo $BENCHMARKS | tr "," "\n")
   do
      MATCH_ARGS="$MATCH_ARGS -m pattern /$i"
   done
@@ -106,8 +159,16 @@ run_bench () {
       || die "Benchmarking failed"
 }
 
+run_benches() {
+    for i in $1
+    do
+      run_bench $i
+    done
+}
+
 backup_output_file() {
-  local output_file=$(bench_output_file)
+  local bench_name=$1
+  local output_file=$(bench_output_file $bench_name)
 
   if test -e $output_file -a "$APPEND" != 1
   then
@@ -116,24 +177,33 @@ backup_output_file() {
 }
 
 run_measurements() {
-  backup_output_file
-  run_bench
+  local bench_list=$1
+
+  for i in $bench_list
+  do
+      backup_output_file $i
+  done
+
+  run_benches "$bench_list"
 }
 
 run_reports() {
-  local packages=$1
-  local output_file=$(bench_output_file)
-  echo
-  echo "Generating reports/charts from ${output_file}..."
-  $STACK exec makecharts $output_file $packages $GRAPH $DELTA $VERSIONS
+    local prog
+    prog=$(find_report_prog) || \
+      die "Cannot find bench-graph executable"
+    echo
+
+    echo "Generating reports for ${output_file}..."
+    local output_file=$(bench_output_file)
+    $prog $output_file $1 $GRAPH $DELTA $VERSIONS
 }
 
 #-----------------------------------------------------------------------------
 # Execution starts here
 #-----------------------------------------------------------------------------
 
-DEFAULT_PACKAGES="streamly,vector,streaming,conduit,pipes,machines,drinkery"
-ALL_PACKAGES="streamly,vector,streaming,conduit,pipes,machines,drinkery"
+DEFAULT_BENCHMARKS="streamly,vector,streaming,conduit,pipes,machines,drinkery"
+ALL_BENCHMARKS="streamly,vector,streaming,conduit,pipes,machines,drinkery"
 DELTA=False
 
 APPEND=0
@@ -143,10 +213,30 @@ VERSIONS=False
 MEASURE=1
 SPEED_OPTIONS="--quick --min-samples 10 --time-limit 1 --min-duration 0"
 
-STACK=stack
 GAUGE_ARGS=
-
 BUILD_ONCE=0
+USE_STACK=0
+
+GHC_VERSION=$(ghc --numeric-version)
+
+cabal_which() {
+  find dist-newstyle -type f -path "*${GHC_VERSION}*/$1"
+}
+
+if test "$USE_STACK" = "1"
+then
+  WHICH_COMMAND="stack exec which"
+  GET_BENCH_PROG=stack_bench_prog
+  BUILD_CHART_EXE="stack build"
+  BUILD_BENCH="stack build $STACK_BUILD_FLAGS --bench --no-run-benchmarks"
+else
+  # XXX cabal issue "cabal v2-exec which" cannot find benchmark/test executables
+  #WHICH_COMMAND="cabal v2-exec which"
+  WHICH_COMMAND=cabal_which
+  GET_BENCH_PROG=cabal_bench_prog
+  BUILD_CHART_EXE="cabal v2-build all"
+  BUILD_BENCH="cabal v2-build $CABAL_BUILD_FLAGS --enable-benchmarks all"
+fi
 
 #-----------------------------------------------------------------------------
 # Read command line
@@ -156,10 +246,11 @@ while test -n "$1"
 do
   case $1 in
     -h|--help|help) print_help ;;
+    # options with arguments
     --slow) SPEED_OPTIONS="--min-duration 0"; shift ;;
     --append) APPEND=1; shift ;;
-    --packages) shift; PACKAGES=$1; shift ;;
-    --delta) DELTA=True; shift ;;
+    --benchmarks) shift; BENCHMARKS=$1; shift ;;
+    --diff) DELTA=True; shift ;;
     --raw) RAW=1; shift ;;
     --graphs) GRAPH=True; shift ;;
     --versions) VERSIONS=True; shift ;;
@@ -172,13 +263,15 @@ done
 GAUGE_ARGS=$*
 
 echo "Using stack command [$STACK]"
-set_packages
+set_benchmarks
 
 #-----------------------------------------------------------------------------
 # Build stuff
 #-----------------------------------------------------------------------------
 
-$STACK build --bench --no-run-benchmarks || die "build failed"
+# We need to build the report progs first at the current (latest) commit before
+# checking out any other commit for benchmarking.
+build_report_progs "$BENCHMARKS"
 
 #-----------------------------------------------------------------------------
 # Run benchmarks
@@ -186,7 +279,8 @@ $STACK build --bench --no-run-benchmarks || die "build failed"
 
 if test "$MEASURE" = "1"
 then
-  run_measurements
+  $BUILD_BENCH || die "build failed"
+  run_measurements bmarks
 fi
 
 #-----------------------------------------------------------------------------
@@ -195,5 +289,5 @@ fi
 
 if test "$RAW" = "0"
 then
-    run_reports "$PACKAGES"
+  run_reports "$BENCHMARKS"
 fi
