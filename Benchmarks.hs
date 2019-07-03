@@ -98,12 +98,12 @@ main = do
 
       -- Perform 100,000 mapM recursively over a stream of length 10
     , bgroup "iterated"
-      [ $(createBgroupSrc (iterMods \\ pureMods) "mapM" "iterateMapM")
-      , $(createBgroupSrc (iterMods \\ ["Sequence"]) "scan[10000]" "iterateScan")
-      , $(createBgroupSrc iterMods "filterEven" "iterateFilterEven")
-      , $(createBgroupSrc iterMods "takeAll" "iterateTakeAll")
-      , $(createBgroupSrc iterMods "dropOne" "iterateDropOne")
-      , $(createBgroupSrc iterMods "dropWhileFalse[10000]" "iterateDropWhileFalse")
-      , $(createBgroupSrc iterMods "dropWhileTrue" "iterateDropWhileTrue")
+      [ $(createBgroupSrc (iterMods \\ pureMods) "mapM (iter)" "iterateMapM")
+      , $(createBgroupSrc (iterMods \\ ["Sequence"]) "scan[10000] (iter)" "iterateScan")
+      , $(createBgroupSrc iterMods "filterEven (iter)" "iterateFilterEven")
+      , $(createBgroupSrc iterMods "takeAll (iter)" "iterateTakeAll")
+      , $(createBgroupSrc iterMods "dropOne (iter)" "iterateDropOne")
+      , $(createBgroupSrc iterMods "dropWhileFalse[10000] (iter)" "iterateDropWhileFalse")
+      , $(createBgroupSrc iterMods "dropWhileTrue (iter)" "iterateDropWhileTrue")
       ]
    ]
