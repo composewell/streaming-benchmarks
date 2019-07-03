@@ -5,9 +5,9 @@ module Main where
 
 import Control.Exception (catch, ErrorCall(..))
 import Data.Char (isSpace)
-import Data.List (reverse, sortOn)
+import Data.List (reverse, sortOn, isPrefixOf, stripPrefix)
 import Data.List.Split (splitOn)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromJust)
 import System.Exit (ExitCode(..))
 import System.Process.Typed (readProcess)
 import BenchShow
@@ -93,7 +93,7 @@ charts =
       )
     , ( "Append Operations"
       , [ "appendR"
-        , "appendL"
+      --  , "appendL"
         ]
       )
     , ( "Zip Operation"
@@ -163,23 +163,24 @@ createCharts input pkgList graphs delta versions = do
             reverse
           $ fmap fst
           $ either
-              (const $ either error id $ f $ ColumnIndex 0)
+              (const $ either error id $ f (ColumnIndex 0) Nothing)
               (sortOn snd)
-              $ f $ ColumnIndex 1
+              $ f (ColumnIndex 1) Nothing
 
-    let cutOffByRegression f =
+    let cutOffByRegression p f =
             reverse
           $ fmap fst
           $ either
-              (const $ either error id $ f $ ColumnIndex 0)
-              (filter (\(_,y) -> y > 10 || y < (-10)) . (sortOn snd))
-              $ f $ ColumnIndex 1
+              (const $ either error id $ f (ColumnIndex 0) (Just PercentDiffLower))
+              (filter (\(_,y) -> p y) . (sortOn snd))
+              $ f (ColumnIndex 1) (Just PercentDiffLower)
 
     let cfg (t, prefixes) = defaultConfig
             { title = Just t
             , outputDir = Just "charts"
             , presentation =
                 if delta then Groups PercentDiffLower else Groups Absolute
+            , diffStrategy = SingleEstimator
             , classifyBenchmark = \bm ->
                 case any (`isPrefixOf` bm) prefixes of
                     True ->
@@ -196,7 +197,7 @@ createCharts input pkgList graphs delta versions = do
                     new = i ++ (gs' \\ i)
                 in nub $ concat $ map (\x -> filter (\(y,_) -> y == x) gs) new
             , selectBenchmarks = \g -> bsort prefixes $
-                either error (map fst) $ g (ColumnIndex 0)
+                either error (map fst) $ g (ColumnIndex 0) Nothing
             }
 
         -- links in README.rst eat up the space so we match the same
@@ -213,21 +214,34 @@ createCharts input pkgList graphs delta versions = do
             then ignoringErr $ graph infile (toOutfile t) cfg''
             else ignoringErr $ report infile Nothing cfg''
 
-    let makeDiffGraph infile prefixes = do
-            let t = "All Operations"
-                title' = t ++ " (Lower is Better)"
-                cfg' = cfg (title', prefixes)
-                cfg'' =
-                    if delta
-                    then cfg' { selectBenchmarks = cutOffByRegression }
-                    else cfg'
+    -- Make a graph of all operations sorted based on performance regression in
+    -- descending order and operations below a 10% threshold filtered out.
+    let makeDiffGraph infile prefixes t p = do
+            let title' = t ++ " (Lower is Better)"
+                cfg' = (cfg (title', prefixes))
+                    { presentation =
+                        if delta
+                        then Groups PercentDiffLower
+                        else Groups Absolute
+                    , selectBenchmarks = cutOffByRegression p
+                    }
             if graphs
-            then ignoringErr $ graph infile (toOutfile t) cfg''
-            else ignoringErr $ report infile Nothing cfg''
+            then ignoringErr $ graph infile (toOutfile t) cfg'
+            else ignoringErr $ report infile Nothing cfg'
 
-    mapM_ (makeOneGraph input) charts
-    if delta
-    then makeDiffGraph input (concatMap snd charts)
+    -- mapM_ (makeOneGraph input) charts
+
+    -- compare two packages for best and worst operations
+    if length packages == 2
+    then do
+        let packages' = map (\x ->
+                if "pure-" `isPrefixOf` x
+                then fromJust (stripPrefix "pure-" x)
+                else x) packages
+        let t = packages' !! 0 ++ " Better Than " ++ packages' !! 1
+        makeDiffGraph input (concatMap snd charts) t (> 10)
+        let t = packages' !! 1 ++ " Better Than " ++ packages' !! 0
+        makeDiffGraph input (concatMap snd charts) t (< (-10))
     else return ()
 
 -- Pass <input file> <comma separated list of packages> <True/False>
