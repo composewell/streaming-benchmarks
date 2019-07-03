@@ -179,7 +179,7 @@ createCharts input pkgList graphs delta versions = do
             { title = Just t
             , outputDir = Just "charts"
             , presentation =
-                if delta then Groups PercentDiff else Groups Absolute
+                if delta then Groups PercentDiffLower else Groups Absolute
             , classifyBenchmark = \bm ->
                 case any (`isPrefixOf` bm) prefixes of
                     True ->
