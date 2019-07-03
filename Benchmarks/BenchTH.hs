@@ -41,7 +41,7 @@ purePackages =
 allPackages :: [(String, String)]
 allPackages = purePackages ++ monadicPackages
 
--- mkBench source transform module
+-- mkBench <stream producer func> <stream consumer func> <module name>
 mkBench :: String -> String -> String -> Q Exp
 mkBench f x mdl =
     case lookup mdl purePackages of

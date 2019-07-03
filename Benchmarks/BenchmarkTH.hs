@@ -31,18 +31,24 @@ iterMods = allMods \\
     , "Drinkery"
     ]
 
+-- | createBgroupSink <module names> <benchmark name>
+--                    <stream consumer function name>
 createBgroupSink :: [String] -> String -> String -> Q Exp
 createBgroupSink mods name fname =
     [|
         bgroup name $(listE (map (mkBench "source" fname) mods))
     |]
 
+-- | createBgroupSink <module names> <benchmark name>
+--                    <stream consumer function name> <number of iterations>
 createBgroupSinkN :: [String] -> String -> String -> Int -> Q Exp
 createBgroupSinkN mods name fname n =
     [|
         bgroup name $(listE (map (mkBenchN "source" fname n) mods))
     |]
 
+-- | createBgroupSink <module names> <benchmark name>
+--                    <stream producer function name>
 createBgroupSrc :: [String] -> String -> String -> Q Exp
 createBgroupSrc mods name fname =
     [|
