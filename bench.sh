@@ -5,7 +5,7 @@ print_help () {
   echo "       [--benchmarks <streamly,vector,...>]"
   echo "       [--diff]"
   echo "       [--graphs]"
-  echo "       [--no-measure]"
+  echo "       [--measure]"
   echo "       [--append] "
   echo "       [--slow]"
   echo "       [--versions] "
@@ -20,7 +20,7 @@ print_help () {
   echo "--graphs: generate SVG graphs instead of text reports"
   echo "--diff: show diff of subsequent packages from the first package"
   echo "--slow: slower but a bit more precise benchmarking"
-  echo "--no-measure: don't measure, generate reports from previous measurements"
+  echo "--measure: rerun benchmark measurements"
   echo "--append: append the new measurement results to previous ones for comparison"
   echo "--versions: add package versions in the report/graphs"
   echo
@@ -178,13 +178,19 @@ backup_output_file() {
 
 run_measurements() {
   local bench_list=$1
+  local to_run
 
   for i in $bench_list
   do
+    local output_file=$(bench_output_file $i)
+    if test "$MEASURE" = 1 -o ! -e $output_file
+    then
       backup_output_file $i
+      to_run="$to_run $i"
+    fi
   done
 
-  run_benches "$bench_list"
+  run_benches "$to_run"
 }
 
 run_reports() {
@@ -193,8 +199,8 @@ run_reports() {
       die "Cannot find bench-graph executable"
     echo
 
-    echo "Generating reports for ${output_file}..."
     local output_file=$(bench_output_file)
+    echo "Generating reports for ${output_file}..."
     $prog $output_file $1 $GRAPH $DELTA $VERSIONS
 }
 
@@ -210,7 +216,7 @@ APPEND=0
 RAW=0
 GRAPH=False
 VERSIONS=False
-MEASURE=1
+MEASURE=0
 SPEED_OPTIONS="--quick --min-samples 10 --time-limit 1 --min-duration 0"
 
 GAUGE_ARGS=
@@ -254,7 +260,7 @@ do
     --raw) RAW=1; shift ;;
     --graphs) GRAPH=True; shift ;;
     --versions) VERSIONS=True; shift ;;
-    --no-measure) MEASURE=0; shift ;;
+    --measure) MEASURE=1; shift ;;
     --) shift; break ;;
     -*|--*) print_help ;;
     *) break ;;
@@ -277,11 +283,8 @@ build_report_progs "$BENCHMARKS"
 # Run benchmarks
 #-----------------------------------------------------------------------------
 
-if test "$MEASURE" = "1"
-then
-  $BUILD_BENCH || die "build failed"
-  run_measurements bmarks
-fi
+$BUILD_BENCH || die "build failed"
+run_measurements bmarks
 
 #-----------------------------------------------------------------------------
 # Run reports
