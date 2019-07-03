@@ -14,7 +14,7 @@ module Benchmarks.StreamlyPure where
 import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Functor.Identity (Identity, runIdentity)
 import Prelude
-       (Int, (+), id, ($), (.), even, (>), (<=),
+       (Int, (+), ($), (.), even, (>), (<=),
         subtract, undefined, Maybe(..), foldMap, maxBound)
 import qualified Prelude as P
 
@@ -69,13 +69,18 @@ appendSourceL n = P.foldl (S.<>) S.nil (P.map S.yield [n..n+appendValue])
 eval :: Stream a -> ()
 eval = runIdentity . S.foldrM P.seq (P.return ())
 
+-- eval foldable
+{-# INLINE evalF #-}
+evalF :: P.Foldable t => t a -> ()
+evalF = P.foldr P.seq ()
+
 {-# INLINE toNull #-}
 toNull :: Stream Int -> ()
 toNull = eval
 
 {-# INLINE toList #-}
 toList :: Stream Int -> ()
-toList = P.foldr P.seq () . runIdentity . S.toList
+toList = evalF . runIdentity . S.toList
 
 {-# INLINE foldl #-}
 foldl  :: Stream Int -> Int
@@ -206,9 +211,9 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 
 {-# INLINE zip #-}
 zip :: Stream Int -> ()
-
-zip src       = transform $ (S.zipWith (,) src src)
+zip src = runIdentity $ S.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
+    $ S.zipWith (,) src src
 
 {-# INLINE concat #-}
-concat :: Stream Int -> Stream Int
-concat = id
+concat :: Stream Int -> ()
+concat src = transform $ (S.concatMap (S.replicate 3) src)

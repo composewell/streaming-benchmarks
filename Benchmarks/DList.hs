@@ -10,7 +10,7 @@
 module Benchmarks.DList where
 
 import Benchmarks.Common (value, appendValue)
-import Prelude (Int, (+), id, ($), (.), (>), undefined, Maybe(..))
+import Prelude (Int, (+), ($), (.), (>), undefined, Maybe(..))
 import qualified Prelude as P
 import qualified Data.Foldable as P
 
@@ -58,13 +58,25 @@ appendSourceL n = P.foldl S.append S.empty (P.map S.singleton [n..n+appendValue]
 -- Elimination
 -------------------------------------------------------------------------------
 
+-- Using NFData for evaluation may be fraught with problems because of a
+-- non-optimal implementation of NFData instance. So we just evaluate each
+-- element of the stream using a fold.
+{-# INLINE eval #-}
+eval :: Stream a -> ()
+eval = S.foldr P.seq ()
+
+-- eval foldable
+{-# INLINE evalF #-}
+evalF :: P.Foldable t => t a -> ()
+evalF = P.foldr P.seq ()
+
 {-# INLINE toNull #-}
-toNull :: Stream Int -> Stream Int
-toNull = id
+toNull :: Stream Int -> ()
+toNull = eval
 
 {-# INLINE toList #-}
-toList :: Stream Int -> [Int]
-toList = S.toList
+toList :: Stream Int -> ()
+toList = evalF . S.toList
 
 {-# INLINE foldl #-}
 foldl :: Stream Int -> Int
@@ -79,11 +91,11 @@ last   = undefined
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: Stream a -> Stream a
-transform = id
+transform :: Stream a -> ()
+transform = eval
 
 {-# INLINE composeN #-}
-composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int -> Stream Int
+composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int -> ()
 composeN n f =
     case n of
         1 -> transform . f
@@ -109,7 +121,7 @@ scan, map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
-    :: Int -> Stream Int -> Stream Int
+    :: Int -> Stream Int -> ()
 
 scan             = undefined
 map            n = composeN n $ S.map (+1)
@@ -174,7 +186,7 @@ iterateDropWhileTrue   = undefined
 {-# INLINE filterMap #-}
 scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
-    :: Int -> Stream Int -> Stream Int
+    :: Int -> Stream Int -> ()
 
 scanMap      = undefined
 dropMap      = undefined
@@ -192,9 +204,9 @@ filterMap    = undefined
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: Stream Int -> Stream (Int, Int)
+zip :: Stream Int -> ()
 zip _src       = undefined
 
 {-# INLINE concat #-}
-concat :: Stream Int -> Stream Int
+concat :: Stream Int -> ()
 concat _src    = undefined

@@ -10,7 +10,7 @@
 module Benchmarks.ByteString where
 
 -- import Benchmarks.Common (value, maxValue, appendValue)
-import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
+import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
                 maxBound, Maybe(..))
 import qualified Prelude as P
 import Data.Word (Word8)
@@ -61,13 +61,25 @@ appendSourceL n = P.foldl (S.append) S.empty (P.map (S.singleton . P.fromIntegra
 -- Elimination
 -------------------------------------------------------------------------------
 
+-- Using NFData for evaluation may be fraught with problems because of a
+-- non-optimal implementation of NFData instance. So we just evaluate each
+-- element of the stream using a fold.
+{-# INLINE eval #-}
+eval :: Stream a -> ()
+eval = S.foldr P.seq ()
+
+-- eval foldable
+{-# INLINE evalF #-}
+evalF :: P.Foldable t => t a -> ()
+evalF = P.foldr P.seq ()
+
 {-# INLINE toNull #-}
-toNull :: Stream Element -> Stream Element
-toNull = id
+toNull :: Stream Element -> ()
+toNull = eval
 
 {-# INLINE toList #-}
-toList :: Stream Element -> [Element]
-toList = S.unpack
+toList :: Stream Element -> ()
+toList = evalF . S.unpack
 
 {-# INLINE foldl #-}
 foldl :: Stream Element -> Element
@@ -82,14 +94,14 @@ last   = S.last
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: Stream a -> Stream a
-transform = id
+transform :: Stream a -> ()
+transform = eval
 
 {-# INLINE composeN #-}
 composeN :: Int
          -> (Stream Element -> Stream Element)
          -> Stream Element
-         -> Stream Element
+         -> ()
 composeN n f =
     case n of
         1 -> transform . f
@@ -115,7 +127,7 @@ scan, map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
-    :: Int -> Stream Int -> Stream Int
+    :: Int -> Stream Int -> ()
 
 -- XXX there is no scanl'
 scan           n = composeN n $ S.scanl (+) 0
@@ -186,7 +198,7 @@ iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxElem)) maxIters n
 {-# INLINE filterMap #-}
 scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
-    :: Int -> Stream Element -> Stream Element
+    :: Int -> Stream Element -> ()
 
 -- XXX using scanl instead of scanl'
 scanMap    n = composeN n $ S.map (subtract 1) . S.scanl (+) 0
@@ -205,9 +217,10 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxElem)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: Stream Element -> [(Element, Element)]
-zip src       = S.zipWith (,) src src
+zip :: Stream Element -> ()
+zip src = P.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
+    $ S.zipWith (,) src src
 
 {-# INLINE concat #-}
-concat :: Stream Element -> Stream Element
-concat src    = transform $ (S.concatMap (S.replicate 3) src)
+concat :: Stream Element -> ()
+concat src = transform $ (S.concatMap (S.replicate 3) src)

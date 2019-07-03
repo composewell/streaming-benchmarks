@@ -202,8 +202,9 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 
 {-# INLINE zip #-}
 zip :: Stream Int -> ()
-zip src       = transform $ (S.zipWith (,) src src)
+zip src = P.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
+    $ S.zipWith (,) src src
 
 {-# INLINE concat #-}
 concat :: Stream Int -> ()
-concat src    = transform $ (S.concatMap (S.replicate 3) src)
+concat src = transform $ (S.concatMap (S.replicate 3) src)

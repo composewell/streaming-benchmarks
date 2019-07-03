@@ -10,7 +10,7 @@
 module Benchmarks.Sequence where
 
 import Benchmarks.Common (value, maxValue, appendValue)
-import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
+import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
                 Maybe(..))
 import qualified Prelude as P
 import qualified Data.Foldable as P
@@ -60,17 +60,24 @@ appendSourceL n = P.foldl (S.><) S.empty (P.map S.singleton [n..n+appendValue])
 -- Elimination
 -------------------------------------------------------------------------------
 
+-- Using NFData for evaluation may be fraught with problems because of a
+-- non-optimal implementation of NFData instance. So we just evaluate each
+-- element of the stream using a fold.
+{-# INLINE eval #-}
+eval :: Stream a -> ()
+eval = P.foldr P.seq ()
+
 {-# INLINE toNull #-}
 {-# INLINE toList #-}
 {-# INLINE foldl #-}
 {-# INLINE last #-}
-toNull :: Stream Int -> Stream Int
-toList :: Stream Int -> [Int]
+toNull :: Stream Int -> ()
+toList :: Stream Int -> ()
 foldl :: Stream Int -> Int
 last  :: Stream Int -> Int
 
-toNull = id
-toList = P.toList
+toNull = eval
+toList = P.foldr P.seq () . P.toList
 foldl  = P.foldl' (+) 0
 last xs =
     case S.viewr xs of
@@ -82,11 +89,11 @@ last xs =
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: Stream a -> Stream a
-transform = id
+transform :: Stream a -> ()
+transform = eval
 
 {-# INLINE composeN #-}
-composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int -> Stream Int
+composeN :: Int -> (Stream Int -> Stream Int) -> Stream Int -> ()
 composeN n f =
     case n of
         1 -> transform . f
@@ -112,7 +119,7 @@ scan, map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
-    :: Int -> Stream Int -> Stream Int
+    :: Int -> Stream Int -> ()
 
 scan             = undefined
 map            n = composeN n $ P.fmap (+1)
@@ -178,7 +185,7 @@ iterateDropWhileTrue n = iterateSource (S.dropWhileL (<= maxValue)) maxIters n
 {-# INLINE filterMap #-}
 scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
-    :: Int -> Stream Int -> Stream Int
+    :: Int -> Stream Int -> ()
 
 scanMap      = undefined -- composeN n $ S.map (subtract 1) . S.scanl' (+) 0
 dropMap    n = composeN n $ P.fmap (subtract 1) . S.drop 1
@@ -196,7 +203,7 @@ filterMap  n = composeN n $ P.fmap (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: Stream Int -> Stream (Int, Int)
+zip :: Stream Int -> ()
 zip src       = transform $ (S.zipWith (,) src src)
 
 {-# INLINE concat #-}
