@@ -229,7 +229,7 @@ createCharts input pkgList graphs delta versions = do
             then ignoringErr $ graph infile (toOutfile t) cfg'
             else ignoringErr $ report infile Nothing cfg'
 
-    -- mapM_ (makeOneGraph input) charts
+    mapM_ (makeOneGraph input) charts
 
     -- compare two packages for best and worst operations
     if length packages == 2
@@ -238,10 +238,11 @@ createCharts input pkgList graphs delta versions = do
                 if "pure-" `isPrefixOf` x
                 then fromJust (stripPrefix "pure-" x)
                 else x) packages
-        let t = packages' !! 0 ++ " Better Than " ++ packages' !! 1
-        makeDiffGraph input (concatMap snd charts) t (> 10)
-        let t = packages' !! 1 ++ " Better Than " ++ packages' !! 0
-        makeDiffGraph input (concatMap snd charts) t (< (-10))
+        let t = packages' !! 0 ++ " vs " ++ packages' !! 1
+        let p x = if delta
+                  then x > 10 || x < (-10)
+                  else True
+        makeDiffGraph input (concatMap snd charts) t p
     else return ()
 
 -- Pass <input file> <comma separated list of packages> <True/False>
