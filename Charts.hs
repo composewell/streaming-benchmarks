@@ -171,15 +171,17 @@ createCharts input pkgList graphs delta versions = do
             reverse
           $ fmap fst
           $ either
-              (const $ either error id $ f (ColumnIndex 0) (Just PercentDiffLower))
+              (const $ either error id $ f (ColumnIndex 0) (Just (Relative PercentDiffLower True)))
               (filter (\(_,y) -> p y) . (sortOn snd))
-              $ f (ColumnIndex 1) (Just PercentDiffLower)
+              $ f (ColumnIndex 1) (Just (Relative PercentDiffLower True))
 
     let cfg (t, prefixes) = defaultConfig
-            { title = Just t
+            { mkTitle = Just t
             , outputDir = Just "charts"
             , presentation =
-                if delta then Groups PercentDiffLower else Groups Absolute
+                if delta
+                then Groups (Relative PercentDiffLower True)
+                else Groups Absolute
             , diffStrategy = SingleEstimator
             , classifyBenchmark = \bm ->
                 case any (`isPrefixOf` bm) prefixes of
@@ -203,8 +205,16 @@ createCharts input pkgList graphs delta versions = do
         -- links in README.rst eat up the space so we match the same
     let toOutfile t = filter (not . isSpace) (takeWhile (/= '(') t)
 
+    let packages' = map (\x ->
+            if "pure-" `isPrefixOf` x
+            then fromJust (stripPrefix "pure-" x)
+            else x) packages
+
     let makeOneGraph infile (t, prefixes) = do
-            let title' = t ++ " (Lower is Better)"
+            let title' fname =
+                        if delta
+                        then t ++ " Extra " ++ fname ++ " vs " ++ packages' !! 0
+                        else t ++ " (" ++ fname ++ ") (Lower is Better)"
                 cfg' = cfg (title', prefixes)
                 cfg'' =
                     if delta
@@ -217,16 +227,15 @@ createCharts input pkgList graphs delta versions = do
     -- Make a graph of all operations sorted based on performance regression in
     -- descending order and operations below a 10% threshold filtered out.
     let makeDiffGraph infile prefixes t p = do
-            let title' = t ++ " (Lower is Better)"
-                cfg' = (cfg (title', prefixes))
+            let cfg' = (cfg (t, prefixes))
                     { presentation =
                         if delta
-                        then Groups PercentDiffLower
+                        then Groups (Relative PercentDiffLower False)
                         else Groups Absolute
                     , selectBenchmarks = cutOffByRegression p
                     }
             if graphs
-            then ignoringErr $ graph infile (toOutfile t) cfg'
+            then ignoringErr $ graph infile (toOutfile (t "")) cfg'
             else ignoringErr $ report infile Nothing cfg'
 
     mapM_ (makeOneGraph input) charts
@@ -234,15 +243,16 @@ createCharts input pkgList graphs delta versions = do
     -- compare two packages for best and worst operations
     if length packages == 2
     then do
-        let packages' = map (\x ->
-                if "pure-" `isPrefixOf` x
-                then fromJust (stripPrefix "pure-" x)
-                else x) packages
-        let t = packages' !! 0 ++ " vs " ++ packages' !! 1
+        let makeTitle fname =
+                if delta
+                then "Extra % " ++ fname ++ " taken by '" ++ packages' !! 1
+                    ++ "' relative to '" ++ packages' !! 0 ++ "'"
+                else packages' !! 0 ++ " vs " ++ packages' !! 1
+                        ++ " (Lower is Better)"
         let p x = if delta
                   then x > 10 || x < (-10)
                   else True
-        makeDiffGraph input (concatMap snd charts) t p
+        makeDiffGraph input (concatMap snd charts) makeTitle p
     else return ()
 
 -- Pass <input file> <comma separated list of packages> <True/False>
