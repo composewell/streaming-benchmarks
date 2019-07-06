@@ -212,7 +212,7 @@ run_reports() {
 # Execution starts here
 #-----------------------------------------------------------------------------
 
-DEFAULT_BENCHMARKS="streamly,vector,streaming,conduit,pipes,machines,drinkery"
+DEFAULT_BENCHMARKS="streamly,streaming,conduit,pipes,machines"
 ALL_BENCHMARKS="streamly,vector,streaming,conduit,pipes,machines,drinkery"
 DELTA="absolute"
 
