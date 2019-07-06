@@ -5,9 +5,11 @@ module Main where
 
 import Control.Exception (catch, ErrorCall(..))
 import Data.Char (isSpace)
-import Data.List (reverse, sortOn, isPrefixOf, stripPrefix)
+import Data.List (reverse, sortOn, isPrefixOf)
+-- import Data.List (stripPrefix)
 import Data.List.Split (splitOn)
-import Data.Maybe (catMaybes, fromJust)
+import Data.Maybe (catMaybes)
+-- import Data.Maybe (fromJust)
 import System.Exit (ExitCode(..))
 import System.Process.Typed (readProcess)
 import BenchShow
@@ -165,22 +167,6 @@ createCharts input pkgList graphs delta versions = do
     let bsort pxs bs =
                 let i = intersect (map (last . splitOn "/") pxs) bs
                 in i ++ (bs \\ i)
-    let selectByRegression f =
-            reverse
-          $ fmap fst
-          $ either
-              (const $ either error id $ f (ColumnIndex 0) Nothing)
-              (sortOn snd)
-              $ f (ColumnIndex 1) Nothing
-
-    let cutOffByRegression p f =
-            reverse
-          $ fmap fst
-          $ either
-              (const $ either error id $ f (ColumnIndex 0) (Just cmpStyle))
-              (filter (\(_,y) -> p y) . (sortOn snd))
-              $ f (ColumnIndex 1) (Just cmpStyle)
-
     let cfg (t, prefixes) = defaultConfig
             { mkTitle = Just t
             , outputDir = Just "charts"
@@ -207,11 +193,20 @@ createCharts input pkgList graphs delta versions = do
 
         -- links in README.rst eat up the space so we match the same
     let toOutfile t = filter (not . isSpace) (takeWhile (/= '(') t)
-
+        packages' = packages
+    {-
     let packages' = map (\x ->
             if "pure-" `isPrefixOf` x
             then fromJust (stripPrefix "pure-" x)
             else x) packages
+
+    let selectByRegression f =
+            reverse
+          $ fmap fst
+          $ either
+              (const $ either error id $ f (ColumnIndex 0) Nothing)
+              (sortOn snd)
+              $ f (ColumnIndex 1) Nothing
 
     let makeOneGraph infile (t, prefixes) = do
             let title' fname =
@@ -227,6 +222,20 @@ createCharts input pkgList graphs delta versions = do
             then ignoringErr $ graph infile (toOutfile t) cfg''
             else ignoringErr $ report infile Nothing cfg''
 
+    mapM_ (makeOneGraph input) charts
+    -}
+
+    let cutOffByRegression p f =
+            let cmp = if delta == "absolute"
+                      then Relative Fraction False
+                      else cmpStyle
+            in reverse
+              $ fmap fst
+              $ either
+                  (const $ either error id $ f (ColumnIndex 0) (Just cmp))
+                  (filter (\(_,y) -> p y) . (sortOn snd))
+                  $ f (ColumnIndex 1) (Just cmp)
+
     -- Make a graph of all operations sorted based on performance regression in
     -- descending order and operations below a 10% threshold filtered out.
     let makeDiffGraph infile prefixes t p = do
@@ -238,25 +247,34 @@ createCharts input pkgList graphs delta versions = do
             then ignoringErr $ graph infile (toOutfile (t "")) cfg'
             else ignoringErr $ report infile Nothing cfg'
 
-    mapM_ (makeOneGraph input) charts
-
     -- compare two packages for best and worst operations
-    if length packages == 2
-    then do
-        let makeTitle fname =
-                if delta /= "absolute"
-                then fname ++ " taken by '" ++ packages' !! 1
-                    ++ "' relative to '" ++ packages' !! 0 ++ "'"
-                else packages' !! 0 ++ " vs " ++ packages' !! 1
-                        ++ " (Lower is Better)"
-        let p x =
-                case delta of
-                    "absolute" -> True
-                    "fraction" -> x < (-1.1) || x > 1.1
-                    "percent" -> x < (-10) || x > 10
-                    y -> error $ "Unknown compare option: " ++ show y
-        makeDiffGraph input (concatMap snd charts) makeTitle p
-    else return ()
+    let makeTitle fname =
+            if delta /= "absolute"
+            then
+                let prefix = if delta == "percent"
+                             then "Extra % "
+                             else ""
+                    connector = if delta == "fraction"
+                             then "in terms of"
+                             else "wrt"
+                    field = case fname of
+                        "time" -> "time taken"
+                        "maxrss" -> "memory used"
+                        x -> x
+                    pkg = if length packages' == 2
+                          then "by '" ++ packages' !! 1 ++ "'"
+                          else ""
+                in prefix ++ field ++ " " ++ pkg ++ " " ++ connector
+                    ++ " '" ++ packages' !! 0 ++ "'"
+            else packages' !! 0 ++ " vs " ++ packages' !! 1
+                    ++ " (Lower is Better)"
+    let p x =
+            case delta of
+                "absolute" -> True
+                "fraction" -> x < (-1.1) || x > 1.1
+                "percent" -> x < (-10) || x > 10
+                y -> error $ "Unknown compare option: " ++ show y
+    makeDiffGraph input (concatMap snd charts) makeTitle p
 
 -- Pass <input file> <comma separated list of packages> <True/False>
 main :: IO ()
