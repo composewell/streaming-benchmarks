@@ -147,7 +147,7 @@ ignoringErr :: IO () -> IO ()
 ignoringErr a = catch a (\(ErrorCall err :: ErrorCall) ->
     putStrLn $ "Failed with error:\n" ++ err ++ "\nSkipping.")
 
-createCharts :: String -> String -> Bool -> Bool -> Bool -> IO ()
+createCharts :: String -> String -> Bool -> String -> Bool -> IO ()
 createCharts input pkgList graphs delta versions = do
     let packages = splitOn "," pkgList
 
@@ -155,6 +155,12 @@ createCharts input pkgList graphs delta versions = do
         if versions
         then getPkgVersions packages
         else return []
+
+    let cmpStyle = case delta of
+            "absolute" -> Absolute
+            "fraction" -> Relative Fraction False
+            "percent" -> Relative PercentDiffLower False
+            x -> error $ "Unknown compare option: " ++ show x
 
     let bsort pxs bs =
                 let i = intersect (map (last . splitOn "/") pxs) bs
@@ -171,17 +177,14 @@ createCharts input pkgList graphs delta versions = do
             reverse
           $ fmap fst
           $ either
-              (const $ either error id $ f (ColumnIndex 0) (Just (Relative PercentDiffLower True)))
+              (const $ either error id $ f (ColumnIndex 0) (Just cmpStyle))
               (filter (\(_,y) -> p y) . (sortOn snd))
-              $ f (ColumnIndex 1) (Just (Relative PercentDiffLower True))
+              $ f (ColumnIndex 1) (Just cmpStyle)
 
     let cfg (t, prefixes) = defaultConfig
             { mkTitle = Just t
             , outputDir = Just "charts"
-            , presentation =
-                if delta
-                then Groups (Relative PercentDiffLower True)
-                else Groups Absolute
+            , presentation = Groups cmpStyle
             , diffStrategy = SingleEstimator
             , classifyBenchmark = \bm ->
                 case any (`isPrefixOf` bm) prefixes of
@@ -212,12 +215,12 @@ createCharts input pkgList graphs delta versions = do
 
     let makeOneGraph infile (t, prefixes) = do
             let title' fname =
-                        if delta
-                        then t ++ " Extra " ++ fname ++ " vs " ++ packages' !! 0
+                        if delta /= "absolute"
+                        then t ++ " (" ++ fname ++ ") relative to " ++ packages' !! 0
                         else t ++ " (" ++ fname ++ ") (Lower is Better)"
                 cfg' = cfg (title', prefixes)
                 cfg'' =
-                    if delta
+                    if delta /= "absolute"
                     then cfg' { selectBenchmarks = selectByRegression }
                     else cfg'
             if graphs
@@ -228,10 +231,7 @@ createCharts input pkgList graphs delta versions = do
     -- descending order and operations below a 10% threshold filtered out.
     let makeDiffGraph infile prefixes t p = do
             let cfg' = (cfg (t, prefixes))
-                    { presentation =
-                        if delta
-                        then Groups (Relative PercentDiffLower False)
-                        else Groups Absolute
+                    { presentation = Groups cmpStyle
                     , selectBenchmarks = cutOffByRegression p
                     }
             if graphs
@@ -244,14 +244,17 @@ createCharts input pkgList graphs delta versions = do
     if length packages == 2
     then do
         let makeTitle fname =
-                if delta
-                then "Extra % " ++ fname ++ " taken by '" ++ packages' !! 1
+                if delta /= "absolute"
+                then fname ++ " taken by '" ++ packages' !! 1
                     ++ "' relative to '" ++ packages' !! 0 ++ "'"
                 else packages' !! 0 ++ " vs " ++ packages' !! 1
                         ++ " (Lower is Better)"
-        let p x = if delta
-                  then x > 10 || x < (-10)
-                  else True
+        let p x =
+                case delta of
+                    "absolute" -> True
+                    "fraction" -> x < (-1.1) || x > 1.1
+                    "percent" -> x < (-10) || x > 10
+                    y -> error $ "Unknown compare option: " ++ show y
         makeDiffGraph input (concatMap snd charts) makeTitle p
     else return ()
 

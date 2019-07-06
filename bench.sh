@@ -3,12 +3,13 @@
 print_help () {
   echo "Usage: $0 "
   echo "       [--benchmarks <streamly,vector,...>]"
-  echo "       [--diff]"
+  echo "       [--diff <percent|fraction>]"
   echo "       [--graphs]"
   echo "       [--measure]"
   echo "       [--append] "
   echo "       [--slow]"
   echo "       [--versions] "
+  echo "       [--stack] "
   echo "       -- <gauge options>"
   echo
   echo "--benchmarks: specify comma separated list of packages to be compared"
@@ -23,6 +24,7 @@ print_help () {
   echo "--measure: rerun benchmark measurements"
   echo "--append: append the new measurement results to previous ones for comparison"
   echo "--versions: add package versions in the report/graphs"
+  echo "--stack: use stack for build and benchmark"
   echo
   echo "Any arguments after a '--' are passed directly to guage"
   exit
@@ -210,7 +212,7 @@ run_reports() {
 
 DEFAULT_BENCHMARKS="streamly,vector,streaming,conduit,pipes,machines,drinkery"
 ALL_BENCHMARKS="streamly,vector,streaming,conduit,pipes,machines,drinkery"
-DELTA=False
+DELTA="absolute"
 
 APPEND=0
 RAW=0
@@ -229,6 +231,31 @@ cabal_which() {
   find dist-newstyle -type f -path "*${GHC_VERSION}*/$1"
 }
 
+#-----------------------------------------------------------------------------
+# Read command line
+#-----------------------------------------------------------------------------
+
+while test -n "$1"
+do
+  case $1 in
+    -h|--help|help) print_help ;;
+    # options with arguments
+    --slow) SPEED_OPTIONS="--min-duration 0"; shift ;;
+    --append) APPEND=1; shift ;;
+    --benchmarks) shift; BENCHMARKS=$1; shift ;;
+    --diff) shift; DELTA=$1; shift ;;
+    --raw) RAW=1; shift ;;
+    --graphs) GRAPH=True; shift ;;
+    --versions) VERSIONS=True; shift ;;
+    --stack) USE_STACK=1; shift ;;
+    --measure) MEASURE=1; shift ;;
+    --) shift; break ;;
+    -*|--*) print_help ;;
+    *) break ;;
+  esac
+done
+GAUGE_ARGS=$*
+
 if test "$USE_STACK" = "1"
 then
   WHICH_COMMAND="stack exec which"
@@ -244,31 +271,7 @@ else
   BUILD_BENCH="cabal v2-build $CABAL_BUILD_FLAGS --enable-benchmarks all"
 fi
 
-#-----------------------------------------------------------------------------
-# Read command line
-#-----------------------------------------------------------------------------
-
-while test -n "$1"
-do
-  case $1 in
-    -h|--help|help) print_help ;;
-    # options with arguments
-    --slow) SPEED_OPTIONS="--min-duration 0"; shift ;;
-    --append) APPEND=1; shift ;;
-    --benchmarks) shift; BENCHMARKS=$1; shift ;;
-    --diff) DELTA=True; shift ;;
-    --raw) RAW=1; shift ;;
-    --graphs) GRAPH=True; shift ;;
-    --versions) VERSIONS=True; shift ;;
-    --measure) MEASURE=1; shift ;;
-    --) shift; break ;;
-    -*|--*) print_help ;;
-    *) break ;;
-  esac
-done
-GAUGE_ARGS=$*
-
-echo "Using stack command [$STACK]"
+# echo "Using stack command [$STACK]"
 set_benchmarks
 
 #-----------------------------------------------------------------------------
