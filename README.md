@@ -57,15 +57,10 @@ those operations which are at least 10% better or worse in one library compared
 to the other. The operations are shown in a sorted order, from list's worst
 performing ones on the left to its best ones on the right.
 
-Time Graphs:
-
 ![Streamly vs Lists (time) comparison](charts-0/by'list'intermsof'pure-streamly'-median-time.svg)
-
-Memory Graphs:
-
 ![Streamly vs Lists (memory) comparison](charts-0/by'list'intermsof'pure-streamly'-median-maxrss.svg)
 
-See full details on timing and memory utilization of all operations benchmarked [here](charts-0/streamly-vs-list.txt)
+See [full details on timing and memory utilization of all operations benchmarked here](charts-0/streamly-vs-list.txt)
 
 Streamly uses stream fusion whereas lists use foldr/build fusion. The reason
 why streamly performs much better than lists for mixed operations could be
