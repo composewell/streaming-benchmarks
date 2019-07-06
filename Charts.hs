@@ -267,7 +267,7 @@ createCharts input pkgList graphs delta versions = do
                 in prefix ++ field ++ " " ++ pkg ++ " " ++ connector
                     ++ " '" ++ packages' !! 0 ++ "'"
             else packages' !! 0 ++ " vs " ++ packages' !! 1
-                    ++ " (Lower is Better)"
+                    ++ " (" ++ fname ++ ")" ++ " (Lower is Better)"
     let p x =
             case delta of
                 "absolute" -> True
