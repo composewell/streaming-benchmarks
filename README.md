@@ -45,17 +45,17 @@ applied 4 times.
 ## Pure Streams
 
 Streamly stream type `SerialT Identity a` can be used as a pure stream
-replacing `[a]`. Using `OverloadedLists` GHC extension streamly can be used as
-an almost drop-in replacement for lists. See `Streamly.List` module for more
-details.
+replacing the standard Haskell list type `[a]`. Using `OverloadedLists` GHC
+extension streamly can be used as an almost drop-in replacement for lists. See
+`Streamly.List` module for more details.
 
-The following figures show the ratio of time and memory consumed by [Int] vs
+The following figures show the ratio of time and memory consumed by `[Int]` vs
 `SerialT Identity Int` for exactly the same operation. `5x` on the y axis means
-lists take 5 times more resources compared to streamly. Whereas a `-5x` would
-mean that lists takes 5 times less resources compared to streamly. We only show
-those operations which are at least 10% better or worse in one library compared
-to the other. The operations are shown in a sorted order, from list's worst
-performing ones on the left to its best ones on the right.
+lists take 5 times more resources compared to streamly. Whereas a `-5x` means
+that lists take 5 times less resources compared to streamly. We only show those
+operations that are at least 10% better or worse in one library compared to the
+other. The operations are shown in a sorted order, from list's worst performing
+ones on the left to its best ones on the right.
 
 ![Streamly vs Lists (time) comparison](charts-0/by'list'intermsof'pure-streamly'-median-time.svg)
 ![Streamly vs Lists (memory) comparison](charts-0/by'list'intermsof'pure-streamly'-median-maxrss.svg)
@@ -70,13 +70,18 @@ of the libraries we measured.
 
 ## Monadic Streams
 
-* Streamly, streaming, pipes, conduit, machines
+The following figure shows a comparison of streamly with monadic streaming
+libraries `streaming`, `conduit` and `pipes`. We excluded `machines` from the
+graphs to keep it more readable because it had even worse performance and it
+would push the range to even wider.
 
-``unfoldrM`` is used to generate the stream for two reasons, (1) it is
-monadic, (2) it reduces the generation overhead so that the actual streaming
-operation cost is amplified. If we use generation from a list there is a
-significant overhead in the generation itself because of the intermediate
-list structure.
+Note that these are micro-benchmarks and the performance gains would
+depend on the type of application and where it is spending most of its time.
+
+![Streamly vs Streams (time) comparison](charts-0/intermsof'streamly'-median-time.svg)
+![Streamly vs Streams (memory) comparison](charts-0/intermsof'streamly'-median-maxrss.svg)
+
+See [full details on timing and memory utilization of all operations benchmarked here](charts-0/streamly-vs-streams.txt)
 
 ## Arrays
 
@@ -86,7 +91,6 @@ list structure.
 
 * streamly (Streamly.Array), bytestring (Data.ByteString.Lazy)
 
-
 ## How to Run
 
 To quickly compare packages:
@@ -95,18 +99,19 @@ To quickly compare packages:
 # Show help
 $ ./bench.sh --help
 
+# Use --fast for quick results when trying
 # Compare a given list of packages. Use `--help` for available package names.
-$ ./bench.sh --diff fraction --benchmarks "streamly,streaming"
-$ ./bench.sh --diff fraction --benchmarks "streamly,conduit,pipes"
+$ ./bench.sh --fast --diff fraction --benchmarks "streamly,streaming"
+$ ./bench.sh --fast --diff fraction --benchmarks "streamly,conduit,pipes"
 
 # Show percent diff
-$ ./bench.sh --diff percent --benchmarks "streamly,streaming"
+$ ./bench.sh --fast --diff percent --benchmarks "streamly,streaming"
 
 # Show absolute values instead of diff
-$ ./bench.sh --benchmarks "streamly,streaming"
+$ ./bench.sh --fast --benchmarks "streamly,streaming"
 
 # Generate graphs (.svg) instead of textual comparison
-$ ./bench.sh --diff fraction --benchmarks "streamly,conduit,pipes" --graphs
+$ ./bench.sh --fast --diff fraction --benchmarks "streamly,conduit,pipes" --graphs
 ```
 
 ## Adding New Libraries
@@ -119,8 +124,6 @@ and ask!
 
 ## Benchmarking Notes
 
-* Unoptimized `NFData` instances for some libraries may cause false poor
-  performance results. We use our own custom evaluation routines to avoid that.
 * Memory once requested from the OS is never released back to the OS by `GHC`.
   This may lead to false `maxrss` reporting when there are multiple benchmarks in
   the same benchmark recipe file. We run each benchmark in an isolated
@@ -133,8 +136,3 @@ and ask!
 * We have tried to optimize (`INLINE` etc.) each library's code as much as we
   could, library authors are encouraged to take a look at if their library is
   being used in a fully optimized manner and report if there are any issues.
-* The basic `drain` benchmark generates a stream and drains it without doing
-  any operation on the elements. This drain operation is part of all
-  benchmarks, therefore all operations would include the cost of drain. If
-  draining is slow for a library then all other operations also show up as
-  slow.
