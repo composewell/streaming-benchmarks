@@ -8,6 +8,7 @@ print_help () {
   echo "       [--measure]"
   echo "       [--append] "
   echo "       [--slow]"
+  echo "       [--fast]"
   echo "       [--versions] "
   echo "       [--stack] "
   echo "       -- <gauge options>"
@@ -21,6 +22,7 @@ print_help () {
   echo "--graphs: generate SVG graphs instead of text reports"
   echo "--diff: show diff of subsequent packages from the first package"
   echo "--slow: slower but a bit more precise benchmarking"
+  echo "--fast: faster but a bit less precise benchmarking"
   echo "--measure: rerun benchmark measurements"
   echo "--append: append the new measurement results to previous ones for comparison"
   echo "--versions: add package versions in the report/graphs"
@@ -241,6 +243,8 @@ do
     -h|--help|help) print_help ;;
     # options with arguments
     --slow) SPEED_OPTIONS="--min-duration 0"; shift ;;
+    --fast) SPEED_OPTIONS="--quick --min-samples 1 --min-duration 0 --include-first-iter"
+            shift ;;
     --append) APPEND=1; shift ;;
     --benchmarks) shift; BENCHMARKS=$1; shift ;;
     --diff) shift; DELTA=$1; shift ;;
