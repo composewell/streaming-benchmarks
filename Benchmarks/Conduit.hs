@@ -55,26 +55,31 @@ appendSourceL n =
 -- Elimination
 -------------------------------------------------------------------------------
 
+-- eval :: Monad m => Sink m a ()
+-- eval = S.foldl (\_ x -> P.seq x ()) ()
+
 {-# INLINE runStream #-}
+-- runStream :: Monad m => Sink m Int () -> Source m () Int -> m ()
+-- runStream t src = S.runConduit $ src S..| t S..| S.foldl (\_ x -> P.seq x ()) ()
 runStream :: Monad m => Sink m Int a -> Source m () Int -> m a
 runStream t src = S.runConduit $ src S..| t
 
-eliminate :: Monad m => Sink m Int a -> Source m () Int -> m a
-eliminate = runStream
-
 {-# INLINE toNull #-}
-{-# INLINE toList #-}
-{-# INLINE foldl #-}
-{-# INLINE last #-}
 toNull :: Monad m => Source m () Int -> m ()
-toList :: Monad m => Source m () Int -> m [Int]
-foldl :: Monad m => Source m () Int -> m Int
-last :: Monad m => Source m () Int -> m (Maybe Int)
+toNull = runStream $ S.sinkNull
+-- toNull src = S.runConduit $ src S..| eval
 
-toNull = eliminate $ S.sinkNull
-toList = eliminate $ S.sinkList
-foldl  = eliminate $ S.foldl (+) 0
-last   = eliminate $ S.last
+{-# INLINE toList #-}
+toList :: Monad m => Source m () Int -> m [Int]
+toList = runStream $ S.sinkList
+
+{-# INLINE foldl #-}
+foldl :: Monad m => Source m () Int -> m Int
+foldl  = runStream $ S.foldl (+) 0
+
+{-# INLINE last #-}
+last :: Monad m => Source m () Int -> m (Maybe Int)
+last   = runStream $ S.last
 
 -------------------------------------------------------------------------------
 -- Transformation
@@ -83,7 +88,8 @@ last   = eliminate $ S.last
 {-# INLINE transform #-}
 transform :: Monad m => Pipe m Int Int -> Source m () Int -> m ()
 -- mapM_ is much more costly compared to sinkNull
---transform t = runStream (t S..| S.mapM_ (\_ -> return ()))
+-- transform t = runStream (t S..| S.mapM_ (\_ -> return ()))
+-- transform t s = runStream (t S..| eval) s P.>>= \x -> P.seq x (return ())
 transform t = runStream (t S..| S.sinkNull)
 
 {-# INLINE composeN #-}
@@ -124,10 +130,12 @@ filterAllIn    n = composeN n $ S.filter (<= maxValue)
 takeOne        n = composeN n $ S.take 1
 takeAll        n = composeN n $ S.take maxValue
 takeWhileTrue  n = composeN n $ S.takeWhile (<= maxValue)
-dropOne        n = composeN n $ S.drop 1
-dropAll        n = composeN n $ S.drop maxValue
-dropWhileFalse n = composeN n $ S.dropWhile (> maxValue)
-dropWhileTrue  n = composeN n $ S.dropWhile (<= maxValue)
+dropOne        n = composeN n $ (S.drop 1 P.>> S.awaitForever S.yield)
+dropAll        n = composeN n $ (S.drop maxValue P.>> S.awaitForever S.yield)
+dropWhileFalse n = composeN n $ (S.dropWhile (> maxValue) P.>>
+                            S.awaitForever S.yield)
+dropWhileTrue  n = composeN n $ (S.dropWhile (<= maxValue) P.>>
+                            S.awaitForever S.yield)
 
 -------------------------------------------------------------------------------
 -- Mixed Composition
@@ -148,12 +156,16 @@ scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     :: Monad m => Int -> Source m () Int -> m ()
 
 scanMap    n = composeN n $ S.map (subtract 1) S..| S.scanl (+) 0
-dropMap    n = composeN n $ S.map (subtract 1) S..| S.drop 1
-dropScan   n = composeN n $ S.scanl (+) 0 S..| S.drop 1
-takeDrop   n = composeN n $ S.drop 1 S..| S.take maxValue
+dropMap    n = composeN n $ S.map (subtract 1) S..|
+                (S.drop 1 P.>> S.awaitForever S.yield)
+dropScan   n = composeN n $ S.scanl (+) 0 S..|
+                (S.drop 1 P.>> S.awaitForever S.yield)
+takeDrop   n = composeN n $ (S.drop 1 P.>> S.awaitForever S.yield) S..|
+                S.take maxValue
 takeScan   n = composeN n $ S.scanl (+) 0 S..| S.take maxValue
 takeMap    n = composeN n $ S.map (subtract 1) S..| S.take maxValue
-filterDrop n = composeN n $ S.drop 1 S..| S.filter (<= maxValue)
+filterDrop n = composeN n $ (S.drop 1 P.>> S.awaitForever S.yield) S..|
+                S.filter (<= maxValue)
 filterTake n = composeN n $ S.take maxValue S..| S.filter (<= maxValue)
 filterScan n = composeN n $ S.scanl (+) 0 S..| S.filter (<= maxBound)
 filterMap  n = composeN n $ S.map (subtract 1) S..| S.filter (<= maxValue)
@@ -163,11 +175,13 @@ filterMap  n = composeN n $ S.map (subtract 1) S..| S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-{-# INLINE concat #-}
-zip, concat :: Monad m => Source m () Int -> m ()
+zip :: Monad m => Source m () Int -> m ()
 
 zip src = S.runConduit $
         (   S.getZipSource $ (,)
         <$> S.ZipSource src
-        <*> S.ZipSource src) S..| S.sinkNull
+        <*> S.ZipSource src) S..| S.sinkNull -- eval
+
+{-# INLINE concat #-}
+concat :: Monad m => Source m () Int -> m ()
 concat = transform (S.map (replicate 3) S..| S.concat)
