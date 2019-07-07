@@ -83,14 +83,6 @@ depend on the type of application and where it is spending most of its time.
 
 See [full details on timing and memory utilization of all operations benchmarked here](charts-0/streamly-vs-streams.txt)
 
-## Arrays
-
-* Streamly.Array, vector (Storable), text, bytestring
-
-## Streams of Arrays
-
-* streamly (Streamly.Array), bytestring (Data.ByteString.Lazy)
-
 ## How to Run
 
 To quickly compare packages:
