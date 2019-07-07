@@ -5,17 +5,19 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Benchmarks.Vector where
 
+import Foreign.Storable (Storable)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
                 maxBound, Maybe(..))
 import qualified Prelude as P
 
-import qualified Data.Vector as S
--- import qualified Data.Vector.Storable as S
+-- import qualified Data.Vector as S
+import qualified Data.Vector.Storable as S
 -- import qualified Data.Vector.Unboxed as S
 
 -------------------------------------------------------------------------------
@@ -65,7 +67,7 @@ appendSourceL n = P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 -- non-optimal implementation of NFData instance. So we just evaluate each
 -- element of the stream using a fold.
 {-# INLINE eval #-}
-eval :: Stream a -> ()
+eval :: Storable a => Stream a -> ()
 eval = S.foldr P.seq ()
 
 -- eval foldable
@@ -94,7 +96,7 @@ last   = S.last
 -------------------------------------------------------------------------------
 
 {-# INLINE transform #-}
-transform :: Stream a -> ()
+transform :: Storable a => Stream a -> ()
 transform = eval
 
 {-# INLINE composeN #-}
@@ -207,11 +209,17 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
+#define STORABLE_VECTOR
 {-# INLINE zip #-}
+#ifndef STORABLE_VECTOR
 zip :: Stream Int -> ()
-zip src       = P.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
+zip src = P.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
     $ S.zipWith (,) src src
+#else
+zip :: Stream Int -> Stream Int
+zip src = S.zipWith (+) src src
+#endif
 
 {-# INLINE concat #-}
 concat :: Stream Int -> ()
-concat src    = transform $ (S.concatMap (S.replicate 3) src)
+concat src = transform $ (S.concatMap (S.replicate 3) src)
