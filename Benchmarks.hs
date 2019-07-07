@@ -29,6 +29,7 @@ import qualified Benchmarks.Text as Text
 import qualified Benchmarks.DList as DList
 import qualified Benchmarks.Sequence as Sequence
 import qualified Benchmarks.Vector as Vector
+import qualified Benchmarks.StreamlyArray as StreamlyArray
 -- import qualified Benchmarks.LogicT as LogicT
 -- import qualified Benchmarks.ListT as ListT
 -- import qualified Benchmarks.ListTransformer as ListTransformer
@@ -65,15 +66,18 @@ main = do
       , $(createBgroupSinkN benchMods "dropWhile-true" "dropWhileTrue" 1)
       , $(createBgroupSinkN benchMods "dropWhile-false" "dropWhileFalse" 1)
       ]
+      -- drop-all/dropWhile-true/filter-all-out x 4 would be the same as
+      -- drop-all/dropWhile-true/filter-all-out x 1 as they would already
+      -- drop all elements and do nothing in the next iterations
     , bgroup "filteringX4"
       [ $(createBgroupSinkN benchMods "filter-even x 4" "filterEven" 4)
-      , $(createBgroupSinkN benchMods "filter-all-out x 4" "filterAllOut" 4)
+      -- , $(createBgroupSinkN benchMods "filter-all-out x 4" "filterAllOut" 4)
       , $(createBgroupSinkN benchMods "filter-all-in x 4" "filterAllIn" 4)
       , $(createBgroupSinkN benchMods "take-all x 4" "takeAll" 4)
       , $(createBgroupSinkN benchMods "takeWhile-true x 4" "takeWhileTrue" 4)
       , $(createBgroupSinkN benchMods "drop-one x 4" "dropOne" 4)
-      , $(createBgroupSinkN benchMods "drop-all x 4" "dropAll" 4)
-      , $(createBgroupSinkN benchMods "dropWhile-true x 4" "dropWhileTrue" 4)
+      -- , $(createBgroupSinkN benchMods "drop-all x 4" "dropAll" 4)
+      -- , $(createBgroupSinkN benchMods "dropWhile-true x 4" "dropWhileTrue" 4)
       , $(createBgroupSinkN benchMods "dropWhile-false x 4" "dropWhileFalse" 4)
       ]
     , bgroup "mixedX4"
@@ -88,13 +92,13 @@ main = do
       , $(createBgroupSinkN benchMods "filter-take x 4" "filterTake" 4)
       , $(createBgroupSinkN benchMods "filter-map x 4" "filterMap" 4)
       ]
-    , $(createBgroupSink benchMods "zip" "zip")
-    , $(createBgroupSink (benchMods \\ ["Sequence"]) "concat" "concat")
+    , $(createBgroupSink (benchMods \\ ["StreamlyArray"]) "zip" "zip")
+    , $(createBgroupSink (benchMods \\ ["Sequence", "StreamlyArray"]) "concat" "concat")
 
-    , $(createBgroupSrc ((benchMods ++ ["DList"]) \\ ["Drinkery"])
-                        "appendR[10000]" "appendSourceR")
-    , $(createBgroupSrc ((benchMods ++ ["DList"]) \\ ["Drinkery"])
-                        "appendL[10000]" "appendSourceL")
+    , $(createBgroupSrc ((benchMods ++ ["DList"]) \\
+            ["Drinkery", "StreamlyArray"]) "appendR[10000]" "appendSourceR")
+    , $(createBgroupSrc ((benchMods ++ ["DList"]) \\
+            ["Drinkery", "StreamlyArray"]) "appendL[10000]" "appendSourceL")
 
       -- Perform 100,000 mapM recursively over a stream of length 10
     , bgroup "iterated"

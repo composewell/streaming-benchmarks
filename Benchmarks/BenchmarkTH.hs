@@ -20,7 +20,8 @@ import Benchmarks.BenchTH
 benchMods, iterMods, pureMods, monadicMods, allMods :: [String]
 pureMods    = map fst purePackages
 monadicMods = map fst monadicPackages
-allMods     = pureMods ++ monadicMods
+monadicArrayMods = map fst monadicArrays
+allMods     = pureMods ++ monadicMods ++ monadicArrayMods
 benchMods   = allMods \\ ["DList"]
 iterMods = allMods \\
     [ "DList"
@@ -29,6 +30,7 @@ iterMods = allMods \\
     , "Pipes"
     , "Conduit"
     , "Drinkery"
+    , "StreamlyArray"
     ]
 
 -- | createBgroupSink <module names> <benchmark name>

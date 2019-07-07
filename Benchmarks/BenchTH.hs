@@ -5,10 +5,11 @@ module Benchmarks.BenchTH
     , mkBenchN
     , purePackages
     , monadicPackages
+    , monadicArrays
     , allPackages
     ) where
 
-import Benchmarks.Common (benchIO, benchPure)
+import Benchmarks.Common (benchIO, benchPure, benchIOArray)
 import Language.Haskell.TH.Syntax (Q, Exp, mkName)
 import Language.Haskell.TH.Lib (varE)
 
@@ -38,8 +39,14 @@ purePackages =
     , ("Vector", "vector")
     ]
 
+monadicArrays :: [(String, String)]
+monadicArrays = [("StreamlyArray", "array-streamly")]
+
 allPackages :: [(String, String)]
-allPackages = purePackages ++ monadicPackages
+allPackages =
+       purePackages
+    ++ monadicPackages
+    ++ monadicArrays
 
 -- mkBench <stream producer func> <stream consumer func> <module name>
 mkBench :: String -> String -> String -> Q Exp
@@ -50,8 +57,15 @@ mkBench f x mdl =
                 [| benchIO pkg $(varE (mkName (mdl ++ "." ++ f)))
                                $(varE (mkName (mdl ++ "." ++ x)))
                 |]
-            Nothing -> error $
-                "module " ++ show mdl ++ " not found in module list"
+            Nothing ->
+                if mdl == "StreamlyArray"
+                then
+                    [| benchIOArray "array-streamly"
+                            $(varE (mkName (mdl ++ "." ++ f)))
+                            $(varE (mkName (mdl ++ "." ++ x)))
+                    |]
+                else error $
+                    "module " ++ show mdl ++ " not found in module list"
         Just pkg ->
                 [| benchPure pkg $(varE (mkName (mdl ++ "." ++ f)))
                                  $(varE (mkName (mdl ++ "." ++ x)))
@@ -65,8 +79,16 @@ mkBenchN f x n mdl =
                 [| benchIO pkg $(varE (mkName (mdl ++ "." ++ f)))
                                ($(varE (mkName (mdl ++ "." ++ x))) n)
                 |]
-            Nothing -> error $
-                "module " ++ show mdl ++ " not found in module list"
+            Nothing ->
+                if mdl == "StreamlyArray"
+                then
+                    [| benchIOArray "array-streamly"
+                            $(varE (mkName (mdl ++ "." ++ f)))
+                            ($(varE (mkName (mdl ++ "." ++ x))) n)
+                    |]
+                else
+                    error $
+                        "module " ++ show mdl ++ " not found in module list"
         Just pkg ->
                 [| benchPure pkg $(varE (mkName (mdl ++ "." ++ f)))
                                ($(varE (mkName (mdl ++ "." ++ x))) n)

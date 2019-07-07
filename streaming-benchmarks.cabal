@@ -68,6 +68,7 @@ benchmark bmarks
                   , Benchmarks.Sequence
                   , Benchmarks.Vector
                   , Benchmarks.StreamlyPure
+                  , Benchmarks.StreamlyArray
                   , Benchmarks.ByteString
                   , Benchmarks.ByteStringLazy
                   , Benchmarks.Text
