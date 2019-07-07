@@ -155,21 +155,23 @@ iterateSource g i n =
         f (0 :: Int) m = g m
         f x m = g (f (x P.- 1) m)
 
+{-# INLINE iterateMapM #-}
 {-# INLINE iterateScan #-}
 {-# INLINE iterateFilterEven #-}
 {-# INLINE iterateTakeAll #-}
 {-# INLINE iterateDropOne #-}
 {-# INLINE iterateDropWhileFalse #-}
 {-# INLINE iterateDropWhileTrue #-}
-iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
+iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue ::
-        MonadIO m => Int -> m (Stream Int)
+        S.MonadAsync m => Int -> m (Stream Int)
 
 -- this is quadratic
 iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `P.div` 100) n
 iterateDropWhileFalse n =
     iterateSource (S.dropWhile (> maxValue)) (maxIters `P.div` 100) n
 
+iterateMapM n = iterateSource (S.mapM P.return) maxIters n
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n

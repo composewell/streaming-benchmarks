@@ -17,7 +17,7 @@ import Language.Haskell.TH.Lib (listE)
 
 import Benchmarks.BenchTH
 
-benchMods, iterMods, pureMods, monadicMods, allMods :: [String]
+benchMods, iterMods, pureMods, monadicMods, monadicArrayMods, allMods :: [String]
 pureMods    = map fst purePackages
 monadicMods = map fst monadicPackages
 monadicArrayMods = map fst monadicArrays
@@ -30,7 +30,6 @@ iterMods = allMods \\
     , "Pipes"
     , "Conduit"
     , "Drinkery"
-    , "StreamlyArray"
     ]
 
 -- | createBgroupSink <module names> <benchmark name>
