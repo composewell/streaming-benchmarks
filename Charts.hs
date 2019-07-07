@@ -231,9 +231,10 @@ createCharts input pkgList graphs delta versions = do
                       else cmpStyle
             in reverse
               $ fmap fst
+              $ filter (\(_,y) -> p y) . (sortOn snd)
               $ either
                   (const $ either error id $ f (ColumnIndex 0) (Just cmp))
-                  (filter (\(_,y) -> p y) . (sortOn snd))
+                  id
                   $ f (ColumnIndex 1) (Just cmp)
 
     -- Make a graph of all operations sorted based on performance regression in
@@ -255,7 +256,7 @@ createCharts input pkgList graphs delta versions = do
                              then "Extra % "
                              else ""
                     connector = if delta == "fraction"
-                             then "in terms of"
+                             then "as multiples of"
                              else "wrt"
                     field = case fname of
                         "time" -> "time taken"
@@ -266,8 +267,7 @@ createCharts input pkgList graphs delta versions = do
                           else ""
                 in prefix ++ field ++ " " ++ pkg ++ " " ++ connector
                     ++ " '" ++ packages' !! 0 ++ "'"
-            else packages' !! 0 ++ " vs " ++ packages' !! 1
-                    ++ " (" ++ fname ++ ")" ++ " (Lower is Better)"
+            else fname ++ " (Lower is Better)"
     let p x =
             case delta of
                 "absolute" -> True
