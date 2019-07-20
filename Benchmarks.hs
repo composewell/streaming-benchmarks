@@ -118,8 +118,7 @@ main = do
 
     , $(createBgroupSrc ((benchMods ++ ["DList"]) \\
             ["Drinkery", "StreamlyArray"]) "appendR[10000]" "appendSourceR")
-    , $(createBgroupSrc ((benchMods ++ ["DList"]) \\
-            ["Drinkery", "StreamlyArray"]) "appendL[10000]" "appendSourceL")
+    , $(createBgroupSrc ["DList", "Conduit"] "appendL[10000]" "appendSourceL")
 
       -- Perform 100,000 mapM recursively over a stream of length 10
     , bgroup "iterated"
