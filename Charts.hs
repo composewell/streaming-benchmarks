@@ -173,6 +173,7 @@ createCharts input pkgList graphs delta versions = do
             , outputDir = Just "charts"
             , presentation = Groups cmpStyle
             , diffStrategy = SingleEstimator
+            , omitBaseline = True
             , classifyBenchmark = \bm ->
                 case any (`isPrefixOf` bm) prefixes of
                     True ->
