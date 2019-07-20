@@ -75,8 +75,9 @@ libraries `streaming`, `conduit` and `pipes`. We excluded `machines` from the
 graphs to keep it more readable because it had even worse performance and it
 would push the range to even wider.
 
-Note that these are micro-benchmarks and the performance gains would
-depend on the type of application and where it is spending most of its time.
+Note that these are micro-benchmarks and the actual performance gains in a
+macro benchmark would depend on the type of application and where it is
+spending most of its time.
 
 ![Streamly vs Streams (time) comparison](charts-0/intermsof'streamly'-median-time.svg)
 ![Streamly vs Streams (memory) comparison](charts-0/intermsof'streamly'-median-maxrss.svg)
@@ -93,8 +94,8 @@ $ ./bench.sh --help
 
 # Use --fast for quick results when trying
 # Compare a given list of packages. Use `--help` for available package names.
-$ ./bench.sh --fast --diff fraction --benchmarks "streamly,streaming"
-$ ./bench.sh --fast --diff fraction --benchmarks "streamly,conduit,pipes"
+$ ./bench.sh --fast --diff multiples --benchmarks "streamly,streaming"
+$ ./bench.sh --fast --diff multiples --benchmarks "streamly,conduit,pipes"
 
 # Show percent diff
 $ ./bench.sh --fast --diff percent --benchmarks "streamly,streaming"
@@ -103,7 +104,7 @@ $ ./bench.sh --fast --diff percent --benchmarks "streamly,streaming"
 $ ./bench.sh --fast --benchmarks "streamly,streaming"
 
 # Generate graphs (.svg) instead of textual comparison
-$ ./bench.sh --fast --diff fraction --benchmarks "streamly,conduit,pipes" --graphs
+$ ./bench.sh --fast --diff multiples --benchmarks "streamly,conduit,pipes" --graphs
 ```
 
 ## Adding New Libraries
