@@ -13,7 +13,7 @@ module Benchmarks.VectorMonadic where
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
-        subtract, undefined, replicate, Maybe(..))
+        subtract, undefined, Maybe(..))
 import qualified Prelude as P
 
 import qualified Data.Vector.Fusion.Stream.Monadic as S
@@ -214,8 +214,9 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-{-# INLINE concat #-}
-zip, concat :: Monad m => Stream m Int -> m ()
+zip :: Monad m => Stream m Int -> m ()
+zip src = transform $ (S.zipWith (,) src src)
 
-zip src       = transform $ (S.zipWith (,) src src)
-concat src    = transform $ (S.concatMap (S.fromList . replicate 3) src)
+{-# INLINE concatMap #-}
+concatMap :: Monad m => Stream m Int -> m ()
+concatMap src = transform $ (S.concatMap (S.replicate 3) src)

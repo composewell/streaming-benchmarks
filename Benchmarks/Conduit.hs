@@ -182,6 +182,6 @@ zip src = S.runConduit $
         <$> S.ZipSource src
         <*> S.ZipSource src) S..| S.sinkNull -- eval
 
-{-# INLINE concat #-}
-concat :: Monad m => Source m () Int -> m ()
-concat = transform (S.map (replicate 3) S..| S.concat)
+{-# INLINE concatMapFoldable #-}
+concatMapFoldable :: Monad m => Source m () Int -> m ()
+concatMapFoldable = transform (S.map (replicate 3) S..| S.concat)

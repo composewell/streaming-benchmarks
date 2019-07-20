@@ -103,7 +103,8 @@ charts =
         ]
       )
     , ( "Concat Operation"
-      , [ "concat"
+      , [ "concatMap"
+        , "concatMapFoldable"
         ]
       )
     , ( "Conversion Operations"

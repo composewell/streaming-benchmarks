@@ -93,7 +93,28 @@ main = do
       , $(createBgroupSinkN benchMods "filter-map x 4" "filterMap" 4)
       ]
     , $(createBgroupSink (benchMods \\ ["StreamlyArray"]) "zip" "zip")
-    , $(createBgroupSink (benchMods \\ ["Sequence", "StreamlyArray"]) "concat" "concat")
+    , $(createBgroupSink (
+        [ "List"
+        , "Streamly"
+        , "StreamlyPure"
+        , "Vector"
+        , "VectorMonadic"
+        , "ByteString"
+        , "ByteStringLazy"
+        , "Text"
+        ]) "concatMap" "concatMap")
+    , $(createBgroupSink (benchMods \\
+            [ "List"
+            , "Streamly"
+            , "StreamlyPure"
+            , "Vector"
+            , "VectorMonadic"
+            , "ByteString"
+            , "ByteStringLazy"
+            , "Sequence"
+            , "StreamlyArray"
+            , "Text"
+            ]) "concatMapFoldable" "concatMapFoldable")
 
     , $(createBgroupSrc ((benchMods ++ ["DList"]) \\
             ["Drinkery", "StreamlyArray"]) "appendR[10000]" "appendSourceR")

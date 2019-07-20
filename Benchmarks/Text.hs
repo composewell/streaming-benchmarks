@@ -10,7 +10,7 @@
 module Benchmarks.Text where
 
 -- import Benchmarks.Common (value, maxValue, appendValue)
-import Prelude (Int, (+), id, ($), (.), even, (>), (<=), undefined,
+import Prelude (Int, (+), ($), (.), even, (>), (<=), undefined,
                 Maybe(..), Char)
 import qualified Prelude as P
 import Data.Char (chr, ord)
@@ -223,7 +223,6 @@ filterMap  n = composeN n $ S.map (plus (chr 1)) . S.filter (<= maxElem)
 zip :: Stream Element -> ()
 zip src  = eval $ S.zipWith plus src src
 
-{-# INLINE concat #-}
-concat :: Stream Element -> Stream Element
-concat src    = id src
--- concat src    = transform $ (S.concatMap (S.replicate 3) src)
+{-# INLINE concatMap #-}
+concatMap :: Stream Element -> ()
+concatMap src = transform $ (S.concatMap (S.pack . P.replicate 3) src)

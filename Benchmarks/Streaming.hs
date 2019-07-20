@@ -160,10 +160,9 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-{-# INLINE concat #-}
-zip, concat :: Monad m => Stream m Int -> m ()
+zip :: Monad m => Stream m Int -> m ()
+zip src = runStream $ (S.zip src src)
 
-zip src         = runStream $ (S.zip src src)
-concat _src     = return ()
-    -- it just hangs with 100% CPU usage
-    -- runStream $ (S.concat $ S.map (replicate 3) (source n))
+{-# INLINE concatMapFoldable #-}
+concatMapFoldable :: Monad m => Stream m Int -> m ()
+concatMapFoldable src = runStream $ (S.concat $ S.map (P.replicate 3) src)

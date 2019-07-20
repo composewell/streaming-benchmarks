@@ -220,6 +220,6 @@ zip :: Stream Int -> Stream Int
 zip src = S.zipWith (+) src src
 #endif
 
-{-# INLINE concat #-}
-concat :: Stream Int -> ()
-concat src = transform $ (S.concatMap (S.replicate 3) src)
+{-# INLINE concatMap #-}
+concatMap :: Stream Int -> ()
+concatMap src = transform $ (S.concatMap (S.replicate 3) src)

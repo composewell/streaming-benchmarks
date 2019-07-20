@@ -135,10 +135,12 @@ filterMap  n = composeN n $ S.map (subtract 1) S.++$ S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-{-# INLINE concat #-}
-zip, concat :: Monad m => Source m () Int -> m ()
+zip :: Monad m => Source m () Int -> m ()
 
 zip src = void
   $ S.unJoint ((,) <$> S.Joint src <*> S.Joint src)
   S.++& S.drainFrom (fst <$> S.consume)
-concat = transform $ S.map (replicate 3) S.++$ S.concatMap id
+
+{-# INLINE concatMapFoldable #-}
+concatMapFoldable :: Monad m => Source m () Int -> m ()
+concatMapFoldable = transform $ S.map (replicate 3) S.++$ S.concatMap id

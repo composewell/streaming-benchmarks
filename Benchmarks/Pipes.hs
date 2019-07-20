@@ -153,8 +153,9 @@ filterMap  n = composeN n $ S.map (subtract 1) S.>-> S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-{-# INLINE concat #-}
-zip, concat :: Monad m => Source m () Int -> m ()
-
+zip :: Monad m => Source m () Int -> m ()
 zip src = S.runEffect $ S.for (S.zip src src) S.discard
-concat = transform (S.map (replicate 3) S.>-> S.concat)
+
+{-# INLINE concatMapFoldable #-}
+concatMapFoldable :: Monad m => Source m () Int -> m ()
+concatMapFoldable = transform (S.map (replicate 3) S.>-> S.concat)

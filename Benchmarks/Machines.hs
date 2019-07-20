@@ -152,8 +152,10 @@ filterMap  n = composeN n $ S.mapping (subtract 1) S.~> S.filtered (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-{-# INLINE concat #-}
-zip, concat :: Monad m => S.MachineT m k Int -> m ()
+zip :: Monad m => S.MachineT m k Int -> m ()
 
 zip _src = S.runT_ (S.capT (source 10) (source 20) S.zipping)
-concat = transform (S.mapping (replicate 3) S.~> S.asParts)
+
+{-# INLINE concatMapFoldable #-}
+concatMapFoldable :: Monad m => S.MachineT m k Int -> m ()
+concatMapFoldable = transform (S.mapping (replicate 3) S.~> S.asParts)

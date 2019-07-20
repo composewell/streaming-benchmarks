@@ -221,6 +221,6 @@ zip :: Stream Element -> ()
 zip src = P.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
     $ S.zipWith (,) src src
 
-{-# INLINE concat #-}
-concat :: Stream Element -> ()
-concat src = transform $ (S.concatMap (S.replicate 3) src)
+{-# INLINE concatMap #-}
+concatMap :: Stream Element -> ()
+concatMap src = transform $ (S.concatMap (S.replicate 3) src)
