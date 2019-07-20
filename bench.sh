@@ -3,7 +3,7 @@
 print_help () {
   echo "Usage: $0 "
   echo "       [--benchmarks <streamly,vector,...>]"
-  echo "       [--diff <percent|fraction>]"
+  echo "       [--diff <percent|multiples>]"
   echo "       [--graphs]"
   echo "       [--measure]"
   echo "       [--append] "

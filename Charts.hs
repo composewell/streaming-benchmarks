@@ -161,8 +161,8 @@ createCharts input pkgList graphs delta versions = do
 
     let cmpStyle = case delta of
             "absolute" -> Absolute
-            "fraction" -> Relative Fraction False
-            "percent" -> Relative PercentDiffLower False
+            "multiples" -> Multiples
+            "percent" -> PercentDiff
             x -> error $ "Unknown compare option: " ++ show x
 
     let bsort pxs bs =
@@ -228,7 +228,7 @@ createCharts input pkgList graphs delta versions = do
 
     let cutOffByRegression p f =
             let cmp = if delta == "absolute"
-                      then Relative Fraction False
+                      then Multiples
                       else cmpStyle
             in reverse
               $ fmap fst
@@ -256,7 +256,7 @@ createCharts input pkgList graphs delta versions = do
                 let prefix = if delta == "percent"
                              then "Extra % "
                              else ""
-                    connector = if delta == "fraction"
+                    connector = if delta == "multiples"
                              then "as multiples of"
                              else "wrt"
                     field = case fname of
@@ -272,7 +272,7 @@ createCharts input pkgList graphs delta versions = do
     let p x =
             case delta of
                 "absolute" -> True
-                "fraction" -> x < (-1.1) || x > 1.1
+                "multiples" -> x < (-1.1) || x > 1.1
                 "percent" -> x < (-10) || x > 10
                 y -> error $ "Unknown compare option: " ++ show y
     makeDiffGraph input (concatMap snd charts) makeTitle p
