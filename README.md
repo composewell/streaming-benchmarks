@@ -57,8 +57,8 @@ operations that are at least 10% better or worse in one library compared to the
 other. The operations are shown in a sorted order, from list's worst performing
 ones on the left to its best ones on the right.
 
-![Streamly vs Lists (time) comparison](charts-0/by'list'intermsof'pure-streamly'-median-time.svg)
-![Streamly vs Lists (memory) comparison](charts-0/by'list'intermsof'pure-streamly'-median-maxrss.svg)
+![Streamly vs Lists (time) comparison](charts-0/by'list'asmultiplesof'pure-streamly'-median-time.svg)
+![Streamly vs Lists (memory) comparison](charts-0/by'list'asmultiplesof'pure-streamly'-median-maxrss.svg)
 
 See [full details on timing and memory utilization of all operations benchmarked here](charts-0/streamly-vs-list.txt)
 
@@ -79,8 +79,8 @@ Note that these are micro-benchmarks and the actual performance gains in a
 macro benchmark would depend on the type of application and where it is
 spending most of its time.
 
-![Streamly vs Streams (time) comparison](charts-0/intermsof'streamly'-median-time.svg)
-![Streamly vs Streams (memory) comparison](charts-0/intermsof'streamly'-median-maxrss.svg)
+![Streamly vs Streams (time) comparison](charts-0/asmultiplesof'streamly'-median-time.svg)
+![Streamly vs Streams (memory) comparison](charts-0/asmultiplesof'streamly'-median-maxrss.svg)
 
 See [full details on timing and memory utilization of all operations benchmarked here](charts-0/streamly-vs-streams.txt)
 
