@@ -27,7 +27,7 @@ description:
   for more details. The github repo also shows the latest comparative graphs.
 
 cabal-version: >= 1.10
-tested-with: GHC==8.2.2, GHC==8.4.3
+tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5
 build-type:    Simple
 extra-source-files:
   Changelog.md
