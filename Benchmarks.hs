@@ -39,7 +39,7 @@ main = do
   defaultMain
     [ bgroup "elimination"
       [ $(createBgroupSink (benchMods ++ ["DList"]) "drain" "toNull")
-      , $(createBgroupSink (benchMods ++ ["DList"]) "toList" "toList")
+      , $(createBgroupSink ((benchMods \\ ["List"]) ++ ["DList"]) "toList" "toList")
       , $(createBgroupSink (benchMods ++ ["DList"]) "foldl'" "foldl")
       , $(createBgroupSink benchMods "last" "last")
       , $(createBgroupSrc (["Streamly", "List", "VectorMonadic"])
@@ -93,6 +93,7 @@ main = do
       , $(createBgroupSinkN benchMods "filter-map x 4" "filterMap" 4)
       ]
     , $(createBgroupSink (benchMods \\ ["StreamlyArray"]) "zip" "zip")
+    -- XXX use 4x250k concatMap for a comparative idea of cost wrt other ops
     , $(createBgroupSink (
         [ "List"
         , "Streamly"
