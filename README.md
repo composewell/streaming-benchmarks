@@ -11,7 +11,8 @@ fair.  Please send an email or a PR if the benchmarking code has a
 problem or is unfair to some library in any way.
 
 DISCLAIMER: This package is a result of benchmarking effort done during the
-development of Streamly by the authors of Streamly.
+development of [Streamly](https://github.com/composewell/streamly) by the
+authors of [Streamly](https://github.com/composewell/streamly).
 
 ## Benchmark Setup
 
@@ -44,18 +45,22 @@ applied 4 times.
 
 ## Pure Streams
 
-Streamly stream type `SerialT Identity a` can be used as a pure stream
-replacing the standard Haskell list type `[a]`. Using `OverloadedLists` GHC
-extension streamly can be used as an almost drop-in replacement for lists. See
-[Streamly.List](https://github.com/composewell/streamly/blob/master/src/Streamly/List.hs) module for more details.
+[Streamly](https://github.com/composewell/streamly) stream type `SerialT
+Identity a` can be used as a pure stream replacing the standard Haskell list
+type `[a]`. Using `OverloadedLists` GHC extension streamly can be used as an
+almost drop-in replacement for lists. See
+[Streamly.List](https://github.com/composewell/streamly/blob/master/src/Streamly/List.hs)
+module for more details.
 
-The following figures show the ratio of time and memory consumed by `[Int]` vs
-`SerialT Identity Int` for exactly the same operation. `5x` on the y axis means
-lists take 5 times more resources compared to streamly. Whereas a `1/5x` means
-that lists take 5 times less resources compared to streamly. We only show those
-operations that are at least 10% better or worse in one library compared to the
-other. The operations are shown in a sorted order, from list's worst performing
-ones on the left to its best ones on the right.
+The following figures show the ratio of time and memory consumed by `[Int]`
+(`base-4.12`) vs `SerialT Identity Int`
+([streamly@00c7613](https://github.com/composewell/streamly)) for exactly the
+same operation. `5x` on the y axis means lists take 5 times more resources
+compared to streamly. Whereas a `1/5x` means that lists take 5 times less
+resources compared to streamly. We only show those operations that are at least
+10% better or worse in one library compared to the other. The operations are
+shown in a sorted order, from list's worst performing ones on the left to its
+best ones on the right.
 
 ![Streamly vs Lists (time) comparison](charts-0/streamly-vs-list-time.svg)
 ![Streamly vs Lists (memory) comparison](charts-0/streamly-vs-list-maxrss.svg)
@@ -70,10 +75,12 @@ of the libraries we measured.
 
 ## Monadic Streams
 
-The following figure shows a comparison of streamly with monadic streaming
-libraries `streaming`, `conduit` and `pipes`. We excluded `machines` from the
-graphs to keep it more readable because it shows even worse performance
-pushing the range in the graph to become even wider.
+The following figure shows a comparison of streamly
+([streamly@00c7613](https://github.com/composewell/streamly)) with
+monadic streaming libraries `streaming-0.2.2.0`, `conduit-1.3.1.1` and
+`pipes-4.3.10`. We excluded `machines` from the graphs to keep it more readable
+because it shows even worse performance pushing the range in the graph to
+become even wider.
 
 Note that these are micro-benchmarks and the actual performance gains in a
 macro benchmark would depend on the type of application and where it is
@@ -92,19 +99,22 @@ To quickly compare packages:
 # Show help
 $ ./bench.sh --help
 
+# Use --measure to run the benchmarks, remove that option if you just want to
+# change the report/graph options and do not want to run the benchmarks.
 # Use --fast for quick results when trying
-# Compare a given list of packages. Use `--help` for available package names.
-$ ./bench.sh --fast --diff multiples --benchmarks "streamly,streaming"
-$ ./bench.sh --fast --diff multiples --benchmarks "streamly,conduit,pipes"
 
-# Show percent diff
-$ ./bench.sh --fast --diff percent --benchmarks "streamly,streaming"
+# Compare a given list of packages. Use `--help` for available package names.
+$ ./bench.sh --measure --fast --benchmarks "streamly,streaming,pipes"
+
+# Show diff
+$ ./bench.sh --diff multiples --benchmarks "streamly,streaming"
+$ ./bench.sh --diff percent --benchmarks "streamly,streaming"
 
 # Show absolute values instead of diff
-$ ./bench.sh --fast --benchmarks "streamly,streaming"
+$ ./bench.sh --benchmarks "streamly,streaming"
 
 # Generate graphs (.svg) instead of textual comparison
-$ ./bench.sh --fast --diff multiples --benchmarks "streamly,conduit,pipes" --graphs
+$ ./bench.sh --diff multiples --benchmarks "streamly,streaming" --graphs
 ```
 
 ## Adding New Libraries
