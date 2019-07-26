@@ -2,7 +2,8 @@ resolver: lts-13.26
 packages:
 - '.'
 extra-deps:
-  - streamly-0.6.1
-  - bench-show-0.2.2
+  - git: https://github.com/composewell/streamly
+    commit: 00c761301edd4f04b3669719a88b6ac76ab80c05
+  - bench-show-0.3.0
 
 rebuild-ghc-options: true

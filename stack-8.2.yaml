@@ -2,9 +2,11 @@ resolver: lts-11.0
 packages:
 - '.'
 extra-deps:
+  - git: https://github.com/composewell/streamly
+    commit: 00c761301edd4f04b3669719a88b6ac76ab80c05
+
   - gauge-0.2.4
-  - streamly-0.6.0
-  - bench-show-0.2.1
+  - bench-show-0.3.0
   - statistics-0.15.0.0
   - dense-linear-algebra-0.1.0.0
   - math-functions-0.3.0.2

@@ -3,7 +3,7 @@ packages:
 - '.'
 extra-deps:
   - streamly-0.6.1
-  - bench-show-0.2.2
+  - bench-show-0.3.0
 
 rebuild-ghc-options: true
 ghc-options:
