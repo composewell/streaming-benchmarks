@@ -5,8 +5,8 @@
 [![Build Status](https://travis-ci.org/composewell/streaming-benchmarks.svg?branch=master)](https://travis-ci.org/composewell/streaming-benchmarks)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/8d1kgrrw9mmxv5xt?svg=true)](https://ci.appveyor.com/project/harendra-kumar/streaming-benchmarks)
 
-Compare the performance of various implementations of pure streams, monadic
-streams and arrays in Haskell. Due care has been taken to keep the comparisons
+Compare the performance of various implementations of pure streams and monadic
+streams in Haskell. Due care has been taken to keep the comparisons
 fair.  Please send an email or a PR if the benchmarking code has a
 problem or is unfair to some library in any way.
 
@@ -15,7 +15,7 @@ development of Streamly by the authors of Streamly.
 
 ## Benchmark Setup
 
-A stream of one million consecutive integers is generated and various stream
+A stream of one million consecutive numbers is generated and various stream
 operations are applied on the stream.  The total time taken, and the maximum
 resident set size (rss) is measured and plotted for each library.
 
@@ -37,9 +37,9 @@ Pro computer with a 4-core 2.2 GHz Intel Core i7 processor and 16GB RAM.
 
 In addition to basic operations like in the table above we also have benchmarks
 with repeated application of the same operation e.g. `take-all x 4` means the
-take-all operations performed 4 times repeatedly. Similalrly we have composite
+`take-all` operation is performed 4 times repeatedly. Similalrly we have composite
 operations e.g. `take-map` is a `take` operation followed by a `map` operation.
-Then we have repeated composite operations e.g. `take-map x 4` is `take-map`
+Then we also have repeated composite operations e.g. `take-map x 4` is `take-map`
 applied 4 times.
 
 ## Pure Streams
@@ -47,23 +47,23 @@ applied 4 times.
 Streamly stream type `SerialT Identity a` can be used as a pure stream
 replacing the standard Haskell list type `[a]`. Using `OverloadedLists` GHC
 extension streamly can be used as an almost drop-in replacement for lists. See
-`Streamly.List` module for more details.
+[Streamly.List](https://github.com/composewell/streamly/blob/master/src/Streamly/List.hs) module for more details.
 
 The following figures show the ratio of time and memory consumed by `[Int]` vs
 `SerialT Identity Int` for exactly the same operation. `5x` on the y axis means
-lists take 5 times more resources compared to streamly. Whereas a `-5x` means
+lists take 5 times more resources compared to streamly. Whereas a `1/5x` means
 that lists take 5 times less resources compared to streamly. We only show those
 operations that are at least 10% better or worse in one library compared to the
 other. The operations are shown in a sorted order, from list's worst performing
 ones on the left to its best ones on the right.
 
-![Streamly vs Lists (time) comparison](charts-0/by'list'asmultiplesof'pure-streamly'-median-time.svg)
-![Streamly vs Lists (memory) comparison](charts-0/by'list'asmultiplesof'pure-streamly'-median-maxrss.svg)
+![Streamly vs Lists (time) comparison](charts-0/streamly-vs-list-time.svg)
+![Streamly vs Lists (memory) comparison](charts-0/streamly-vs-list-maxrss.svg)
 
 See [full details on timing and memory utilization of all operations benchmarked here](charts-0/streamly-vs-list.txt)
 
 Streamly uses stream fusion whereas lists use foldr/build fusion. The reason
-why streamly performs much better than lists for mixed operations could be
+why streamly performs much better than lists for repeated operations could be
 because of better fusion. It is also possible that something needs to be fixed
 in lists. We hope that these results will lead to some investigation and fixing
 of the libraries we measured.
@@ -72,15 +72,15 @@ of the libraries we measured.
 
 The following figure shows a comparison of streamly with monadic streaming
 libraries `streaming`, `conduit` and `pipes`. We excluded `machines` from the
-graphs to keep it more readable because it had even worse performance and it
-would push the range to even wider.
+graphs to keep it more readable because it shows even worse performance
+pushing the range in the graph to become even wider.
 
 Note that these are micro-benchmarks and the actual performance gains in a
 macro benchmark would depend on the type of application and where it is
 spending most of its time.
 
-![Streamly vs Streams (time) comparison](charts-0/asmultiplesof'streamly'-median-time.svg)
-![Streamly vs Streams (memory) comparison](charts-0/asmultiplesof'streamly'-median-maxrss.svg)
+![Streamly vs Streams (time) comparison](charts-0/streamly-vs-streams-time.svg)
+![Streamly vs Streams (memory) comparison](charts-0/streamly-vs-streams-maxrss.svg)
 
 See [full details on timing and memory utilization of all operations benchmarked here](charts-0/streamly-vs-streams.txt)
 

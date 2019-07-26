@@ -1,0 +1,81 @@
+time (Lower is Better)
+Benchmark            pure-streamly(μs)  list(μs)
+-------------------- ----------------- ---------
+drop-map x 4                    331.29  64242.49
+filter-drop x 4                 342.93  47649.52
+filter-scan x 4                 747.87  38452.35
+take-map x 4                   1369.66  53262.66
+scan-map x 4                   1104.22  37991.32
+zip                             334.51  10475.36
+filter-take x 4                1318.57  36570.85
+take-scan x 4                  1687.04  42527.63
+drop-one                        332.13   7175.00
+dropWhile-false                 341.71   7377.09
+drop-one x 4                    343.04   7319.59
+dropWhile-true                  496.22  10458.91
+drop-scan x 4                  4394.33  79265.92
+drop-all                        502.32   6872.52
+take-drop x 4                  3452.96  31009.00
+dropWhile-false x 4            2026.35   7266.54
+last                            351.73    661.62
+take-all x 4                   1343.08   1422.63
+filter-even                     332.70    343.55
+scan x 4                        728.44    750.13
+filter-all-in x 4               334.25    343.90
+foldl'                          436.59    444.06
+filter-even x 4                 335.91    341.36
+takeWhile-true                  495.07    503.10
+drain                           330.48    335.71
+filter-all-out                  334.39    339.00
+filter-map x 4                  324.03    327.54
+map x 4                         330.75    332.66
+filter-all-in                   326.27    326.85
+mapM                            330.24    326.10
+takeWhile-true x 4              506.80    499.46
+map                             342.83    336.34
+mapM x 4                        335.19    326.36
+scan                            474.68    448.89
+take-all                        548.48    499.37
+appendR[10000]                  323.39    117.66
+concatMap                     22423.91   3804.74
+
+maxrss (Lower is Better)
+Benchmark            pure-streamly(MiB) list(MiB)
+-------------------- ------------------ ---------
+drop-all                           4.01      4.71
+drop-scan x 4                      3.71      4.34
+scan-map x 4                       3.76      4.37
+zip                                3.31      3.84
+drop-one                           4.04      4.64
+filter-scan x 4                    3.71      4.25
+take-scan x 4                      3.73      4.29
+drop-map x 4                       3.69      4.22
+take-drop x 4                      3.65      4.15
+take-map x 4                       3.65      4.13
+dropWhile-true                     4.07      4.60
+dropWhile-false                    4.08      4.58
+filter-drop x 4                    3.63      4.05
+filter-take x 4                    3.57      3.98
+dropWhile-false x 4                4.04      4.42
+drop-one x 4                       4.08      4.44
+filter-all-in                      3.98      4.04
+scan                               4.05      4.09
+map                                4.13      4.14
+appendR[10000]                     3.78      3.78
+filter-all-out                     4.01      4.01
+foldl'                             4.16      4.16
+last                               4.17      4.16
+scan x 4                           4.17      4.15
+filter-even x 4                    4.06      4.04
+filter-even                        4.06      4.04
+mapM x 4                           4.19      4.17
+take-all                           4.04      4.02
+filter-map x 4                     3.54      3.52
+filter-all-in x 4                  4.06      4.04
+mapM                               4.16      4.13
+drain                              4.14      4.11
+takeWhile-true                     4.04      4.01
+take-all x 4                       4.04      4.01
+takeWhile-true x 4                 4.07      4.03
+map x 4                            4.21      4.15
+concatMap                          3.80      3.23
