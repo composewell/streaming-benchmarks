@@ -75,12 +75,14 @@ of the libraries we measured.
 
 ## Monadic Streams
 
-The following figure shows a comparison of streamly
-([streamly@00c7613](https://github.com/composewell/streamly)) with
-monadic streaming libraries `streaming-0.2.2.0`, `conduit-1.3.1.1` and
-`pipes-4.3.10`. We excluded `machines` from the graphs to keep it more readable
-because it shows even worse performance pushing the range in the graph to
-become even wider.
+The following figures show how many times cpu cycles and memory some other
+streaming libraries take, as compared to
+([streamly@00c7613](https://github.com/composewell/streamly)). `10x` on the
+y-axis means that the given library and operation takes 10x time to complete
+the operation as compared to streamly. We have plotted monadic streaming
+libraries `streaming-0.2.2.0`, `conduit-1.3.1.1` and `pipes-4.3.10`. We
+excluded `machines` from the graphs to keep it more readable because it shows
+even worse performance pushing the range in the graph to become even wider.
 
 Note that these are micro-benchmarks and the actual performance gains in a
 macro benchmark would depend on the type of application and where it is
