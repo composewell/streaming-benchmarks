@@ -48,11 +48,11 @@ sourceN count begin = S.unfoldr step begin
 
 {-# INLINE appendSourceR #-}
 appendSourceR :: Int -> Stream Int
-appendSourceR n = P.foldr S.append S.empty (P.map S.singleton [n..n+appendValue])
+appendSourceR n = evalS $ P.foldr S.append S.empty (P.map S.singleton [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl S.append S.empty (P.map S.singleton [n..n+appendValue])
+appendSourceL n = evalS $ P.foldl S.append S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -64,6 +64,10 @@ appendSourceL n = P.foldl S.append S.empty (P.map S.singleton [n..n+appendValue]
 {-# INLINE eval #-}
 eval :: Stream a -> ()
 eval = S.foldr P.seq ()
+
+{-# INLINE evalS #-}
+evalS :: Stream a -> Stream a
+evalS = S.map (\x -> P.seq x x)
 
 -- eval foldable
 {-# INLINE evalF #-}

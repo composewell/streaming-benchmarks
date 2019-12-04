@@ -49,7 +49,7 @@ appendSourceR n = foldMap S.yield [n..n+appendValue]
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Monad m => Int -> Stream m Int
-appendSourceL n = P.foldl (<>) P.mempty (P.map S.yield [n..n+appendValue])
+appendSourceL n = S.take 10000 $ P.foldl (<>) P.mempty (P.map S.yield [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

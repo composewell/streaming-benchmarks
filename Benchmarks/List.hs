@@ -15,6 +15,7 @@ import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
 import qualified Prelude as P
 
 import qualified Data.List          as S
+import qualified Data.DList          as DList
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
@@ -54,8 +55,17 @@ sourceIntFromThenTo n = P.enumFromThenTo n (n + 1) (n + value)
 appendSourceR :: Int -> Stream Int
 appendSourceR n = P.foldr (S.++) [] (P.map (: []) [n..n+appendValue])
 
+{-
+{-# RULES "dlist" [1] forall xs. DList.toList (DList.fromList xs) = xs #-}
+{-# RULES "dlist" [1] forall xs. DList.fromList (DList.toList xs) = xs #-}
+{-# INLINE append #-}
+append :: [a] -> [a] -> [a]
+append xs ys = DList.toList $ DList.fromList xs P.<> DList.fromList ys
+-}
+
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream Int
+-- appendSourceL n = P.foldl append [] (P.map (: []) [n..n+appendValue])
 appendSourceL n = P.foldl (S.++) [] (P.map (: []) [n..n+appendValue])
 
 -------------------------------------------------------------------------------

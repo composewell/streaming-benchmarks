@@ -95,7 +95,7 @@ charts =
       )
     , ( "Append Operations"
       , [ "appendR"
-      --  , "appendL"
+        , "appendL"
         ]
       )
     , ( "Zip Operation"
