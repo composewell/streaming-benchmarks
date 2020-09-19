@@ -16,8 +16,9 @@ print_help () {
   echo "--benchmarks: specify comma separated list of packages to be compared"
   echo
   echo "Available benchmarks are: "
-  echo "Pure streams: list, pure-streamly, vector, sequence, dlist, bytestring, text"
+  echo "Pure streams: list, pure-streamly, dlist, sequence"
   echo "Monadic streams: streamly, streams-vector, streaming, pipes, conduit, machines, drinkery"
+  echo "Arrays: array-streamly, bytestring, lazy-bytestring, text, vector, storable-vector, unboxed-vector"
   echo
   echo "--graphs: generate SVG graphs instead of text reports"
   echo "--diff: show diff of subsequent packages from the first package"

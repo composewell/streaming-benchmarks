@@ -29,14 +29,19 @@ monadicPackages =
 
 purePackages :: [(String, String)]
 purePackages =
-    [ ("List", "list")
+    [ -- stream like packages
+      ("List", "list")
+    , ("StreamlyPure", "pure-streamly")
     , ("DList", "dlist")
+    , ("Sequence", "sequence")
+
+    -- array like packages
     , ("ByteString", "bytestring")
     , ("ByteStringLazy", "lazy-bytestring")
     , ("Text", "text")
-    , ("Sequence", "sequence")
-    , ("StreamlyPure", "pure-streamly")
     , ("Vector", "vector")
+    , ("VectorUnboxed", "unboxed-vector")
+    , ("VectorStorable", "storable-vector")
     ]
 
 monadicArrays :: [(String, String)]

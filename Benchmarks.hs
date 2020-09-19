@@ -29,6 +29,8 @@ import qualified Benchmarks.Text as Text
 import qualified Benchmarks.DList as DList
 import qualified Benchmarks.Sequence as Sequence
 import qualified Benchmarks.Vector as Vector
+import qualified Benchmarks.VectorUnboxed as VectorUnboxed
+import qualified Benchmarks.VectorStorable as VectorStorable
 import qualified Benchmarks.StreamlyArray as StreamlyArray
 -- import qualified Benchmarks.LogicT as LogicT
 -- import qualified Benchmarks.ListT as ListT
@@ -98,8 +100,10 @@ main = do
         [ "List"
         , "Streamly"
         , "StreamlyPure"
-        , "Vector"
         , "VectorStreams"
+        , "Vector"
+        , "VectorStorable"
+        , "VectorUnboxed"
         , "ByteString"
         , "ByteStringLazy"
         , "Text"
@@ -108,8 +112,10 @@ main = do
             [ "List"
             , "Streamly"
             , "StreamlyPure"
-            , "Vector"
             , "VectorStreams"
+            , "Vector"
+            , "VectorStorable"
+            , "VectorUnboxed"
             , "ByteString"
             , "ByteStringLazy"
             , "Sequence"

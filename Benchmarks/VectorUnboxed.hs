@@ -8,7 +8,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Benchmarks.Vector where
+module Benchmarks.VectorUnboxed where
 
-#define VECTOR_BOXED
+#define VECTOR_UNBOXED
 #include "VectorCommon.hs"
