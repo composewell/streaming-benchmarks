@@ -3,7 +3,8 @@ packages:
 - '.'
 extra-deps:
   - git: https://github.com/composewell/streamly
-    commit: 00c761301edd4f04b3669719a88b6ac76ab80c05
+    commit: 92771949adbefd962ad885c43fd1dc65ebc0f2aa
   - bench-show-0.3.0
+  - fusion-plugin-types-0.1.0
 
 rebuild-ghc-options: true

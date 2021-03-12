@@ -17,9 +17,10 @@ import qualified Prelude as P
 
 import Benchmarks.Common (value, maxValue) -- , appendValue)
 
-import qualified Streamly          as S hiding (runStream)
 import qualified Streamly.Prelude  as S
-import qualified Streamly.Mem.Array as A
+import qualified Streamly.Data.Array.Foreign as A
+import qualified Streamly.Internal.Data.Array.Foreign as A
+import qualified Streamly.Internal.Data.Fold as Fold
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
@@ -29,7 +30,7 @@ type Stream = A.Array
 
 {-# INLINE source #-}
 source :: MonadIO m => Int -> m (Stream Int)
-source n = A.writeN value $ S.unfoldr step n
+source n = S.fold (A.writeN value) (S.unfoldr step n)
     where
     step cnt =
         if cnt > n + value
@@ -38,7 +39,7 @@ source n = A.writeN value $ S.unfoldr step n
 
 {-# INLINE sourceN #-}
 sourceN :: MonadIO m => Int -> Int -> m (Stream Int)
-sourceN count begin = A.writeN value $ S.unfoldr step begin
+sourceN count begin = S.fold (A.writeN value) (S.unfoldr step begin)
     where
     step i =
         if i > begin + count
@@ -74,11 +75,11 @@ toList = P.return . A.toList
 
 {-# INLINE foldl #-}
 foldl :: MonadIO m => Stream Int -> m Int
-foldl = A.foldWith (S.foldl' (+) 0)
+foldl = S.fold Fold.sum . S.unfold A.read
 
 {-# INLINE last #-}
-last :: MonadIO m => Stream Int -> m (Maybe Int)
-last arr = A.readIndex arr (A.length arr P.- 1)
+last :: P.Monad m => Stream Int -> m (Maybe Int)
+last arr = P.return (A.readIndex arr (A.length arr P.- 1))
 
 -------------------------------------------------------------------------------
 -- Transformation
@@ -99,10 +100,10 @@ composeN
     -> m (Stream Int)
 composeN n f x =
     case n of
-        1 -> A.transformWith f x
-        2 -> A.transformWith (f . f) x
-        3 -> A.transformWith (f . f . f) x
-        4 -> A.transformWith (f . f . f . f) x
+        1 -> S.fold A.write $ f $ S.unfold A.read x
+        2 -> S.fold A.write $ f . f $ S.unfold A.read x
+        3 -> S.fold A.write $ f . f . f $ S.unfold A.read x
+        4 -> S.fold A.write $ f . f . f . f $ S.unfold A.read x
         _ -> undefined
 
 {-# INLINE scan #-}
@@ -150,7 +151,7 @@ maxIters = 100000
 iterateSource :: MonadIO m
     => (S.SerialT m Int -> S.SerialT m Int) -> Int -> Int -> m (Stream Int)
 iterateSource g i n =
-    sourceN iterStreamLen n P.>>= \a -> A.write (f i $ A.read a)
+    sourceN iterStreamLen n P.>>= \a -> S.fold A.write (f i $ S.unfold A.read a)
     where
         f (0 :: Int) m = g m
         f x m = g (f (x P.- 1) m)

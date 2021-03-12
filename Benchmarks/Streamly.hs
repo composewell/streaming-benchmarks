@@ -16,7 +16,6 @@ import Prelude
         subtract, undefined, Maybe(..), foldMap, maxBound)
 import qualified Prelude as P
 
-import qualified Streamly          as S hiding (runStream)
 import qualified Streamly.Prelude  as S
 
 -------------------------------------------------------------------------------
@@ -66,7 +65,7 @@ appendSourceR n = foldMap S.yield [n..n+appendValue]
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream m Int
-appendSourceL n = P.foldl (S.<>) S.nil (P.map S.yield [n..n+appendValue])
+appendSourceL n = P.foldl (P.<>) S.nil (P.map S.yield [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -74,7 +73,7 @@ appendSourceL n = P.foldl (S.<>) S.nil (P.map S.yield [n..n+appendValue])
 
 {-# INLINE runStream #-}
 runStream :: Monad m => Stream m a -> m ()
-runStream = S.runStream
+runStream = S.drain
 
 {-# INLINE toNull #-}
 {-# INLINE toList #-}
