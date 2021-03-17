@@ -1,0 +1,157 @@
+# packcheck-0.5.1
+# You can use any of the options supported by packcheck as environment
+# variables here.  See https://github.com/composewell/packcheck for all
+# options and their explanation.
+
+name: packcheck
+
+#-----------------------------------------------------------------------------
+# Events on which the build should be triggered
+#-----------------------------------------------------------------------------
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+
+#-----------------------------------------------------------------------------
+# Build matrix
+#-----------------------------------------------------------------------------
+
+jobs:
+  build:
+    name: >-
+      ${{ matrix.name }}
+      ${{ matrix.command }}
+      ${{ matrix.runner }}
+      ${{ matrix.ghc_version }}
+    env:
+      # ------------------------------------------------------------------------
+      # Common options
+      # ------------------------------------------------------------------------
+      # GHC_OPTIONS: "-Werror"
+      CABAL_REINIT_CONFIG: y
+      LC_ALL: C.UTF-8
+
+      # ------------------------------------------------------------------------
+      # What to build
+      # ------------------------------------------------------------------------
+      DISABLE_TEST: "y"
+      # DISABLE_BENCH: "y"
+      # DISABLE_DOCS: "y"
+      # DISABLE_SDIST_BUILD: "y"
+      DISABLE_SDIST_GIT_CHECK: "y"
+      # DISABLE_DIST_CHECKS: "y"
+
+      # ------------------------------------------------------------------------
+      # stack options
+      # ------------------------------------------------------------------------
+      # Note requiring a specific version of stack using STACKVER may fail due to
+      # github API limit while checking and upgrading/downgrading to the specific
+      # version.
+      #STACKVER: "1.6.5"
+      #STACK_UPGRADE: "y"
+      #RESOLVER: "lts-12"
+
+      # ------------------------------------------------------------------------
+      # cabal options
+      # ------------------------------------------------------------------------
+      CABAL_CHECK_RELAX: y
+      CABAL_HACKAGE_MIRROR: "hackage.haskell.org:http://hackage.fpcomplete.com"
+
+      # ------------------------------------------------------------------------
+      # Where to find the required tools
+      # ------------------------------------------------------------------------
+      PATH: /opt/ghc/bin:/sbin:/usr/sbin:/bin:/usr/bin
+      #TOOLS_DIR: /opt
+
+      # ------------------------------------------------------------------------
+      # Location of packcheck.sh (the shell script invoked to perform CI tests ).
+      # ------------------------------------------------------------------------
+      # You can either commit the packcheck.sh script at this path in your repo or
+      # you can use it by specifying the PACKCHECK_REPO_URL option below in which
+      # case it will be automatically copied from the packcheck repo to this path
+      # during CI tests. In any case it is finally invoked from this path.
+      PACKCHECK: "./packcheck.sh"
+      # If you have not committed packcheck.sh in your repo at PACKCHECK
+      # then it is automatically pulled from this URL.
+      PACKCHECK_GITHUB_URL: "https://raw.githubusercontent.com/composewell/packcheck"
+      PACKCHECK_GITHUB_COMMIT: "91d76691e5cb82e77564be55d0126906b16d76bc"
+
+      # ------------------------------------------------------------------------
+      # Final build variables
+      # ------------------------------------------------------------------------
+      PACKCHECK_COMMAND: ${{ matrix.command }} ${{ matrix.pack_options }}
+
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The reason we have name here is to force an additional config instead
+        # of adding to an existing config while adding additional configs.
+        # Look at <https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix>
+        # for more info about adding matrix elements.
+        # Adding any element to the list will increase the number of matrix
+        # elemets proportional to the cross product.
+        name: [ci]
+        # Uncomment GHC versions you want the CI to run on.
+        ghc_version:
+          [ 8.10.4
+          # , 8.8.4
+          # , 8.6.5
+          # , 8.4.4
+          ]
+        command:
+          [ cabal-v2
+          , stack
+          ]
+        runner:
+          [ ubuntu-latest
+          # , macos-latest
+          ]
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: haskell/actions/setup@v1
+      if: ${{ matrix.name != 'hlint' }}
+      with:
+        ghc-version: ${{ matrix.ghc_version }}
+        # We need not put this in the matrix. This will be fixed in most cases.
+        cabal-version: 3.2
+
+    - uses: actions/cache@v2
+      name: Cache common directories
+      with:
+        path: |
+          ~/.cabal
+          ~/.ghc
+          ~/.local
+          ~/.stack
+        key: ${{ matrix.ghc_version }}-${{ matrix.runner }}
+
+    - name: Run installer
+      if: ${{ matrix.installer != '' }}
+      run: ${{ matrix.installer }}
+
+    - name: Setup stack
+      if: ${{ matrix.command == 'stack' }}
+      run: |
+        # required for packcheck
+        sudo apt-get install -y curl
+        # required for outbound https for stack and for stack setup
+        sudo apt-get install -y netbase xz-utils make
+        # If a custom stack-yaml is specified, replace the default with that
+        if test -e "$STACK_YAML"; then rm -f stack.yaml && ln -sv $STACK_YAML stack.yaml; else true; fi
+        unset STACK_YAML
+    - name: Download packcheck
+      run: |
+        # Get packcheck if needed
+        CURL=$(which curl)
+        PACKCHECK_URL=${PACKCHECK_GITHUB_URL}/${PACKCHECK_GITHUB_COMMIT}/packcheck.sh
+        if test ! -e "$PACKCHECK"; then $CURL -sL -o "$PACKCHECK" $PACKCHECK_URL; fi;
+        chmod +x $PACKCHECK
+    - name: Run packcheck
+      run: |
+        bash -c "$PACKCHECK $PACKCHECK_COMMAND"
