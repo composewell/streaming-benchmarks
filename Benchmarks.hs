@@ -92,7 +92,7 @@ main = do
       , $(createBgroupSinkN benchMods "filter-take x 4" "filterTake" 4)
       , $(createBgroupSinkN benchMods "filter-map x 4" "filterMap" 4)
       ]
-    , $(createBgroupSink (benchMods \\ ["StreamlyArray"]) "zip" "zip")
+    , $(createBgroupSink (benchMods \\ ["StreamlyArray", "StreamlyPure"]) "zip" "zip")
     -- XXX use 4x250k concatMap for a comparative idea of cost wrt other ops
     , $(createBgroupSink (
         [ "List"

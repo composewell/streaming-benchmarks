@@ -19,7 +19,6 @@ import Benchmarks.Common (value, maxValue) -- , appendValue)
 
 import qualified Streamly.Prelude  as S
 import qualified Streamly.Data.Array.Foreign as A
-import qualified Streamly.Internal.Data.Array.Foreign as A
 import qualified Streamly.Internal.Data.Fold as Fold
 
 -------------------------------------------------------------------------------
@@ -79,7 +78,7 @@ foldl = S.fold Fold.sum . S.unfold A.read
 
 {-# INLINE last #-}
 last :: P.Monad m => Stream Int -> m (Maybe Int)
-last arr = P.return (A.readIndex arr (A.length arr P.- 1))
+last arr = P.return (A.getIndex arr (A.length arr P.- 1))
 
 -------------------------------------------------------------------------------
 -- Transformation
