@@ -208,10 +208,10 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
-{-# INLINE zip #-}
-zip :: Stream Int -> ()
-zip src = runIdentity $ S.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
-    $ S.zipWith (,) src src
+-- {-# INLINE zip #-}
+-- zip :: Stream Int -> ()
+-- zip src = runIdentity $ S.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
+--     $ S.zipWith (,) src src
 
 {-# INLINE concatMap #-}
 concatMap :: Stream Int -> ()

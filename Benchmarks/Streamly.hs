@@ -216,7 +216,7 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -------------------------------------------------------------------------------
 
 {-# INLINE zip #-}
-zip :: Monad m => Stream m Int -> m ()
+zip :: S.MonadAsync m => Stream m Int -> m ()
 zip src = transform $ (S.zipWith (,) src src)
 
 {-# INLINE concatMap #-}
