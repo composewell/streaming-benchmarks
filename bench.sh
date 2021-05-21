@@ -58,7 +58,11 @@ find_report_prog() {
     then
       echo $prog_path
     else
-      return 1
+      if test -x "charts/$prog_name"
+      then echo "charts/$prog_name"
+      else
+        return 1
+      fi
     fi
 }
 
@@ -68,11 +72,18 @@ build_report_prog() {
     local prog_path=$($WHICH_COMMAND $prog_name)
 
     hash -r
+    if test -x "charts/$prog_name"
+    then return 0
+    fi
     if test ! -x "$prog_path" -a "$BUILD_ONCE" = "0"
     then
-      echo "Building bench-graph executables"
+      echo "Building bench-show executable"
       BUILD_ONCE=1
       $BUILD_CHART_EXE || die "build failed"
+      if test "$USE_STACK" -ne 1
+      then
+        cabal install --installdir=charts makecharts
+      fi
     elif test ! -x "$prog_path"
     then
       return 1
@@ -86,8 +97,8 @@ build_report_progs() {
       build_report_prog || exit 1
       local prog
       prog=$(find_report_prog) || \
-          die "Cannot find bench-graph executable"
-      echo "Using bench-graph executable [$prog]"
+          die "Cannot find bench-show executable"
+      echo "Using bench-show executable [$prog]"
   fi
 }
 
@@ -271,7 +282,7 @@ else
   #WHICH_COMMAND="cabal v2-exec which"
   WHICH_COMMAND=cabal_which
   GET_BENCH_PROG=cabal_bench_prog
-  BUILD_CHART_EXE="cabal v2-build all"
+  BUILD_CHART_EXE="cabal v2-build --flag dev makecharts"
   BUILD_BENCH="cabal v2-build $CABAL_BUILD_FLAGS --enable-benchmarks all"
 fi
 
