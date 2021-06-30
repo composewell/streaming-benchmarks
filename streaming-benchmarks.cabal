@@ -75,7 +75,7 @@ benchmark bmarks
 
                   -- Monadic streams
                   , Benchmarks.Streamly
-                  , Benchmarks.VectorMonadic
+                  , Benchmarks.VectorStreams
                   , Benchmarks.Streaming
                   , Benchmarks.Conduit
                   , Benchmarks.Pipes

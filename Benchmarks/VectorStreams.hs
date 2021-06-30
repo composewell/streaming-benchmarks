@@ -1,5 +1,5 @@
 -- |
--- Module      : Benchmarks.VectorMonadic
+-- Module      : Benchmarks.VectorStreams
 -- Copyright   : (c) 2018 Harendra Kumar
 --               (c) 2018 Philipp Schuster
 --
@@ -8,7 +8,7 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Benchmarks.VectorMonadic where
+module Benchmarks.VectorStreams where
 
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude

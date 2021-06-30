@@ -14,7 +14,7 @@ import Gauge
 
 import Benchmarks.BenchmarkTH
 
-import qualified Benchmarks.VectorMonadic as VectorMonadic
+import qualified Benchmarks.VectorStreams as VectorStreams
 import qualified Benchmarks.Streamly as Streamly
 import qualified Benchmarks.StreamlyPure as StreamlyPure
 import qualified Benchmarks.Streaming as Streaming
@@ -42,7 +42,7 @@ main = do
       , $(createBgroupSink ((benchMods \\ ["List"]) ++ ["DList"]) "toList" "toList")
       , $(createBgroupSink (benchMods ++ ["DList"]) "foldl'" "foldl")
       , $(createBgroupSink benchMods "last" "last")
-      , $(createBgroupSrc (["Streamly", "List", "VectorMonadic"])
+      , $(createBgroupSrc (["Streamly", "List", "VectorStreams"])
             "enumInt" "sourceIntFromThenTo")
       ]
     , bgroup "transformation"
@@ -99,7 +99,7 @@ main = do
         , "Streamly"
         , "StreamlyPure"
         , "Vector"
-        , "VectorMonadic"
+        , "VectorStreams"
         , "ByteString"
         , "ByteStringLazy"
         , "Text"
@@ -109,7 +109,7 @@ main = do
             , "Streamly"
             , "StreamlyPure"
             , "Vector"
-            , "VectorMonadic"
+            , "VectorStreams"
             , "ByteString"
             , "ByteStringLazy"
             , "Sequence"

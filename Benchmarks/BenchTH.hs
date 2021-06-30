@@ -19,7 +19,7 @@ import Language.Haskell.TH.Lib (varE)
 monadicPackages :: [(String, String)]
 monadicPackages =
     [ ("Streamly", "streamly")
-    , ("VectorMonadic", "monadic-vector")
+    , ("VectorStreams", "streams-vector")
     , ("Streaming", "streaming")
     , ("Machines", "machines")
     , ("Pipes", "pipes")
