@@ -62,7 +62,7 @@ only ghc-8.8.4 or lower. However, after building this tool you can run
 the benchmarks with any GHC version.
 
 ```
-$ cabal install --flag dev --installdir charts --with-compiler ghc-8.8.4 makecharts
+$ cabal install --flag dev --installdir charts --with-compiler ghc-8.8.4 bench-report
 ```
 
 ### Streamly vs Haskell Lists

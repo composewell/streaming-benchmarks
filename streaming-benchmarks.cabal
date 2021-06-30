@@ -130,7 +130,7 @@ benchmark bmarks
     build-depends:
         fusion-plugin     >= 0.2   && < 0.3
 
-executable makecharts
+executable bench-report
   default-language: Haskell2010
   default-extensions: OverloadedStrings
   hs-source-dirs:   .

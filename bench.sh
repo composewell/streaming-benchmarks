@@ -51,7 +51,7 @@ set_benchmarks() {
 
 # $1: benchmark name (linear, nested, base)
 find_report_prog() {
-    local prog_name="makecharts"
+    local prog_name="bench-report"
     hash -r
     local prog_path=$($WHICH_COMMAND $prog_name)
     if test -x "$prog_path"
@@ -68,7 +68,7 @@ find_report_prog() {
 
 # $1: benchmark name (linear, nested, base)
 build_report_prog() {
-    local prog_name="makecharts"
+    local prog_name="bench-report"
     local prog_path=$($WHICH_COMMAND $prog_name)
 
     hash -r
@@ -82,7 +82,7 @@ build_report_prog() {
       $BUILD_CHART_EXE || die "build failed"
       if test "$USE_STACK" -ne 1
       then
-        cabal install --installdir=charts makecharts
+        cabal install --installdir=charts bench-report
       fi
     elif test ! -x "$prog_path"
     then
@@ -282,7 +282,7 @@ else
   #WHICH_COMMAND="cabal v2-exec which"
   WHICH_COMMAND=cabal_which
   GET_BENCH_PROG=cabal_bench_prog
-  BUILD_CHART_EXE="cabal v2-build --flag dev makecharts"
+  BUILD_CHART_EXE="cabal v2-build --flag dev bench-report"
   BUILD_BENCH="cabal v2-build $CABAL_BUILD_FLAGS --enable-benchmarks all"
 fi
 
