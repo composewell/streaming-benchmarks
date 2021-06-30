@@ -31,11 +31,12 @@ tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5
 build-type:    Simple
 extra-source-files:
   Changelog.md
+  README.md
   bench.sh
   cabal.project
-  README.md
-  licenses/Readme.txt
+  docs/benchmarking-notes.md
   licenses/LICENSE.machines
+  licenses/Readme.txt
   stack.yaml
 
 source-repository head
