@@ -86,7 +86,9 @@ benchmark bmarks
                 -- , Benchmarks.ListT
                 -- , Benchmarks.ListTransformer
 
-  ghc-options: -O2 -Wall -with-rtsopts "-T" -fspec-constr-recursive=10
+  ghc-options: -O2 -Wall -with-rtsopts "-T"
+               -fspec-constr-recursive=16
+               -fmax-worker-args=16
   if impl(ghc >= 8.0)
     ghc-options:    -Wcompat
                     -Wunrecognised-warning-flags
