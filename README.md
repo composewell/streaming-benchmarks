@@ -65,6 +65,13 @@ the benchmarks with any GHC version.
 $ cabal install --flag dev --installdir charts --with-compiler ghc-8.8.4 bench-report
 ```
 
+Nix users can use bench-report.nix. It uses an older version of nixpkgs that
+contains the required dependencies:
+
+```
+$ nix-shell bench-report.nix --run "cabal install --flag dev --installdir charts bench-report"
+```
+
 ### Streamly vs Haskell Lists
 
 Haskell lists (in the `base` package) are a special case of streamly
