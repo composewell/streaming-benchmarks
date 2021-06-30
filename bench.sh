@@ -82,7 +82,7 @@ build_report_prog() {
       $BUILD_CHART_EXE || die "build failed"
       if test "$USE_STACK" -ne 1
       then
-        cabal install --installdir=charts bench-report
+        cabal install --flag dev --installdir=charts bench-report
       fi
     elif test ! -x "$prog_path"
     then
@@ -295,7 +295,16 @@ set_benchmarks
 
 # We need to build the report progs first at the current (latest) commit before
 # checking out any other commit for benchmarking.
-build_report_progs "$BENCHMARKS"
+#build_report_progs "$BENCHMARKS"
+
+if test ! -e charts/bench-report
+then
+  echo "Please build the bench-report executable first."
+  echo "It requires ghc-8.8.4 or earlier"
+  echo
+  echo "cabal install --flag dev --installdir charts --with-compiler ghc-8.8.4 bench-report"
+  exit
+fi
 
 #-----------------------------------------------------------------------------
 # Run benchmarks
