@@ -1,6 +1,1 @@
 packages: streaming-benchmarks.cabal
-
-source-repository-package
-  type: git
-  location: https://github.com/composewell/streamly
-  tag: 03cf686ca7e3fe1093b064c9763de8b684cce0f4
