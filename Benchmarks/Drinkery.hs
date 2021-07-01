@@ -1,11 +1,15 @@
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Benchmarks.Drinkery where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude
        (Monad, Int, Maybe(..), (+), ($), return, even, (>), (<=),
-        subtract, undefined, replicate, (<$>), (<*>), fst, id, const, maxBound)
+        subtract, undefined, replicate, (<$>), (<*>), fst, id, const,
+        maxBound, IO)
 
 import qualified Data.Drinkery as S
 import qualified Data.Drinkery.Finite as S
@@ -144,3 +148,6 @@ zip src = void
 {-# INLINE concatMapFoldable #-}
 concatMapFoldable :: Monad m => Source m () Int -> m ()
 concatMapFoldable = transform $ S.map (replicate 3) S.++$ S.concatMap id
+
+main :: IO ()
+main = $(defaultMain "Drinkery")

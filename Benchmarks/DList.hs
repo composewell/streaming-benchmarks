@@ -6,9 +6,11 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.DList where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, appendValue)
 import Prelude (Int, (+), ($), (.), (>), undefined, Maybe(..))
 import qualified Prelude as P
@@ -210,3 +212,6 @@ zip _src       = undefined
 {-# INLINE concat #-}
 concat :: Stream Int -> ()
 concat _src    = undefined
+
+main :: P.IO ()
+main = $(defaultMain "DList")

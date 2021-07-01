@@ -17,8 +17,8 @@ print_help () {
   echo
   echo "Available benchmarks are: "
   echo "Pure streams: list, pure-streamly, dlist, sequence"
-  echo "Monadic streams: streamly, streams-vector, streaming, pipes, conduit, machines, drinkery"
-  echo "Arrays: array-streamly, bytestring, lazy-bytestring, text, vector, storable-vector, unboxed-vector"
+  echo "Monadic streams: streamly, lazy-bytestring, streams-vector, streaming, pipes, conduit, machines, drinkery"
+  echo "Arrays: array-streamly, bytestring, text, vector, storable-vector, unboxed-vector"
   echo
   echo "--graphs: generate SVG graphs instead of text reports"
   echo "--diff: show diff of subsequent packages from the first package"

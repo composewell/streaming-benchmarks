@@ -7,9 +7,11 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.VectorStreams where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
@@ -220,3 +222,6 @@ zip src = transform $ (S.zipWith (,) src src)
 {-# INLINE concatMap #-}
 concatMap :: Monad m => Stream m Int -> m ()
 concatMap src = transform $ (S.concatMap (S.replicate 3) src)
+
+main :: P.IO ()
+main = $(defaultMain "VectorStreams")

@@ -7,9 +7,11 @@
 
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.Streamly where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
@@ -224,3 +226,6 @@ concatMap :: Monad m => Stream m Int -> m ()
 concatMap src = transform $ (S.concatMap (S.replicate 3) src)
 
 -- XXX composed zip and concat
+
+main :: P.IO ()
+main = $(defaultMain "Streamly")

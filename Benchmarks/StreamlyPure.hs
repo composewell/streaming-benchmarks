@@ -8,9 +8,11 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.StreamlyPure where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Functor.Identity (Identity, runIdentity)
 import Prelude
@@ -208,11 +210,14 @@ filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
 -- Zipping and concat
 -------------------------------------------------------------------------------
 
--- {-# INLINE zip #-}
--- zip :: Stream Int -> ()
--- zip src = runIdentity $ S.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
---     $ S.zipWith (,) src src
+{-# INLINE zip #-}
+zip :: Stream Int -> ()
+zip src = runIdentity $ S.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
+    $ S.zipWith (,) src src
 
 {-# INLINE concatMap #-}
 concatMap :: Stream Int -> ()
 concatMap src = transform $ (S.concatMap (S.replicate 3) src)
+
+main :: P.IO ()
+main = $(defaultMain "StreamlyPure")

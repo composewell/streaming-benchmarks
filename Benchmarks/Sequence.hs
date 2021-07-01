@@ -6,9 +6,11 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.Sequence where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
                 Maybe(..))
@@ -209,3 +211,6 @@ zip src       = transform $ (S.zipWith (,) src src)
 {-# INLINE concat #-}
 concat :: Stream Int -> Stream Int
 concat _src    = undefined -- transform $ (S.concatMap (S.replicate 3) src)
+
+main :: P.IO ()
+main = $(defaultMain "Sequence")

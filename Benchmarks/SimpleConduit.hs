@@ -5,8 +5,11 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module Benchmarks.SimpleConduit where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude
@@ -97,3 +100,6 @@ composeScaling m n =
         4 -> transform (f . f . f . f) n
         _ -> undefined
     where f = S.filter (<= maxValue)
+
+main :: P.IO ()
+main = $(defaultMain "SimpleConduit")

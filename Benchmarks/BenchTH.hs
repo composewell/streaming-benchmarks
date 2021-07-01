@@ -34,10 +34,10 @@ purePackages =
     , ("StreamlyPure", "pure-streamly")
     , ("DList", "dlist")
     , ("Sequence", "sequence")
+    , ("ByteStringLazy", "lazy-bytestring")
 
     -- array like packages
     , ("ByteString", "bytestring")
-    , ("ByteStringLazy", "lazy-bytestring")
     , ("Text", "text")
     , ("Vector", "vector")
     , ("VectorUnboxed", "unboxed-vector")
@@ -54,47 +54,41 @@ allPackages =
     ++ monadicArrays
 
 -- mkBench <stream producer func> <stream consumer func> <module name>
-mkBench :: String -> String -> String -> Q Exp
-mkBench f x mdl =
+-- <bench name>
+mkBench :: String -> String -> String -> String -> Q Exp
+mkBench f x mdl bname =
     case lookup mdl purePackages of
         Nothing -> case lookup mdl monadicPackages of
-            Just pkg ->
-                [| benchIO pkg $(varE (mkName (mdl ++ "." ++ f)))
-                               $(varE (mkName (mdl ++ "." ++ x)))
-                |]
+            Just _ ->
+                [| benchIO bname $(varE (mkName f)) $(varE (mkName x)) |]
             Nothing ->
                 if mdl == "StreamlyArray"
                 then
                     [| benchIOArray "array-streamly"
-                            $(varE (mkName (mdl ++ "." ++ f)))
-                            $(varE (mkName (mdl ++ "." ++ x)))
+                            $(varE (mkName f))
+                            $(varE (mkName x))
                     |]
                 else error $
                     "module " ++ show mdl ++ " not found in module list"
-        Just pkg ->
-                [| benchPure pkg $(varE (mkName (mdl ++ "." ++ f)))
-                                 $(varE (mkName (mdl ++ "." ++ x)))
-                |]
+        Just _ ->
+                [| benchPure bname $(varE (mkName f)) $(varE (mkName x)) |]
 
-mkBenchN :: String -> String -> Int -> String -> Q Exp
-mkBenchN f x n mdl =
+mkBenchN :: String -> String -> Int -> String -> String -> Q Exp
+mkBenchN f x n mdl bname =
     case lookup mdl purePackages of
         Nothing -> case lookup mdl monadicPackages of
-            Just pkg ->
-                [| benchIO pkg $(varE (mkName (mdl ++ "." ++ f)))
-                               ($(varE (mkName (mdl ++ "." ++ x))) n)
-                |]
+            Just _ ->
+                [| benchIO bname $(varE (mkName f)) ($(varE (mkName x)) n) |]
             Nothing ->
                 if mdl == "StreamlyArray"
                 then
                     [| benchIOArray "array-streamly"
-                            $(varE (mkName (mdl ++ "." ++ f)))
-                            ($(varE (mkName (mdl ++ "." ++ x))) n)
+                            $(varE (mkName f))
+                            ($(varE (mkName x)) n)
                     |]
                 else
                     error $
                         "module " ++ show mdl ++ " not found in module list"
-        Just pkg ->
-                [| benchPure pkg $(varE (mkName (mdl ++ "." ++ f)))
-                               ($(varE (mkName (mdl ++ "." ++ x))) n)
+        Just _ ->
+                [| benchPure bname $(varE (mkName f)) ($(varE (mkName x)) n)
                 |]

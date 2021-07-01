@@ -6,9 +6,11 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.ByteStringLazy where
 
+import Benchmarks (defaultMain)
 -- import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
                 maxBound, Maybe(..))
@@ -230,3 +232,6 @@ zip src = P.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
 {-# INLINE concatMap #-}
 concatMap :: Stream Element -> ()
 concatMap src = transform $ (S.concatMap (S.replicate 3) src)
+
+main :: P.IO ()
+main = $(defaultMain "ByteStringLazy")

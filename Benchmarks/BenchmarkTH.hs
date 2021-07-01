@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveLift #-}
 
 module Benchmarks.BenchmarkTH
     ( createBgroupSink
@@ -9,11 +10,11 @@ module Benchmarks.BenchmarkTH
     , allMods
     , benchMods
     , iterMods
+    , Select (..)
     ) where
 
 import Data.List ((\\))
-import Language.Haskell.TH.Syntax (Q, Exp)
-import Language.Haskell.TH.Lib (listE)
+import Language.Haskell.TH.Syntax (Q, Exp, Lift)
 
 import Benchmarks.BenchTH
 
@@ -32,26 +33,47 @@ iterMods = allMods \\
     , "Drinkery"
     ]
 
--- | createBgroupSink <module names> <benchmark name>
+data Select = Exclude [String] | Include [String] deriving Lift
+
+-- | createBgroupSink <selection func> <module name> <benchmark name>
 --                    <stream consumer function name>
-createBgroupSink :: [String] -> String -> String -> Q Exp
-createBgroupSink mods name fname =
-    [|
-        bgroup name $(listE (map (mkBench "source" fname) mods))
-    |]
+createBgroupSink :: Select -> String -> String -> String -> Q Exp
+createBgroupSink select modName bname fname =
+    case select of
+        Exclude mods -> f elem mods
+        Include mods -> f notElem mods
 
--- | createBgroupSink <module names> <benchmark name>
+    where
+
+    f p mods =
+        if p modName mods
+        then [| Nothing |]
+        else [| Just $(mkBench "source" fname modName bname) |]
+
+-- | createBgroupSink <selection func> <module names> <benchmark name>
 --                    <stream consumer function name> <number of iterations>
-createBgroupSinkN :: [String] -> String -> String -> Int -> Q Exp
-createBgroupSinkN mods name fname n =
-    [|
-        bgroup name $(listE (map (mkBenchN "source" fname n) mods))
-    |]
+createBgroupSinkN :: Select -> String -> String -> String -> Int -> Q Exp
+createBgroupSinkN select modName bname fname n =
+    case select of
+        Exclude mods -> f elem mods
+        Include mods -> f notElem mods
 
--- | createBgroupSink <module names> <benchmark name>
---                    <stream producer function name>
-createBgroupSrc :: [String] -> String -> String -> Q Exp
-createBgroupSrc mods name fname =
-    [|
-        bgroup name $(listE (map (mkBench fname "toNull") mods))
-    |]
+    where
+
+    f p mods =
+        if p modName mods
+        then [| Nothing |]
+        else [| Just $(mkBenchN "source" fname n modName bname) |]
+
+createBgroupSrc :: Select -> String -> String -> String -> Q Exp
+createBgroupSrc select modName bname fname =
+    case select of
+        Exclude mods -> f elem mods
+        Include mods -> f notElem mods
+
+    where
+
+    f p mods =
+        if p modName mods
+        then [| Nothing |]
+        else [| Just $(mkBench fname "toNull" modName bname) |]

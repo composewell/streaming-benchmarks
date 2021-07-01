@@ -5,10 +5,12 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Benchmarks.Streaming where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Control.DeepSeq (NFData)
 import Prelude
@@ -166,3 +168,6 @@ zip src = runStream $ (S.zip src src)
 {-# INLINE concatMapFoldable #-}
 concatMapFoldable :: Monad m => Stream m Int -> m ()
 concatMapFoldable src = runStream $ (S.concat $ S.map (P.replicate 3) src)
+
+main :: P.IO ()
+main = $(defaultMain "Streaming")

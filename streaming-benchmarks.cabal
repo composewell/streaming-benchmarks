@@ -47,61 +47,23 @@ flag dev
   default: False
 
 flag no-fusion-plugin
-  description: Use fusion plugin for benchmarks and executables
+  description: Disable fusion plugin for streamly benchmarks
   manual: True
-  default: True
+  default: False
 
-benchmark bmarks
+common lib-options
   default-language: Haskell2010
-  type:             exitcode-stdio-1.0
-  hs-source-dirs:   .
-  main-is:          Benchmarks.hs
-  other-modules:    Benchmarks.Common
-                  , Benchmarks.BenchTH
-                  , Benchmarks.BenchmarkTH
-
-                  -- Pure streams
-                  , Benchmarks.StreamlyPure
-                  , Benchmarks.List
-                  , Benchmarks.DList
-                  , Benchmarks.Sequence
-
-                  -- Pure streams/Arrays
-                  , Benchmarks.StreamlyArray
-                  , Benchmarks.Vector
-                  , Benchmarks.VectorStorable
-                  , Benchmarks.VectorUnboxed
-                  , Benchmarks.ByteString
-                  , Benchmarks.ByteStringLazy
-                  , Benchmarks.Text
-
-                  -- Monadic streams
-                  , Benchmarks.Streamly
-                  , Benchmarks.VectorStreams
-                  , Benchmarks.Streaming
-                  , Benchmarks.Conduit
-                  , Benchmarks.Pipes
-                  , Benchmarks.Machines
-                  , Benchmarks.Drinkery
-
-                -- List transformers
-                -- , Benchmarks.LogicT
-                -- , Benchmarks.ListT
-                -- , Benchmarks.ListTransformer
-
-  ghc-options: -O2 -Wall -with-rtsopts "-T"
-               -fspec-constr-recursive=16
-               -fmax-worker-args=16
-  ghc-options:    -Wcompat
-                  -Wunrecognised-warning-flags
-                  -Widentities
-                  -Wincomplete-record-updates
-                  -Wincomplete-uni-patterns
-                  -Wredundant-constraints
-                  -Wnoncanonical-monad-instances
-  if !flag(no-fusion-plugin)
-      ghc-options: -fplugin Fusion.Plugin
-
+  ghc-options:
+    -Wall
+    -Wcompat
+    -Wunrecognised-warning-flags
+    -Widentities
+    -Wincomplete-record-updates
+    -Wincomplete-uni-patterns
+    -Wredundant-constraints
+    -Wnoncanonical-monad-instances
+    -O2
+    -with-rtsopts "-T"
   build-depends:
     base                == 4.*,
     deepseq             >= 1.4.0 && < 1.5,
@@ -111,25 +73,161 @@ benchmark bmarks
     transformers        >= 0.4   && < 0.6,
     template-haskell    >= 2.10  && < 2.18,
 
-    bytestring          >= 0.9   && < 0.12,
-    text                >= 1.0   && < 1.3,
-    vector              >= 0.12  && < 0.13,
-    streamly            >= 0.8.0 && < 0.9,
-    streaming           >= 0.1.4 && < 0.3,
-    machines            >= 0.6.0 && < 0.8,
-    pipes               >= 4     && < 4.4,
-    conduit             >= 1.3   && < 1.4,
-    drinkery            >= 0.3   && < 0.5,
-    dlist               >= 0.7   && < 1.1,
-    containers          >= 0.5   && < 0.7
-    -- does not build with lts-11.0
-    -- simple-conduit      >= 0.4.0 && < 0.7,
-    -- list-transformer    >= 1.0.2 && < 1.1,
-    -- list-t              >= 0.4.6 && < 1.1,
-    -- logict              >= 0.5.0 && < 0.7,
+common bench-options
+  import: lib-options
+  build-depends: streaming-benchmarks
+
+common streamly-options
+  import: bench-options
+  ghc-options:
+    -fdicts-strict
+    -fspec-constr-recursive=16
+    -fmax-worker-args=16
   if !flag(no-fusion-plugin)
-    build-depends:
-        fusion-plugin     >= 0.2   && < 0.3
+      ghc-options: -fplugin Fusion.Plugin
+  build-depends: streaming-benchmarks
+  build-depends: streamly >= 0.8.0 && < 0.9
+  if !flag(no-fusion-plugin)
+    build-depends: fusion-plugin >= 0.2 && < 0.3
+
+library
+    import: lib-options
+    exposed-modules:
+          Benchmarks.Common
+        , Benchmarks.BenchTH
+        , Benchmarks.BenchmarkTH
+        , Benchmarks
+
+-- Streams
+benchmark Streamly
+  import: streamly-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Streamly.hs
+  ghc-options: -main-is Benchmarks.Streamly
+
+benchmark StreamlyPure
+  import: streamly-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/StreamlyPure.hs
+  ghc-options: -main-is Benchmarks.StreamlyPure
+
+benchmark List
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/List.hs
+  ghc-options: -main-is Benchmarks.List
+
+benchmark DList
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/DList.hs
+  ghc-options: -main-is Benchmarks.DList
+  build-depends: dlist >= 0.7 && < 1.1
+
+benchmark Streaming
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Streaming.hs
+  ghc-options: -main-is Benchmarks.Streaming
+  build-depends: streaming >= 0.1.4 && < 0.3
+
+benchmark Machines
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Machines.hs
+  ghc-options: -main-is Benchmarks.Machines
+  build-depends: machines >= 0.6.0 && < 0.8
+
+benchmark Pipes
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Pipes.hs
+  ghc-options: -main-is Benchmarks.Pipes
+  build-depends: pipes >= 4 && < 4.4
+
+benchmark Conduit
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Conduit.hs
+  ghc-options: -main-is Benchmarks.Conduit
+  build-depends: conduit >= 1.3 && < 1.4
+
+benchmark Drinkery
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Drinkery.hs
+  ghc-options: -main-is Benchmarks.Drinkery
+  build-depends: drinkery >= 0.3 && < 0.5
+
+benchmark SimpleConduit
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/SimpleConduit.hs
+  ghc-options: -main-is Benchmarks.SimpleConduit
+  build-depends: simple-conduit >= 0.6 && < 0.7
+
+-- Arrays
+benchmark StreamlyArray
+  import: streamly-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/StreamlyArray.hs
+  ghc-options: -main-is Benchmarks.StreamlyArray
+
+benchmark Sequence
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Sequence.hs
+  ghc-options: -main-is Benchmarks.Sequence
+  build-depends: containers >= 0.5 && < 0.7
+
+benchmark ByteString
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/ByteString.hs
+  ghc-options: -main-is Benchmarks.ByteString
+  build-depends: bytestring >= 0.9 && < 0.12
+
+benchmark ByteStringLazy
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/ByteStringLazy.hs
+  ghc-options: -main-is Benchmarks.ByteStringLazy
+  build-depends: bytestring >= 0.9 && < 0.12
+
+benchmark Text
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Text.hs
+  ghc-options: -main-is Benchmarks.Text
+  build-depends: text >= 1.0 && < 1.3
+
+benchmark VectorStreams
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/VectorStreams.hs
+  ghc-options: -main-is Benchmarks.VectorStreams
+  build-depends: vector >= 0.12 && < 0.13
+
+benchmark Vector
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/Vector.hs
+  ghc-options: -main-is Benchmarks.Vector
+  build-depends: vector >= 0.12 && < 0.13
+
+benchmark VectorUnboxed
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/VectorUnboxed.hs
+  ghc-options: -main-is Benchmarks.VectorUnboxed
+  build-depends: vector >= 0.12 && < 0.13
+
+benchmark VectorStorable
+  import: bench-options
+  type: exitcode-stdio-1.0
+  main-is: Benchmarks/VectorStorable.hs
+  ghc-options: -main-is Benchmarks.VectorStorable
+  build-depends: vector >= 0.12 && < 0.13
 
 executable bench-report
   default-language: Haskell2010

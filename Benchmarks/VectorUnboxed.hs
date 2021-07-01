@@ -7,8 +7,13 @@
 
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.VectorUnboxed where
 
+import Benchmarks (defaultMain)
 #define VECTOR_UNBOXED
 #include "VectorCommon.hs"
+
+main :: P.IO ()
+main = $(defaultMain "VectorUnboxed")

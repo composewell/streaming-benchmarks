@@ -7,8 +7,13 @@
 
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.Vector where
 
+import Benchmarks (defaultMain)
 #define VECTOR_BOXED
 #include "VectorCommon.hs"
+
+main :: P.IO ()
+main = $(defaultMain "Vector")

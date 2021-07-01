@@ -6,9 +6,11 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.Text where
 
+import Benchmarks (defaultMain)
 -- import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), ($), (.), even, (>), (<=), undefined,
                 Maybe(..), Char)
@@ -226,3 +228,6 @@ zip src  = eval $ S.zipWith plus src src
 {-# INLINE concatMap #-}
 concatMap :: Stream Element -> ()
 concatMap src = transform $ (S.concatMap (S.pack . P.replicate 3) src)
+
+main :: P.IO ()
+main = $(defaultMain "Text")

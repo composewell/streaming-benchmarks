@@ -5,8 +5,11 @@
 -- License     : MIT
 -- Maintainer  : harendra.kumar@gmail.com
 
+{-# LANGUAGE TemplateHaskell #-}
+
 module Benchmarks.Conduit where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
@@ -185,3 +188,6 @@ zip src = S.runConduit $
 {-# INLINE concatMapFoldable #-}
 concatMapFoldable :: Monad m => Source m () Int -> m ()
 concatMapFoldable = transform (S.map (replicate 3) S..| S.concat)
+
+main :: P.IO ()
+main = $(defaultMain "Conduit")

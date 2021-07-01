@@ -7,6 +7,7 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.StreamlyArray where
 
@@ -15,6 +16,7 @@ import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
                 maxBound, Maybe(..))
 import qualified Prelude as P
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue) -- , appendValue)
 
 import qualified Streamly.Prelude  as S
@@ -220,3 +222,6 @@ zip src       = P.foldr (\(x,y) xs -> P.seq x (P.seq y xs)) ()
 concat :: Stream Int -> ()
 concat src    = transform $ (S.concatMap (S.replicate 3) src)
 -}
+
+main :: P.IO ()
+main = $(defaultMain "StreamlyArray")

@@ -6,9 +6,11 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Benchmarks.Pipes where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Void (Void)
 import Prelude
@@ -159,3 +161,6 @@ zip src = S.runEffect $ S.for (S.zip src src) S.discard
 {-# INLINE concatMapFoldable #-}
 concatMapFoldable :: Monad m => Source m () Int -> m ()
 concatMapFoldable = transform (S.map (replicate 3) S.>-> S.concat)
+
+main :: P.IO ()
+main = $(defaultMain "Pipes")

@@ -6,9 +6,12 @@
 -- Maintainer  : harendra.kumar@gmail.com
 
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+
 module Benchmarks.Machines where
 
+import Benchmarks (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (.), (+), ($), return, even, (>), (<=),
@@ -159,3 +162,6 @@ zip _src = S.runT_ (S.capT (source 10) (source 20) S.zipping)
 {-# INLINE concatMapFoldable #-}
 concatMapFoldable :: Monad m => S.MachineT m k Int -> m ()
 concatMapFoldable = transform (S.mapping (replicate 3) S.~> S.asParts)
+
+main :: P.IO ()
+main = $(defaultMain "Machines")
