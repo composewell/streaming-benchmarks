@@ -40,9 +40,9 @@ jobs:
       # ------------------------------------------------------------------------
       DISABLE_TEST: "y"
       # DISABLE_BENCH: "y"
-      # DISABLE_DOCS: "y"
+      DISABLE_DOCS: "y"
       # DISABLE_SDIST_BUILD: "y"
-      DISABLE_SDIST_GIT_CHECK: "y"
+      # DISABLE_SDIST_GIT_CHECK: "y"
       # DISABLE_DIST_CHECKS: "y"
 
       # ------------------------------------------------------------------------
@@ -58,6 +58,7 @@ jobs:
       # ------------------------------------------------------------------------
       # cabal options
       # ------------------------------------------------------------------------
+      CABAL_PROJECT: ${{ matrix.cabal_project }}
       CABAL_CHECK_RELAX: y
       CABAL_HACKAGE_MIRROR: "hackage.haskell.org:http://hackage.fpcomplete.com"
 
@@ -78,7 +79,7 @@ jobs:
       # If you have not committed packcheck.sh in your repo at PACKCHECK
       # then it is automatically pulled from this URL.
       PACKCHECK_GITHUB_URL: "https://raw.githubusercontent.com/composewell/packcheck"
-      PACKCHECK_GITHUB_COMMIT: "91d76691e5cb82e77564be55d0126906b16d76bc"
+      PACKCHECK_GITHUB_COMMIT: "79fb4437009a7ebdada33d0493c27ee30160ec3f"
 
       # ------------------------------------------------------------------------
       # Final build variables
@@ -89,28 +90,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The reason we have name here is to force an additional config instead
-        # of adding to an existing config while adding additional configs.
-        # Look at <https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix>
-        # for more info about adding matrix elements.
-        # Adding any element to the list will increase the number of matrix
-        # elemets proportional to the cross product.
-        name: [ci]
-        # Uncomment GHC versions you want the CI to run on.
-        ghc_version:
-          [ 8.10.4
-          # , 8.8.4
-          # , 8.6.5
-          # , 8.4.4
-          ]
-        command:
-          [ cabal-v2
-          , stack
-          ]
-        runner:
-          [ ubuntu-latest
-          # , macos-latest
-          ]
+        include:
+          - name: ghc-8.10.4-sdist
+            ghc_version: 8.10.4
+            runner: ubuntu-latest
+            command: cabal
+          - name: ghc-8.10.4-werror
+            ghc_version: 8.10.4
+            runner: ubuntu-latest
+            command: cabal
+            cabal_project: cabal.project.Werror
+          #- name: ghc-8.10.4-macos-stack
+          #  ghc_version: 8.10.4
+          #  runner: macos-latest
+          #  command: stack
+          #  resolver: lts-18.0
+          #  #stack_yaml: stack.yaml
+          #  sdist_options: "--ignore-check"
+          - name: ghc-8.8.4
+            ghc_version: 8.8.4
+            runner: ubuntu-latest
+            command: cabal
     steps:
     - uses: actions/checkout@v2
 

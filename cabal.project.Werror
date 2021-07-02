@@ -1,0 +1,4 @@
+packages: .
+
+package streaming-benchmarks
+  ghc-options: -Werror

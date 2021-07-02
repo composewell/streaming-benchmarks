@@ -1,10 +1,7 @@
-resolver: lts-17.6
+resolver: lts-18.0
 packages:
 - '.'
 extra-deps:
-  - git: https://github.com/composewell/streamly
-    commit: 03cf686ca7e3fe1093b064c9763de8b684cce0f4
-  - bench-show-0.3.0
-  - fusion-plugin-types-0.1.0
+  - streamly-0.8.0
 
 rebuild-ghc-options: true

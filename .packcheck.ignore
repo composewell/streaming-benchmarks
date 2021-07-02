@@ -1,0 +1,4 @@
+.packcheck.ignore
+cabal.project
+cabal.project.Werror
+stack.yaml

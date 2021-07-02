@@ -27,8 +27,8 @@ description:
   <https://github.com/composewell/streaming-benchmarks in the github repo>
   for more details. The github repo also shows the latest comparative graphs.
 
-tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
-build-type:    Simple
+tested-with: GHC==8.8.4, GHC==8.10.4
+build-type: Simple
 extra-source-files:
   Changelog.md
   README.md
