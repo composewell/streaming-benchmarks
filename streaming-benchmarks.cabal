@@ -10,7 +10,7 @@ homepage:      https://streamly.composewell.com
 bug-reports:   http://github.com/composewell/streaming-benchmarks/issues
 copyright:     Copyright (c) 2017 Harendra Kumar
 category:      Streamly, Streaming, Benchmark
-synopsis:      Measure and compares the performance of streaming libraries
+synopsis:      Measures and compares the performance of streaming libraries
 description:
   This package provides micro-benchmarks to measure and compare the
   performance of various streaming implementations in Haskell.
