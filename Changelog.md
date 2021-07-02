@@ -2,9 +2,9 @@
 
 * Simplify the README, use text tables instead of graphs.
 * Upgrade to latest release of all streaming packages
-* Use fusion-plugin, add a flag to disable the plugin
 * Build bench-report utility independently to avoid dependency issues
-* Add streamly pure lists, streamly arrays, bytestring, text, dlist, sequence
+* Add benchmarks for streamly pure lists, streamly arrays, bytestring,
+  text, dlist, sequence
 * Add benchmarks to measure composition of the filtering and
   transformation operations multiple times
 * Add benchmarks to measure composition of various combinations of different

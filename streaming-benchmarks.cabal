@@ -16,6 +16,7 @@ description:
   performance of various streaming implementations in Haskell.
   .
   The following packages are supported:
+  .
   * base (Haskell lists)
   * streamly
   * streaming
