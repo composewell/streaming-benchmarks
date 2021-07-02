@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0
 
 * Simplify the README, use text tables instead of graphs.
 * Upgrade to latest release of all streaming packages
