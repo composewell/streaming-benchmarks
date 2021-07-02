@@ -239,9 +239,11 @@ BUILD_ONCE=0
 USE_STACK=0
 
 GHC_VERSION=$(ghc --numeric-version)
+STREAMING_BENCHMARKS_VERSION=0.3.0
 
 cabal_which() {
-  find dist-newstyle -type f -path "*${GHC_VERSION}*/$1"
+  find dist-newstyle -type f -path \
+  "*${GHC_VERSION}/streaming-benchmarks-$STREAMING_BENCHMARKS_VERSION/*/$1"
 }
 
 #-----------------------------------------------------------------------------
