@@ -5,9 +5,8 @@
 [![Build Status](https://travis-ci.org/composewell/streaming-benchmarks.svg?branch=master)](https://travis-ci.org/composewell/streaming-benchmarks)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/8d1kgrrw9mmxv5xt?svg=true)](https://ci.appveyor.com/project/harendra-kumar/streaming-benchmarks)
 
-This package allows you to measure the performance of various streaming
-implementations in Haskell using micro-benchmarks and compare any two or
-more of those.
+This package provides micro-benchmarks to measure and compare the
+performance of various streaming implementations in Haskell.
 
 We have taken due to care to make sure that we are
 benchmarking correctly and fairly. See [the notes on correct

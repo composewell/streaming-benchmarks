@@ -10,22 +10,19 @@ homepage:      https://streamly.composewell.com
 bug-reports:   http://github.com/composewell/streaming-benchmarks/issues
 copyright:     Copyright (c) 2017 Harendra Kumar
 category:      Streamly, Streaming, Benchmark
-synopsis:      Benchmarks to compare streaming packages
+synopsis:      Measure and compares the performance of streaming libraries
 description:
-  Benchmarks along with pretty comparative graph generation for streaming
-  operations and their comparisons across notable Haskell streaming libraries
-  including `streamly`, `streaming`, `pipes`, and `conduit`.
-  <http://hackage.haskell.org/package/streamly streamly> is a high performance
-  streaming library with native support for high level, declarative and
-  composable concurrency, it is the primary motivation for these benchmarks.
+  This package provides micro-benchmarks to measure and compare the
+  performance of various streaming implementations in Haskell.
   .
-  Use the @./bench.sh@ script to run the benchmarks; use @--stack@ option to
-  use the @stack@ tool for building instead of @cabal@.  Graphs are generated
-  in the `charts` directory. Use @./bench.sh --help@ for all script options.
-  .
-  See the README file shipped with the package or
-  <https://github.com/composewell/streaming-benchmarks in the github repo>
-  for more details. The github repo also shows the latest comparative graphs.
+  The following packages are supported:
+  * base (Haskell lists)
+  * streamly
+  * streaming
+  * pipes
+  * machines
+  * conduit
+  * drinkery
 
 tested-with: GHC==8.8.4, GHC==8.10.4
 build-type: Simple
