@@ -1,11 +1,17 @@
 ## Unreleased
 
-* Add benchmarks to measure composition of the same filtering and
+* Simplify the README, use text tables instead of graphs.
+* Upgrade to latest release of all streaming packages
+* Use fusion-plugin, add a flag to disable the plugin
+* Build bench-report utility independently to avoid dependency issues
+* Add streamly pure lists, streamly arrays, bytestring, text, dlist, sequence
+* Add benchmarks to measure composition of the filtering and
   transformation operations multiple times
 * Add benchmarks to measure composition of various combinations of different
   operations multiple times.
 * Add benchmarks that iterate the same operation multiple times
-* Use the `bench-show` package for better reporting of diffs
+* Use the `bench-show` package for better reporting of diffs. Supports
+  comparison in multiples or percentages of other packages.
 
 ## 0.2.0
 
