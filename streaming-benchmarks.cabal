@@ -30,6 +30,7 @@ extra-source-files:
   Changelog.md
   README.md
   bench.sh
+  bench-report.nix
 
 extra-doc-files:
   docs/benchmarking-notes.md
