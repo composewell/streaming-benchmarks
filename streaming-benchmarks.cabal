@@ -1,17 +1,18 @@
+cabal-version: 2.2
 name:          streaming-benchmarks
-category:      Benchmark
 version:       0.2.0
 license:       MIT
 license-file:  LICENSE
-author:        Harendra Kumar
-maintainer:    Harendra Kumar
+author:        Composewell Technologies
+maintainer:    streamly@composewell.com
 stability:     provisional
-homepage:      http://github.com/composewell/streaming-benchmarks
+homepage:      https://streamly.composewell.com
 bug-reports:   http://github.com/composewell/streaming-benchmarks/issues
 copyright:     Copyright (c) 2017 Harendra Kumar
+category:      Streamly, Streaming, Benchmark
 synopsis:      Benchmarks to compare streaming packages
 description:
-  Benchmarks along with with pretty comparative graph generation for streaming
+  Benchmarks along with pretty comparative graph generation for streaming
   operations and their comparisons across notable Haskell streaming libraries
   including `streamly`, `streaming`, `pipes`, and `conduit`.
   <http://hackage.haskell.org/package/streamly streamly> is a high performance
@@ -26,18 +27,15 @@ description:
   <https://github.com/composewell/streaming-benchmarks in the github repo>
   for more details. The github repo also shows the latest comparative graphs.
 
-cabal-version: >= 1.10
-tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5
+tested-with: GHC==8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.4, GHC==8.10.4
 build-type:    Simple
 extra-source-files:
   Changelog.md
   README.md
   bench.sh
-  cabal.project
+
+extra-doc-files:
   docs/benchmarking-notes.md
-  licenses/LICENSE.machines
-  licenses/Readme.txt
-  stack.yaml
 
 source-repository head
   type: git
@@ -49,7 +47,7 @@ flag dev
   default: False
 
 flag fusion-plugin
-  description: Use fusion plugin for benchmarks and executables
+  description: Use fusion plugin for benchmarks
   manual: True
   default: False
 
@@ -90,14 +88,13 @@ benchmark bmarks
   ghc-options: -O2 -Wall -with-rtsopts "-T"
                -fspec-constr-recursive=16
                -fmax-worker-args=16
-  if impl(ghc >= 8.0)
-    ghc-options:    -Wcompat
-                    -Wunrecognised-warning-flags
-                    -Widentities
-                    -Wincomplete-record-updates
-                    -Wincomplete-uni-patterns
-                    -Wredundant-constraints
-                    -Wnoncanonical-monad-instances
+  ghc-options:    -Wcompat
+                  -Wunrecognised-warning-flags
+                  -Widentities
+                  -Wincomplete-record-updates
+                  -Wincomplete-uni-patterns
+                  -Wredundant-constraints
+                  -Wnoncanonical-monad-instances
   if flag(fusion-plugin)
       ghc-options: -fplugin Fusion.Plugin
 
