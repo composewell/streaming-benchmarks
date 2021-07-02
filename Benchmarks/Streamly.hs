@@ -61,11 +61,11 @@ sourceIntFromThenTo n = S.enumerateFromThenTo n (n + 1) (n + value)
 
 {-# INLINE appendSourceR #-}
 appendSourceR :: Int -> Stream m Int
-appendSourceR n = foldMap S.yield [n..n+appendValue]
+appendSourceR n = foldMap S.fromPure [n..n+appendValue]
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream m Int
-appendSourceL n = P.foldl (P.<>) S.nil (P.map S.yield [n..n+appendValue])
+appendSourceL n = P.foldl (P.<>) S.nil (P.map S.fromPure [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

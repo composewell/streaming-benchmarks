@@ -51,11 +51,11 @@ sourceN count begin = S.unfoldr step begin
 
 {-# INLINE appendSourceR #-}
 appendSourceR :: Int -> Stream Int
-appendSourceR n = foldMap S.yield [n..n+appendValue]
+appendSourceR n = foldMap S.fromPure [n..n+appendValue]
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (P.<>) S.nil (P.map S.yield [n..n+appendValue])
+appendSourceL n = P.foldl (P.<>) S.nil (P.map S.fromPure [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
