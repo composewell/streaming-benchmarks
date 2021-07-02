@@ -11,7 +11,7 @@
 
 module Benchmarks.VectorUnboxed where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 #define VECTOR_UNBOXED
 #include "VectorCommon.hs"
 

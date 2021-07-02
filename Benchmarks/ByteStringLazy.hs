@@ -10,7 +10,7 @@
 
 module Benchmarks.ByteStringLazy where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 -- import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), id, ($), (.), even, (>), (<=), subtract, undefined,
                 maxBound, Maybe(..))

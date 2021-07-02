@@ -10,7 +10,7 @@
 
 module Benchmarks.DList where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, appendValue)
 import Prelude (Int, (+), ($), (.), (>), undefined, Maybe(..))
 import qualified Prelude as P

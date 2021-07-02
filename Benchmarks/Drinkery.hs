@@ -3,7 +3,7 @@
 
 module Benchmarks.Drinkery where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue)
 import Control.Monad (void)
 import Prelude

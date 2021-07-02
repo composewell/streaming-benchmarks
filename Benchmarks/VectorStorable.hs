@@ -11,7 +11,7 @@
 
 module Benchmarks.VectorStorable where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 #include "VectorCommon.hs"
 
 main :: P.IO ()

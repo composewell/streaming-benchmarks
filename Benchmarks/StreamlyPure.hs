@@ -12,7 +12,7 @@
 
 module Benchmarks.StreamlyPure where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Functor.Identity (Identity, runIdentity)
 import Prelude

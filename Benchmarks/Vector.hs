@@ -11,7 +11,7 @@
 
 module Benchmarks.Vector where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 #define VECTOR_BOXED
 #include "VectorCommon.hs"
 

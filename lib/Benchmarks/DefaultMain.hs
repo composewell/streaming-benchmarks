@@ -7,7 +7,7 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module Benchmarks (defaultMain) where
+module Benchmarks.DefaultMain (defaultMain) where
 
 import Data.List ((\\))
 import Data.Maybe (catMaybes)

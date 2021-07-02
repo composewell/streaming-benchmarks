@@ -10,7 +10,7 @@
 
 module Benchmarks.Pipes where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Void (Void)
 import Prelude

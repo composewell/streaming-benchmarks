@@ -10,7 +10,7 @@
 
 module Benchmarks.Streaming where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Control.DeepSeq (NFData)
 import Prelude

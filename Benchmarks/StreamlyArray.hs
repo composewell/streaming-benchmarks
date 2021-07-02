@@ -16,7 +16,7 @@ import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
                 maxBound, Maybe(..))
 import qualified Prelude as P
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue) -- , appendValue)
 
 import qualified Streamly.Prelude  as S

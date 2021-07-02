@@ -62,8 +62,9 @@ common lib-options
     -Wincomplete-uni-patterns
     -Wredundant-constraints
     -Wnoncanonical-monad-instances
+    -Rghc-timing
+    +RTS -M512M -RTS
     -O2
-    -with-rtsopts "-T"
   build-depends:
     base                == 4.*,
     deepseq             >= 1.4.0 && < 1.5,
@@ -75,6 +76,8 @@ common lib-options
 
 common bench-options
   import: lib-options
+  ghc-options:
+    -with-rtsopts "-T"
   build-depends: streaming-benchmarks
 
 common streamly-options
@@ -92,11 +95,12 @@ common streamly-options
 
 library
     import: lib-options
+    hs-source-dirs: lib
     exposed-modules:
           Benchmarks.Common
         , Benchmarks.BenchTH
         , Benchmarks.BenchmarkTH
-        , Benchmarks
+        , Benchmarks.DefaultMain
 
 -- Streams
 benchmark Streamly
@@ -159,19 +163,21 @@ benchmark Drinkery
   ghc-options: -main-is Benchmarks.Drinkery
   build-depends: drinkery >= 0.3 && < 0.5
 
-benchmark SimpleConduit
-  import: bench-options
-  type: exitcode-stdio-1.0
-  main-is: Benchmarks/SimpleConduit.hs
-  ghc-options: -main-is Benchmarks.SimpleConduit
-  build-depends: simple-conduit >= 0.6 && < 0.7
+-- benchmark SimpleConduit
+--   import: bench-options
+--   type: exitcode-stdio-1.0
+--   main-is: Benchmarks/SimpleConduit.hs
+--   ghc-options: -main-is Benchmarks.SimpleConduit
+--   build-depends: simple-conduit >= 0.6 && < 0.7
 
 -- Arrays
 benchmark StreamlyArray
   import: streamly-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/StreamlyArray.hs
-  ghc-options: -main-is Benchmarks.StreamlyArray
+  ghc-options:
+    -main-is Benchmarks.StreamlyArray
+    +RTS -M1500M -RTS
 
 benchmark Sequence
   import: bench-options

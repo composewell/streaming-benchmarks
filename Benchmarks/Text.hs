@@ -10,7 +10,7 @@
 
 module Benchmarks.Text where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 -- import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude (Int, (+), ($), (.), even, (>), (<=), undefined,
                 Maybe(..), Char)

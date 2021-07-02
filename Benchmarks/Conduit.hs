@@ -9,7 +9,7 @@
 
 module Benchmarks.Conduit where
 
-import Benchmarks (defaultMain)
+import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
        (Monad, Int, (+), ($), return, even, (>), (<=),
