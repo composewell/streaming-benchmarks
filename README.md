@@ -9,6 +9,10 @@ This package allows you to measure the performance of various streaming
 implementations in Haskell using micro-benchmarks and compare any two or
 more of those.
 
+We have taken due to care to make sure that we are
+benchmarking correctly and fairly. See [the notes on correct
+benchmarking](docs/benchmarking-notes.md).
+
 DISCLAIMER: This package is a result of benchmarking effort done during the
 development of [streamly](https://github.com/composewell/streamly) by the
 authors of [streamly](https://github.com/composewell/streamly).
@@ -74,14 +78,14 @@ $ nix-shell bench-report.nix --run "cabal install --flag dev --installdir charts
 
 ### Streamly vs Haskell Lists
 
-Haskell lists (in the `base` package) are a special case of streamly
-when the latter is used with `Identity` monad.
+Streamly, when used with `Identity` monad, is almost the same as Haskell lists
+(in the `base` package).
 [See this](https://github.com/composewell/streamly/blob/master/docs/streamly-vs-lists.md)
 for more details.
 
 The following table compares the timing of several operations for
 [streamly](https://github.com/composewell/streamly)
-with lists using a million element stream.  For brevity only
+with lists using a one million element stream.  For brevity only
 those operations where the performance of the two packages differ by
 more than 10% are shown in the table below.
 
