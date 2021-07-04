@@ -41,11 +41,6 @@ source-repository head
   type: git
   location: git://github.com/composewell/streaming-benchmarks.git
 
-flag dev
-  description: Development build
-  manual: True
-  default: False
-
 flag no-fusion-plugin
   description: Disable fusion plugin for streamly benchmarks
   manual: True
@@ -77,6 +72,7 @@ common lib-options
 common bench-options
   import: lib-options
   ghc-options:
+    -rtsopts
     -with-rtsopts "-T"
   build-depends: streaming-benchmarks
 
@@ -234,27 +230,3 @@ benchmark VectorStorable
   main-is: Benchmarks/VectorStorable.hs
   ghc-options: -main-is Benchmarks.VectorStorable
   build-depends: vector >= 0.12 && < 0.13
-
-executable bench-report
-  default-language: Haskell2010
-  default-extensions: OverloadedStrings
-  hs-source-dirs:   .
-  main-is: Charts.hs
-  ghc-options: -Wall
-  if flag(dev)
-    buildable: True
-    build-depends:
-        base              == 4.*
-      , bench-show        >= 0.3.0   && < 0.4
-      , bytestring        >= 0.9     && < 0.12
-      , Chart             >= 1.6     && < 2
-      , Chart-diagrams    >= 1.6     && < 2
-      , csv               >= 0.1     && < 0.2
-      , directory         >= 1.2     && < 1.4
-      , split             >= 0.2     && < 0.3
-      , text              >= 1.1.1   && < 1.3
-      , transformers      >= 0.4     && < 0.6
-      , typed-process     >= 0.1.0.0 && < 0.3
-      , getopt-generics   >= 0.11    && < 0.14
-  else
-    buildable: False

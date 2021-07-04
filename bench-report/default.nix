@@ -26,7 +26,7 @@ let haskellPackages =
             overrides = self: super:
                 with nixpkgs.haskell.lib;
                 {
-                    streaming-benchmarks = mkPackage super "streaming-benchmarks" ./. "--flag dev" inShell;
+                    bench-report = mkPackage super "bench-report" ./. "" inShell;
                 };
         };
 
@@ -34,7 +34,7 @@ let haskellPackages =
 
     shell = drv.shellFor {
         packages = p:
-          [ p.streaming-benchmarks
+          [ p.bench-report
           ];
         # Use a better prompt
         shellHook = ''
@@ -47,4 +47,4 @@ let haskellPackages =
     };
 in if nixpkgs.lib.inNixShell
    then shell
-   else (mkHaskellPackages false).streaming-benchmarks
+   else (mkHaskellPackages false).bench-report
