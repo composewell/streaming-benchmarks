@@ -287,6 +287,15 @@ $ ./bench.sh --benchmarks "streamly,conduit" --measure
 $ ./bench.sh --benchmarks "streamly,conduit" --diff multiples
 ```
 
+## Stack and heap utilization
+
+To report heap utilization by individual benchmarks you can include
+`maxrss` in the `--fields` option.
+
+To know about stack and heap utilization by the libraries you can also take a
+look at the RTS heap and stack limits used to run the benchmarks of various
+libraries in [bench-config.sh](bin/bench-config.sh).
+
 ## Comparing other libraries
 
 This package supports many streaming libraries. Use the following command to
