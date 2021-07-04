@@ -65,14 +65,14 @@ only ghc-8.8.4 or lower. However, after building this tool you can run
 the benchmarks with any GHC version.
 
 ```
-$ cabal install --flag dev --installdir charts --with-compiler ghc-8.8.4 bench-report
+$ bin/bench.sh --with-compiler ghc-8.8.4 --no-measure
 ```
 
-Nix users can use bench-report.nix. It uses an older version of nixpkgs that
-contains the required dependencies:
+Nix users can use `--use-nix` option. It uses an older version of
+nixpkgs that contains the required dependencies. For example:
 
 ```
-$ nix-shell bench-report.nix --run "cabal install --flag dev --installdir charts bench-report"
+$ bin/bench.sh --use-nix --quick
 ```
 
 ### Streamly vs Haskell Lists
@@ -86,7 +86,8 @@ The following table compares the timing of several operations for
 [streamly](https://github.com/composewell/streamly)
 with lists using a one million element stream.  For brevity only
 those operations where the performance of the two packages differ by
-more than 10% are shown in the table below.
+more than 10% are shown in the table below. The last column shows how
+many times slower list is compared to streamly.
 
 | Benchmark           | streamly(μs) |  list(μs)  | list/streamly |
 | ------------------- | ------------ | ---------- | ------------- |
@@ -115,8 +116,8 @@ more than 10% are shown in the table below.
 To reproduce these results use the following commands:
 
 ```
-$ ./bench.sh --benchmarks "pure-streamly,list" --measure
-$ ./bench.sh --benchmarks "pure-streamly,list" --diff multiples
+$ bin/bench.sh --benchmarks "StreamlyPure List" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "StreamlyPure List" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
 ```
 
 ### Streamly vs Streaming
@@ -171,8 +172,8 @@ million element stream.
 To reproduce these results use the following commands:
 
 ```
-$ ./bench.sh --benchmarks "streamly,streaming" --measure
-$ ./bench.sh --benchmarks "streamly,streaming" --diff multiples
+$ bin/bench.sh --benchmarks "Streamly Streaming" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "Streamly Streaming" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
 ```
 
 ### Streamly vs Pipes
@@ -227,8 +228,8 @@ million element stream.
 To reproduce these results use the following commands:
 
 ```
-$ ./bench.sh --benchmarks "streamly,pipes" --measure
-$ ./bench.sh --benchmarks "streamly,pipes" --diff multiples
+$ bin/bench.sh --benchmarks "Streamly Pipes" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "Streamly Pipes" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
 ```
 
 ### Streamly vs Conduit
@@ -283,8 +284,8 @@ million element stream.
 To reproduce these results use the following commands:
 
 ```
-$ ./bench.sh --benchmarks "streamly,conduit" --measure
-$ ./bench.sh --benchmarks "streamly,conduit" --diff multiples
+$ bin/bench.sh --benchmarks "Streamly Conduit" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "Streamly Conduit" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
 ```
 
 ## Stack and heap utilization
@@ -313,7 +314,7 @@ $ ./bench.sh --benchmarks "streaming,pipes" --measure
 
 ## Adding New Libraries
 
-It is trivial to add a new package. This is how 
+It is trivial to add a new package. This is how
 [a benchmark file](https://github.com/composewell/streaming-benchmarks/blob/master/Benchmarks/Streamly.hs)
 for a streaming package looks like. Pull requests are welcome, we will be happy
 to help, [just join the gitter chat](https://gitter.im/composewell/streamly)
