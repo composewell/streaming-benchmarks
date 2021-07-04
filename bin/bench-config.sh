@@ -39,27 +39,31 @@ bench_rts_options () {
   exe_name="$1"
   bench_name="$2"
 
-  # Based on benchmark class
+  # All benchmarks
   case "$bench_name" in
     *) echo -n "-K36K -M16M" ;;
   esac
 
-  echo " "
+  echo -n " "
 
+  case "$exe_name" in
+    Conduit) echo -n "-M256M" ;;
+    Machines) echo -n "-K16M -M256M" ;;
+    Drinkery) echo -n "-K256M -M128M" ;;
+    Pipes) echo -n "-K1M -M64M" ;;
+    Streaming) echo -n "-K256K" ;;
+    VectorStreams) echo -n "-K256K -M256M" ;;
+    *) echo -n "" ;;
+  esac
+
+  echo -n " "
   # Based on specific benchmark
   # XXX Note: for tasty-bench we replace the "." separator in the
   # benchmark names with "/" for matching with this. It may not work
   # reliably if the benchmark name already contains ".".
   case "$bench_name" in
-    ByteStringLazy/iterated/*) echo -n "-K4M" ;;
-    */toList) echo -n "-M64M" ;;
-    *) echo -n "" ;;
-  esac
-
-  echo " "
-  case "$exe_name" in
-    Conduit) echo -n "-M256M" ;;
-    Drinkery) echo -n "-K256M -M128M" ;;
+    */iterated/*) echo -n "-K4M" ;;
+    */toList) echo -n "-K16M -M64M" ;;
     *) echo -n "" ;;
   esac
 }
