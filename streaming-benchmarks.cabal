@@ -50,6 +50,11 @@ flag no-fusion-plugin
   manual: True
   default: False
 
+flag use-gauge
+  description: Use gauge instead of tasty-bench for benchmarking
+  manual: True
+  default: False
+
 common lib-options
   default-language: Haskell2010
   ghc-options:
@@ -67,11 +72,19 @@ common lib-options
   build-depends:
     base                == 4.*,
     deepseq             >= 1.4.0 && < 1.5,
-    gauge               >= 0.2.3 && < 0.3,
     mtl                 >= 2     && < 2.3,
     random              >= 1.0   && < 2.0,
     transformers        >= 0.4   && < 0.6,
-    template-haskell    >= 2.10  && < 2.18,
+    template-haskell    >= 2.10  && < 2.18
+  if flag(use-gauge)
+    build-depends:  gauge >= 0.2.4 && < 0.3
+  else
+    build-depends:    tasty-bench >= 0.2.5 && < 0.3
+                    , tasty     >= 1.4.1
+    mixins: tasty-bench
+      (Test.Tasty.Bench as Gauge
+      , Test.Tasty.Bench as Gauge.Main
+      )
 
 common bench-options
   import: lib-options
