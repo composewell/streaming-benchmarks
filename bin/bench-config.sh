@@ -6,7 +6,7 @@ bench_config () {
   BENCHMARK_PACKAGE_NAME=streaming-benchmarks
   BENCHMARK_PACKAGE_VERSION=0.3.0
 
-  USE_GAUGE=1
+  USE_GAUGE=0
   DEFAULT_FIELDS="allocated cputime"
 }
 
@@ -63,7 +63,7 @@ bench_rts_options () {
   # reliably if the benchmark name already contains ".".
   case "$bench_name" in
     */iterated/*) echo -n "-K4M" ;;
-    */toList) echo -n "-K16M -M64M" ;;
+    */toList) echo -n "-K16M -M128M" ;;
     *) echo -n "" ;;
   esac
 }
