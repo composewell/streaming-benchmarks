@@ -117,7 +117,7 @@ To reproduce these results use the following commands:
 
 ```
 $ bin/bench.sh --benchmarks "StreamlyPure List" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "StreamlyPure List" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "StreamlyPure List" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
 ```
 
 ### Streamly vs Streaming
@@ -173,7 +173,7 @@ To reproduce these results use the following commands:
 
 ```
 $ bin/bench.sh --benchmarks "Streamly Streaming" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "Streamly Streaming" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "Streamly Streaming" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
 ```
 
 ### Streamly vs Pipes
@@ -229,7 +229,7 @@ To reproduce these results use the following commands:
 
 ```
 $ bin/bench.sh --benchmarks "Streamly Pipes" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "Streamly Pipes" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "Streamly Pipes" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
 ```
 
 ### Streamly vs Conduit
@@ -285,7 +285,7 @@ To reproduce these results use the following commands:
 
 ```
 $ bin/bench.sh --benchmarks "Streamly Conduit" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "Streamly Conduit" --compare --diff-style multiples --diff-cutoff-percent 10 --quick
+$ bin/bench.sh --benchmarks "Streamly Conduit" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
 ```
 
 ## Stack and heap utilization
