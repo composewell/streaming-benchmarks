@@ -43,7 +43,7 @@ extra-doc-files:
 
 source-repository head
   type: git
-  location: git://github.com/composewell/streaming-benchmarks.git
+  location: https://github.com/composewell/streaming-benchmarks
 
 flag no-fusion-plugin
   description: Disable fusion plugin for streamly benchmarks
