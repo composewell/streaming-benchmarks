@@ -26,7 +26,7 @@ almost = Exclude ["DList", "Sequence"]
 
 defaultMain :: String -> Q Exp
 defaultMain name = [| do
-  Gauge.defaultMain [ bgroup name $ catMaybes
+  Gauge.defaultMain [ bgroup (name ++ "/benchmarks") $ catMaybes
     [ Just $ bgroup "elimination" $ catMaybes
       [ $(createBgroupSink all name "drain" "toNull")
       , $(createBgroupSink (Exclude ["List"]) name "toList" "toList")
