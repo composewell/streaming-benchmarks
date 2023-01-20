@@ -55,6 +55,31 @@ flag use-gauge
   manual: True
   default: False
 
+flag drinkery
+  description: Use drinkery
+  manual: True
+  default: False
+
+flag conduit
+  description: Use conduit
+  manual: True
+  default: False
+
+flag pipes
+  description: Use pipes
+  manual: True
+  default: False
+
+flag machines
+  description: Use machines
+  manual: True
+  default: False
+
+flag streaming
+  description: Use streaming
+  manual: True
+  default: False
+
 common lib-options
   default-language: Haskell2010
   ghc-options:
@@ -146,35 +171,50 @@ benchmark Streaming
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Streaming.hs
   ghc-options: -main-is Benchmarks.Streaming
-  build-depends: streaming >= 0.1.4 && < 0.3
+  if flag(streaming)
+    build-depends: streaming >= 0.1.4 && < 0.3
+  else
+    buildable: False
 
 benchmark Machines
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Machines.hs
   ghc-options: -main-is Benchmarks.Machines
-  build-depends: machines >= 0.6.0 && < 0.8
+  if flag(machines)
+    build-depends: machines >= 0.6.0 && < 0.8
+  else
+    buildable: False
 
 benchmark Pipes
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Pipes.hs
   ghc-options: -main-is Benchmarks.Pipes
-  build-depends: pipes >= 4 && < 4.4
+  if flag(pipes)
+    build-depends: pipes >= 4 && < 4.4
+  else
+    buildable: False
 
 benchmark Conduit
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Conduit.hs
   ghc-options: -main-is Benchmarks.Conduit
-  build-depends: conduit >= 1.3 && < 1.4
+  if flag(conduit)
+    build-depends: conduit >= 1.3 && < 1.4
+  else
+    buildable: False
 
 benchmark Drinkery
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Drinkery.hs
   ghc-options: -main-is Benchmarks.Drinkery
-  build-depends: drinkery >= 0.3 && < 0.5
+  if flag(drinkery)
+    build-depends: drinkery >= 0.3 && < 0.5
+  else
+    buildable: False
 
 -- benchmark SimpleConduit
 --   import: bench-options
