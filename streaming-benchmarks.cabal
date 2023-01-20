@@ -31,12 +31,9 @@ extra-source-files:
   Benchmarks/VectorCommon.hs
   Changelog.md
   README.md
-  bench-report/bench-report.cabal
-  bench-report/BenchReport.hs
-  bench-report/bin/bench-runner.sh
-  bench-report/bin/build-lib.sh
-  bin/bench.sh
-  bin/bench-config.sh
+  bench-runner/Main.hs
+  bench-runner/bench-runner.cabal
+  bench-runner/cabal.project.user
 
 extra-doc-files:
   docs/benchmarking-notes.md

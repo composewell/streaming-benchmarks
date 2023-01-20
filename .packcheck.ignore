@@ -1,8 +1,5 @@
 .github/workflows/build.yml
 .packcheck.ignore
-bench-report/README.md
-bench-report/cabal.project
-bench-report/default.nix
 Benchmarks/ListT.hs
 Benchmarks/ListTransformer.hs
 Benchmarks/LogicT.hs
