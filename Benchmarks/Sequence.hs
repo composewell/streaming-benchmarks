@@ -161,14 +161,11 @@ iterateSource g i n = f i (sourceN iterStreamLen n)
 iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Int
 
--- this is quadratic
 iterateScan  = undefined
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhileL (> maxValue)) (maxIters `P.div` 100) n
-
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileFalse n = iterateSource (S.dropWhileL (> maxValue)) maxIters n
 iterateDropWhileTrue n = iterateSource (S.dropWhileL (<= maxValue)) maxIters n
 
 -------------------------------------------------------------------------------

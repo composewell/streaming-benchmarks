@@ -114,7 +114,6 @@ composeN n f =
         4 -> transform . f . f . f . f
         _ -> undefined
 
-{-# INLINE scan #-}
 {-# INLINE map #-}
 {-# INLINE mapM #-}
 {-# INLINE filterEven #-}
@@ -127,7 +126,7 @@ composeN n f =
 {-# INLINE dropAll #-}
 {-# INLINE dropWhileTrue #-}
 {-# INLINE dropWhileFalse #-}
-scan, map, mapM,
+map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
@@ -135,8 +134,11 @@ scan, map, mapM,
 
 -- XXX there is no scanl'
 -- XXX All scan ops hang for lazy bytestring, disabled for now
--- scan           n = composeN n $ S.scanl (+) 0
-scan           n = composeN n $ id
+{-
+{-# INLINE scan #-}
+scan :: Int -> Stream Int -> ()
+scan           n = composeN n $ S.scanl (+) 0
+-}
 map            n = composeN n $ S.map (+1)
 mapM             = map
 filterEven     n = composeN n $ S.filter even
@@ -168,56 +170,59 @@ iterateSource g i n = f i (sourceN iterStreamLen n)
         f (0 :: Int) m = g m
         f x m = g (f (x P.- 1) m)
 
-{-# INLINE iterateScan #-}
 {-# INLINE iterateFilterEven #-}
 {-# INLINE iterateTakeAll #-}
 {-# INLINE iterateDropOne #-}
 {-# INLINE iterateDropWhileFalse #-}
 {-# INLINE iterateDropWhileTrue #-}
-iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
+iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Element
 
 -- this is quadratic
 -- XXX using scanl instead of scanl'
 -- XXX All scan ops hang for lazy bytestring, disabled for now
-iterateScan n = iterateSource id (maxIters `P.div` 100) n
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhile (> maxElem)) (maxIters `P.div` 100) n
-
+{-
+-- Scan increases the size of the stream by 1, drop 1 to not blow up the size
+-- due to many iterations.
+{-# INLINE iterateScan #-}
+iterateScan :: Int -> Stream Element
+iterateScan n = iterateSource (error "hangs") maxIters n
+-}
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take nElements) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxElem)) maxIters n
 iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxElem)) maxIters n
 
 -------------------------------------------------------------------------------
 -- Mixed Composition
 -------------------------------------------------------------------------------
 
-{-# INLINE scanMap #-}
 {-# INLINE dropMap #-}
-{-# INLINE dropScan #-}
 {-# INLINE takeDrop #-}
-{-# INLINE takeScan #-}
 {-# INLINE takeMap #-}
 {-# INLINE filterDrop #-}
 {-# INLINE filterTake #-}
-{-# INLINE filterScan #-}
 {-# INLINE filterMap #-}
-scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
-    filterTake, filterScan, filterMap
+dropMap, takeDrop, takeMap, filterDrop,
+    filterTake, filterMap
     :: Int -> Stream Element -> ()
 
 -- XXX using scanl instead of scanl'
 -- XXX All scan ops hang for lazy bytestring, disabled for now
-scanMap    n = composeN n $ id
+-- {-# INLINE scanMap #-}
+-- scanMap    n = composeN n $ id
 dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
-dropScan   n = composeN n $ id
+-- {-# INLINE dropScan #-}
+-- dropScan   n = composeN n $ id
 takeDrop   n = composeN n $ S.drop 1 . S.take nElements
-takeScan   n = composeN n $ id
+-- {-# INLINE takeScan #-}
+-- takeScan   n = composeN n $ id
 takeMap    n = composeN n $ S.map (subtract 1) . S.take nElements
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxElem)
 filterTake n = composeN n $ S.take nElements . S.filter (<= maxElem)
-filterScan n = composeN n $ id
+-- {-# INLINE filterScan #-}
+-- filterScan n = composeN n $ id
 filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxElem)
 
 -------------------------------------------------------------------------------

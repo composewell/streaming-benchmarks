@@ -123,8 +123,8 @@ common streamly-options
     -fmax-worker-args=16
   if !flag(no-fusion-plugin)
       ghc-options: -fplugin Fusion.Plugin
-  build-depends: streaming-benchmarks
-  build-depends: streamly >= 0.8.0 && < 0.9
+  build-depends:
+      streamly-core >= 0.1.0 && < 0.2
   if !flag(no-fusion-plugin)
     build-depends: fusion-plugin >= 0.2 && < 0.3
 

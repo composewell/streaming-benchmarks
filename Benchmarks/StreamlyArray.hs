@@ -168,15 +168,14 @@ iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue ::
         S.MonadAsync m => Int -> m (Stream Int)
 
--- this is quadratic
-iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `P.div` 100) n
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhile (> maxValue)) (maxIters `P.div` 100) n
-
+-- Scan increases the size of the stream by 1, drop 1 to not blow up the size
+-- due to many iterations.
+iterateScan n = iterateSource (S.drop 1 . S.scanl' (+) 0) maxIters n
 iterateMapM n = iterateSource (S.mapM P.return) maxIters n
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxValue)) maxIters n
 iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 
 -------------------------------------------------------------------------------

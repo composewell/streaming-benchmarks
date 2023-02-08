@@ -17,20 +17,25 @@ import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Functor.Identity (Identity, runIdentity)
 import Prelude
        (Int, (+), ($), (.), even, (>), (<=),
-        subtract, undefined, Maybe(..), foldMap, maxBound)
+        subtract, undefined, Maybe(..), foldMap, maxBound, fmap)
 import qualified Prelude as P
 
-import qualified Streamly.Prelude  as S
+import qualified Streamly.Data.Fold as Fold
+import qualified Streamly.Data.Stream as S
+import qualified Streamly.Data.StreamK as K
 
 -------------------------------------------------------------------------------
 -- Stream generation
 -------------------------------------------------------------------------------
 
-type Stream = S.SerialT Identity
+type Stream = S.Stream Identity
+type StreamK = K.StreamK Identity
+
+maxElem :: Int
+maxElem = maxBound
 
 {-# INLINE source #-}
 source :: Int -> Stream Int
-
 source n = S.unfoldr step n
     where
     step cnt =
@@ -39,8 +44,8 @@ source n = S.unfoldr step n
         else (Just (cnt, cnt + 1))
 
 {-# INLINE sourceN #-}
-sourceN :: Int -> Int -> Stream Int
-sourceN count begin = S.unfoldr step begin
+sourceN :: Int -> Int -> StreamK Int
+sourceN count begin = K.fromStream $ S.unfoldr step begin
     where
     step i =
         if i > begin + count
@@ -53,11 +58,12 @@ sourceN count begin = S.unfoldr step begin
 
 {-# INLINE appendSourceR #-}
 appendSourceR :: Int -> Stream Int
-appendSourceR n = foldMap S.fromPure [n..n+appendValue]
+appendSourceR n = K.toStream $ foldMap K.fromPure [n..n+appendValue]
 
 {-# INLINE appendSourceL #-}
 appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (P.<>) S.nil (P.map S.fromPure [n..n+appendValue])
+appendSourceL n =
+    K.toStream $ P.foldl (P.<>) K.nil (P.map K.fromPure [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -84,12 +90,12 @@ toList :: Stream Int -> ()
 toList = evalF . runIdentity . S.toList
 
 {-# INLINE foldl #-}
-foldl  :: Stream Int -> Int
-foldl  = runIdentity . S.foldl' (+) 0
+foldl :: Stream Int -> Int
+foldl = runIdentity . S.fold (Fold.foldl' (+) 0)
 
 {-# INLINE last #-}
-last   :: Stream Int -> Maybe Int
-last   = runIdentity . S.last
+last :: Stream Int -> Maybe Int
+last = runIdentity . S.fold Fold.latest
 
 -------------------------------------------------------------------------------
 -- Transformation
@@ -129,8 +135,8 @@ scan, map, mapM,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
     :: Int -> Stream Int -> ()
 
-scan           n = composeN n $ S.scanl' (+) 0
-map            n = composeN n $ S.map (+1)
+scan           n = composeN n $ S.scan (Fold.foldl' (+) 0)
+map            n = composeN n $ fmap (+1)
 mapM             = map
 filterEven     n = composeN n $ S.filter even
 filterAllOut   n = composeN n $ S.filter (> maxValue)
@@ -152,30 +158,44 @@ iterStreamLen = 10
 maxIters = 100000
 
 {-# INLINE iterateSource #-}
-iterateSource :: (Stream Int -> Stream Int) -> Int -> Int -> Stream Int
+iterateSource
+    :: (StreamK Int -> StreamK Int)
+    -> Int
+    -> Int
+    -> StreamK Int
 iterateSource g i n = f i (sourceN iterStreamLen n)
-    where
-        f (0 :: Int) m = g m
-        f x m = g (f (x P.- 1) m)
 
-{-# INLINE iterateScan #-}
-{-# INLINE iterateFilterEven #-}
-{-# INLINE iterateTakeAll #-}
-{-# INLINE iterateDropOne #-}
-{-# INLINE iterateDropWhileFalse #-}
-{-# INLINE iterateDropWhileTrue #-}
-iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
+    where
+
+    f (0 :: Int) m = g m
+    f x m = g (f (x P.- 1) m)
+
+iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Int
 
--- this is quadratic
-iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `P.div` 100) n
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhile (> maxValue)) (maxIters `P.div` 100) n
+-- Scan increases the size of the stream by 1, drop 1 to not blow up the size
+-- due to many iterations.
+iterateScan n = K.toStream $ iterateSource (K.fromStream . S.drop 1 . S.scan (Fold.foldl' (+) 0) . K.toStream) (maxIters `P.div` 100) n
+-- iterateScan n = K.toStream $ iterateSource (K.scanl' (+) 0) (maxIters `div` 100) n
 
-iterateFilterEven n = iterateSource (S.filter even) maxIters n
-iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
-iterateDropOne n = iterateSource (S.drop 1) maxIters n
-iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
+-- iterateMapM n = K.toStream $ iterateSource (K.fromStream . S.mapM return . K.toStream) maxIters n
+iterateMapM n = K.toStream $ iterateSource (K.mapM P.return) maxIters n
+
+-- The D version is very slow, investigate why.
+-- iterateDropWhileFalse n = K.toStream $ iterateSource (K.fromStream . S.dropWhile (> maxElem) . K.toStream) maxIters n
+iterateDropWhileFalse n = K.toStream $ iterateSource (K.dropWhile (> maxElem)) maxIters n
+
+-- iterateTakeAll n = K.toStream $ iterateSource (K.fromStream . S.take maxValue . K.toStream) maxIters n
+iterateTakeAll n = K.toStream $ iterateSource (K.take maxValue) maxIters n
+
+iterateFilterEven n = K.toStream $ iterateSource (K.fromStream . S.filter even . K.toStream) maxIters n
+-- iterateFilterEven n = K.toStream $ iterateSource (K.filter even) maxIters n
+
+iterateDropOne n = K.toStream $ iterateSource (K.fromStream . S.drop 1 . K.toStream) maxIters n
+-- iterateDropOne n = K.toStream $ iterateSource (K.drop 1) maxIters n
+
+-- iterateDropWhileTrue n = K.toStream $ iterateSource (K.fromStream . S.dropWhile (<= maxElem) . K.toStream) maxIters n
+iterateDropWhileTrue n = K.toStream $ iterateSource (K.dropWhile (<= maxElem)) maxIters n
 
 -------------------------------------------------------------------------------
 -- Mixed Composition
@@ -195,16 +215,16 @@ scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
     :: Int -> Stream Int -> ()
 
-scanMap    n = composeN n $ S.map (subtract 1) . S.scanl' (+) 0
-dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
-dropScan   n = composeN n $ S.scanl' (+) 0 . S.drop 1
+scanMap    n = composeN n $ fmap (subtract 1) . S.scan (Fold.foldl' (+) 0)
+dropMap    n = composeN n $ fmap (subtract 1) . S.drop 1
+dropScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.drop 1
 takeDrop   n = composeN n $ S.drop 1 . S.take maxValue
-takeScan   n = composeN n $ S.scanl' (+) 0 . S.take maxValue
-takeMap    n = composeN n $ S.map (subtract 1) . S.take maxValue
+takeScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.take maxValue
+takeMap    n = composeN n $ fmap (subtract 1) . S.take maxValue
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxValue)
 filterTake n = composeN n $ S.take maxValue . S.filter (<= maxValue)
-filterScan n = composeN n $ S.scanl' (+) 0 . S.filter (<= maxBound)
-filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
+filterScan n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.filter (<= maxBound)
+filterMap  n = composeN n $ fmap (subtract 1) . S.filter (<= maxValue)
 
 -------------------------------------------------------------------------------
 -- Zipping and concat

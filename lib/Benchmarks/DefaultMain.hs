@@ -22,7 +22,7 @@ import Prelude hiding (all)
 all, most, almost :: Select
 all = Exclude []
 most = Exclude ["DList"]
-almost = Exclude ["DList", "Sequence"]
+almost = Exclude ["DList", "Sequence", "ByteStringLazy"]
 
 defaultMain :: String -> Q Exp
 defaultMain name = [| do
@@ -112,6 +112,8 @@ defaultMain name = [| do
         , "Text"
         ]) name "concatMapFoldable" "concatMapFoldable")
 
+    -- XXX The rest are StreamK operations, use a separate bench group/suite
+    -- for these?
     , $(createBgroupSrc (Exclude
         [ "Drinkery"
         , "StreamlyArray"
@@ -126,7 +128,7 @@ defaultMain name = [| do
     , Just $ bgroup "iterated" $ catMaybes
       [ $(createBgroupSrc (Include (iterMods \\ pureMods)) name
             "mapM" "iterateMapM")
-      , $(createBgroupSrc (Include (iterMods \\ ["Sequence"])) name
+      , $(createBgroupSrc (Include (iterMods \\ ["Sequence", "ByteStringLazy"])) name
             "scan" "iterateScan")
       , $(createBgroupSrc (Include iterMods) name
             "filterEven" "iterateFilterEven")

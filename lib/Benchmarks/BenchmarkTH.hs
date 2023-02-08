@@ -31,6 +31,7 @@ iterMods = allMods \\
     , "Pipes"
     , "Conduit"
     , "Drinkery"
+    , "VectorStreams"
     ]
 
 data Select = Exclude [String] | Include [String] deriving Lift
