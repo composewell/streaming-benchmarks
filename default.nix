@@ -7,9 +7,10 @@
 
 {
   nixpkgs ?
-    import (builtins.fetchTarball https://github.com/NixOS/nixpkgs/archive/refs/tags/21.05.tar.gz)
+    import (builtins.fetchTarball
+      https://github.com/NixOS/nixpkgs/archive/refs/tags/22.05.tar.gz)
         {}
-, compiler ? "default"
+, compiler ? "ghc922"
 , c2nix ? "" # cabal2nix CLI options
 # TODO
 #, sources ? [] # e.g. [./. ./benchmark]
@@ -53,8 +54,8 @@ let haskellPackages =
                       nixpkgs.haskell.lib.overrideCabal
                         (super.callHackageDirect
                           { pkg = "streamly";
-                            ver = "0.8.0";
-                            sha256 = "0vy2lkljizlhpbpbybmg9jcmj2g4s1aaqd2dzy5c0y0n4rgwxask";
+                            ver = "0.8.3";
+                            sha256 = "sha256-A6/S/yvmOXVabVAR6x4a/XYszzeogSU4vOuyLLSGFvE=";
                           } {})
                         (old:
                           { librarySystemDepends =
@@ -65,12 +66,19 @@ let haskellPackages =
                             doHaddock = false;
                           });
 
-                    fusion-plugin =
+                    lockfree-queue =
                       super.callHackageDirect
-                        { pkg = "fusion-plugin";
-                          ver = "0.2.3";
-                          sha256 = "073wbhdxj1sh5160blaihbzkkhabs8s71pqhag16lvmgbb7a3hla";
+                        { pkg = "lockfree-queue";
+                          ver = "0.2.4";
+                          sha256 = "1bj9agy3x0yjbscpjgn96gpnj4lvkh39spjvy3jnrr3a42v3ynw7";
                         } {};
+
+                    #fusion-plugin =
+                    #  super.callHackageDirect
+                    #    { pkg = "fusion-plugin";
+                    #      ver = "0.2.3";
+                    #      sha256 = "073wbhdxj1sh5160blaihbzkkhabs8s71pqhag16lvmgbb7a3hla";
+                    #    } {};
                 };
         };
 
