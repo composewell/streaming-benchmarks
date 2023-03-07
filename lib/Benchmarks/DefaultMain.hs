@@ -114,11 +114,11 @@ defaultMain name = [| do
 
     -- XXX The rest are StreamK operations, use a separate bench group/suite
     -- for these?
-    , $(createBgroupSrc (Exclude
+    , $(createBgroupIO (Exclude
         [ "Drinkery"
         , "StreamlyArray"
         ]) name "appendR (1/100)" "appendSourceR")
-    , $(createBgroupSrc (Include
+    , $(createBgroupIO (Include
         [ "DList"
         , "Conduit"
         -- , "Streamly"

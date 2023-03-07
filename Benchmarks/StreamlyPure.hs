@@ -17,7 +17,7 @@ import Benchmarks.Common (value, maxValue, appendValue)
 import Data.Functor.Identity (Identity, runIdentity)
 import Prelude
        (Int, (+), ($), (.), even, (>), (<=),
-        subtract, undefined, Maybe(..), foldMap, maxBound, fmap)
+        subtract, undefined, Maybe(..), maxBound, fmap)
 import qualified Prelude as P
 
 import qualified Streamly.Data.Fold as Fold
@@ -57,13 +57,14 @@ sourceN count begin = K.fromStream $ S.unfoldr step begin
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream Int
-appendSourceR n = K.toStream $ foldMap K.fromPure [n..n+appendValue]
+appendSourceR :: Int -> Identity ()
+appendSourceR n =
+    K.drain $ P.foldr K.append K.nil (P.map K.fromPure [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream Int
+appendSourceL :: Int -> Identity ()
 appendSourceL n =
-    K.toStream $ P.foldl (P.<>) K.nil (P.map K.fromPure [n..n+appendValue])
+    K.drain $ P.foldl K.append K.nil (P.map K.fromPure [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

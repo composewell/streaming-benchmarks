@@ -56,13 +56,14 @@ sourceN count begin = let v = S.unfoldr step begin in v S.++ S.singleton (S.unsa
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream Int
+appendSourceR :: Int -> ()
 appendSourceR n =
-    P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+    toNull $ P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+appendSourceL :: Int -> ()
+appendSourceL n =
+    toNull $ P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

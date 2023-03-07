@@ -53,12 +53,14 @@ sourceIntFromThenTo n = P.enumFromThenTo n (n + 1) (n + value)
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream Int
-appendSourceR n = P.foldr (S.++) [] (P.map (: []) [n..n+appendValue])
+appendSourceR :: Int -> ()
+appendSourceR n =
+    toNull $ P.foldr (S.++) [] (P.map (: []) [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (S.++) [] (P.map (: []) [n..n+appendValue])
+appendSourceL :: Int -> ()
+appendSourceL n =
+    toNull $ P.foldl (S.++) [] (P.map (: []) [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

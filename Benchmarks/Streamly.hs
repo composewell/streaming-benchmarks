@@ -8,14 +8,15 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-identities #-}
 
 module Benchmarks.Streamly where
 
 import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
-       (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
-        subtract, undefined, Maybe(..), foldMap, maxBound, Applicative, fmap)
+       (Monad, Int, (+), ($), (.), return, even, (>), (<=),
+        subtract, undefined, Maybe(..), maxBound, fmap)
 import qualified Prelude as P
 
 import qualified Streamly.Data.Fold as Fold
@@ -79,14 +80,14 @@ sourceIntFromThenTo n =
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Applicative m => Int -> Stream m Element
+appendSourceR :: Int -> P.IO ()
 appendSourceR n =
-    K.toStream $ foldMap (K.fromPure . P.fromIntegral) [n..n+appendValue]
+    K.drain $ P.foldr K.append K.nil (P.map K.fromPure [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Applicative m => Int -> Stream m Element
+appendSourceL :: Int -> P.IO ()
 appendSourceL n =
-    K.toStream $ P.foldl (P.<>) K.nil (P.map (K.fromPure . P.fromIntegral) [n..n+appendValue])
+    K.drain $ P.foldl K.append K.nil (P.map K.fromPure [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

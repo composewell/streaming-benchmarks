@@ -62,12 +62,14 @@ sourceIntFromThenTo n = S.enumFromStepN n 1 value
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Monad m => Int -> Stream m Int
-appendSourceR n = P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+appendSourceR :: Int -> P.IO ()
+appendSourceR n =
+    toNull $ P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Monad m => Int -> Stream m Int
-appendSourceL n = P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+appendSourceL :: Int -> P.IO ()
+appendSourceL n =
+    toNull $ P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

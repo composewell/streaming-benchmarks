@@ -5,6 +5,7 @@ module Benchmarks.BenchmarkTH
     ( createBgroupSink
     , createBgroupSinkN
     , createBgroupSrc
+    , createBgroupIO
     , pureMods
     , monadicMods
     , allMods
@@ -78,3 +79,16 @@ createBgroupSrc select modName bname fname =
         if p modName mods
         then [| Nothing |]
         else [| Just $(mkBench fname "toNull" modName bname) |]
+
+createBgroupIO :: Select -> String -> String -> String -> Q Exp
+createBgroupIO select modName bname fname =
+    case select of
+        Exclude mods -> f elem mods
+        Include mods -> f notElem mods
+
+    where
+
+    f p mods =
+        if p modName mods
+        then [| Nothing |]
+        else [| Just $(mkBenchIO fname modName bname) |]

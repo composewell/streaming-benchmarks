@@ -42,13 +42,15 @@ source n = S.unfoldT step n
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Monad m => Int -> Source m Int
-appendSourceR n = foldMap (S.construct . S.yield) [n..n+appendValue]
+appendSourceR :: Int -> P.IO ()
+appendSourceR n =
+    toNull $ foldMap (S.construct . S.yield) [n..n+appendValue]
 
 -- XXX use S.prepended instead?
 {-# INLINE appendSourceL #-}
-appendSourceL :: Monad m => Int -> Source m Int
-appendSourceL n = P.foldl (<>) P.mempty (P.map (S.construct . S.yield) [n..n+appendValue])
+appendSourceL :: Int -> P.IO ()
+appendSourceL n =
+    toNull $ P.foldl (<>) P.mempty (P.map (S.construct . S.yield) [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

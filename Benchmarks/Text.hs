@@ -52,12 +52,14 @@ source = sourceN nElements
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream Element
-appendSourceR n = P.foldr (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
+appendSourceR :: Int -> ()
+appendSourceR n =
+    toNull $ P.foldr (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream Element
-appendSourceL n = P.foldl (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
+appendSourceL :: Int -> ()
+appendSourceL n =
+    toNull $ P.foldl (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
 
 -------------------------------------------------------------------------------
 -- Elimination
