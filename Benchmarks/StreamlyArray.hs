@@ -8,20 +8,26 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Benchmarks.StreamlyArray where
 
+import Control.DeepSeq (NFData(..))
 import Control.Monad.IO.Class (MonadIO(..))
 import Prelude (Int, (+), ($), (.), even, (>), (<=), subtract, undefined,
-                maxBound, Maybe(..))
+                maxBound, Maybe(..), fmap, div)
 import qualified Prelude as P
 
 import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue) -- , appendValue)
 
-import qualified Streamly.Prelude  as S
-import qualified Streamly.Data.Array.Foreign as A
-import qualified Streamly.Internal.Data.Fold as Fold
+import qualified Streamly.Data.Stream  as S
+import qualified Streamly.Data.Array as A
+import qualified Streamly.Data.Fold as Fold
+
+instance NFData (A.Array a) where
+    {-# INLINE rnf #-}
+    rnf _ = ()
 
 -------------------------------------------------------------------------------
 -- Stream generation and elimination
@@ -76,11 +82,11 @@ toList = P.return . A.toList
 
 {-# INLINE foldl #-}
 foldl :: MonadIO m => Stream Int -> m Int
-foldl = S.fold Fold.sum . S.unfold A.read
+foldl = S.fold Fold.sum . S.unfold A.reader
 
 {-# INLINE last #-}
 last :: P.Monad m => Stream Int -> m (Maybe Int)
-last arr = P.return (A.getIndex arr (A.length arr P.- 1))
+last arr = P.return (A.getIndex (A.length arr P.- 1) arr)
 
 -------------------------------------------------------------------------------
 -- Transformation
@@ -94,17 +100,17 @@ transform = eval
 
 {-# INLINE composeN #-}
 composeN
-    :: S.MonadAsync m
+    :: MonadIO m
     => Int
-    -> (S.SerialT m Int -> S.SerialT m Int)
+    -> (S.Stream m Int -> S.Stream m Int)
     -> Stream Int
     -> m (Stream Int)
 composeN n f x =
     case n of
-        1 -> S.fold A.write $ f $ S.unfold A.read x
-        2 -> S.fold A.write $ f . f $ S.unfold A.read x
-        3 -> S.fold A.write $ f . f . f $ S.unfold A.read x
-        4 -> S.fold A.write $ f . f . f . f $ S.unfold A.read x
+        1 -> S.fold A.write $ f $ S.unfold A.reader x
+        2 -> S.fold A.write $ f . f $ S.unfold A.reader x
+        3 -> S.fold A.write $ f . f . f $ S.unfold A.reader x
+        4 -> S.fold A.write $ f . f . f . f $ S.unfold A.reader x
         _ -> undefined
 
 {-# INLINE scan #-}
@@ -124,10 +130,10 @@ scan, map, mapM,
     filterEven, filterAllOut, filterAllIn,
     takeOne, takeAll, takeWhileTrue,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
-    :: S.MonadAsync m => Int -> Stream Int -> m (Stream Int)
+    :: MonadIO m => Int -> Stream Int -> m (Stream Int)
 
-scan           n = composeN n $ S.scanl' (+) 0
-map            n = composeN n $ S.map (+1)
+scan           n = composeN n $ S.scan (Fold.foldl' (+) 0)
+map            n = composeN n $ fmap (+1)
 mapM           n = composeN n $ S.mapM (\x -> P.return $ x + 1)
 filterEven     n = composeN n $ S.filter even
 filterAllOut   n = composeN n $ S.filter (> maxValue)
@@ -150,9 +156,9 @@ maxIters = 100000
 
 {-# INLINE iterateSource #-}
 iterateSource :: MonadIO m
-    => (S.SerialT m Int -> S.SerialT m Int) -> Int -> Int -> m (Stream Int)
+    => (S.Stream m Int -> S.Stream m Int) -> Int -> Int -> m (Stream Int)
 iterateSource g i n =
-    sourceN iterStreamLen n P.>>= \a -> S.fold A.write (f i $ S.unfold A.read a)
+    sourceN iterStreamLen n P.>>= \a -> S.fold A.write (f i $ S.unfold A.reader a)
     where
         f (0 :: Int) m = g m
         f x m = g (f (x P.- 1) m)
@@ -166,16 +172,16 @@ iterateSource g i n =
 {-# INLINE iterateDropWhileTrue #-}
 iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue ::
-        S.MonadAsync m => Int -> m (Stream Int)
+        MonadIO m => Int -> m (Stream Int)
 
 -- Scan increases the size of the stream by 1, drop 1 to not blow up the size
 -- due to many iterations.
-iterateScan n = iterateSource (S.drop 1 . S.scanl' (+) 0) maxIters n
+iterateScan n = iterateSource (S.drop 1 . S.scan (Fold.foldl' (+) 0)) (maxIters `div` 100) n
 iterateMapM n = iterateSource (S.mapM P.return) maxIters n
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n
-iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxValue)) maxIters n
+iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxValue)) (maxIters `div` 100) n
 iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 
 -------------------------------------------------------------------------------
@@ -194,18 +200,18 @@ iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 {-# INLINE filterMap #-}
 scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
-    :: S.MonadAsync m => Int -> Stream Int -> m (Stream Int)
+    :: MonadIO m => Int -> Stream Int -> m (Stream Int)
 
-scanMap    n = composeN n $ S.map (subtract 1) . S.scanl' (+) 0
-dropMap    n = composeN n $ S.map (subtract 1) . S.drop 1
-dropScan   n = composeN n $ S.scanl' (+) 0 . S.drop 1
+scanMap    n = composeN n $ fmap (subtract 1) . S.scan (Fold.foldl' (+) 0)
+dropMap    n = composeN n $ fmap (subtract 1) . S.drop 1
+dropScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.drop 1
 takeDrop   n = composeN n $ S.drop 1 . S.take maxValue
-takeScan   n = composeN n $ S.scanl' (+) 0 . S.take maxValue
-takeMap    n = composeN n $ S.map (subtract 1) . S.take maxValue
+takeScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.take maxValue
+takeMap    n = composeN n $ fmap (subtract 1) . S.take maxValue
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxValue)
 filterTake n = composeN n $ S.take maxValue . S.filter (<= maxValue)
-filterScan n = composeN n $ S.scanl' (+) 0 . S.filter (<= maxBound)
-filterMap  n = composeN n $ S.map (subtract 1) . S.filter (<= maxValue)
+filterScan n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.filter (<= maxBound)
+filterMap  n = composeN n $ fmap (subtract 1) . S.filter (<= maxValue)
 
 -------------------------------------------------------------------------------
 -- Zipping and concat
