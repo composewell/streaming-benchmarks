@@ -64,7 +64,7 @@ mkBench f x mdl bname =
             Nothing ->
                 if mdl == "StreamlyArray"
                 then
-                    [| benchIOArray "array-streamly"
+                    [| benchIOArray bname
                             $(varE (mkName f))
                             $(varE (mkName x))
                     |]
@@ -82,7 +82,7 @@ mkBenchN f x n mdl bname =
             Nothing ->
                 if mdl == "StreamlyArray"
                 then
-                    [| benchIOArray "array-streamly"
+                    [| benchIOArray bname
                             $(varE (mkName f))
                             ($(varE (mkName x)) n)
                     |]

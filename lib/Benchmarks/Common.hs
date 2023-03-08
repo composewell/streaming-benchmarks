@@ -40,5 +40,5 @@ benchPure name src f = bench name $ nfIO $ randomRIO (1,1) >>= return . f . src
 
 {-# INLINE benchIOArray #-}
 benchIOArray :: NFData b => String -> (Int -> IO a) -> (a -> IO b) -> Benchmark
-benchIOArray name src f = bench name $ nfIO $
-    randomRIO (1,1) >>= src >>= f
+benchIOArray name src f =
+    bench name $ nfIO $ randomRIO (1,1) >>= src >>= f
