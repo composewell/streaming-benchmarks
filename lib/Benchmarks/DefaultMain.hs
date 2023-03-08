@@ -115,27 +115,29 @@ defaultMain name = [| do
     , $(createBgroupSrc (Exclude
         [ "Drinkery"
         , "StreamlyArray"
-        ]) name "appendR[10000]" "appendSourceR")
+        ]) name "appendR (1/100)" "appendSourceR")
     , $(createBgroupSrc (Include
         [ "DList"
         , "Conduit"
-        ]) name "appendL[10000]" "appendSourceL")
+        -- , "Streamly"
+        -- , "StreamlyPure"
+        ]) name "appendL (1/100)" "appendSourceL")
       -- Perform 100,000 mapM recursively over a stream of length 10
     , Just $ bgroup "iterated" $ catMaybes
       [ $(createBgroupSrc (Include (iterMods \\ pureMods)) name
-            "mapM (iter)" "iterateMapM")
+            "mapM" "iterateMapM")
       , $(createBgroupSrc (Include (iterMods \\ ["Sequence"])) name
-            "scan[10000] (iter)" "iterateScan")
+            "scan" "iterateScan")
       , $(createBgroupSrc (Include iterMods) name
-            "filterEven (iter)" "iterateFilterEven")
+            "filterEven" "iterateFilterEven")
       , $(createBgroupSrc (Include iterMods) name
-            "takeAll (iter)" "iterateTakeAll")
+            "takeAll" "iterateTakeAll")
       , $(createBgroupSrc (Include iterMods) name
-            "dropOne (iter)" "iterateDropOne")
+            "dropOne" "iterateDropOne")
       , $(createBgroupSrc (Include iterMods) name
-            "dropWhileFalse[10000] (iter)" "iterateDropWhileFalse")
+            "dropWhileFalse" "iterateDropWhileFalse")
       , $(createBgroupSrc (Include iterMods) name
-            "dropWhileTrue (iter)" "iterateDropWhileTrue")
+            "dropWhileTrue" "iterateDropWhileTrue")
       ]
    ]
    ]
