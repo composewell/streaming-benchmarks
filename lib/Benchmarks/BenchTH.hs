@@ -2,6 +2,7 @@
 
 module Benchmarks.BenchTH
     ( mkBench
+    , mkBenchIO
     , mkBenchN
     , purePackages
     , monadicPackages
@@ -9,7 +10,8 @@ module Benchmarks.BenchTH
     , allPackages
     ) where
 
-import Benchmarks.Common (benchIO, benchPure, benchIOArray)
+import Benchmarks.Common
+    (benchIO, benchIOAction, benchPure, benchPureFunc, benchIOArray)
 import Language.Haskell.TH.Syntax (Q, Exp, mkName)
 import Language.Haskell.TH.Lib (varE)
 
@@ -92,3 +94,18 @@ mkBenchN f x n mdl bname =
         Just _ ->
                 [| benchPure bname $(varE (mkName f)) ($(varE (mkName x)) n)
                 |]
+
+mkBenchIO :: String -> String -> String -> Q Exp
+mkBenchIO action mdl bname =
+    case lookup mdl purePackages of
+        Nothing -> case lookup mdl monadicPackages of
+            Just _ ->
+                [| benchIOAction bname $(varE (mkName action)) |]
+            Nothing ->
+                if mdl == "StreamlyArray"
+                then
+                    [| benchIOArray "array-streamly" $(varE (mkName action)) |]
+                else error $
+                    "module " ++ show mdl ++ " not found in module list"
+        Just _ ->
+                [| benchPureFunc bname $(varE (mkName action)) |]

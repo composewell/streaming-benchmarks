@@ -52,12 +52,14 @@ source = sourceN nElements
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream Element
-appendSourceR n = P.foldr (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
+appendSourceR :: Int -> ()
+appendSourceR n =
+    toNull $ P.foldr (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream Element
-appendSourceL n = P.foldl (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
+appendSourceL :: Int -> ()
+appendSourceL n =
+    toNull $ P.foldl (S.append) S.empty (P.map (S.singleton . chr) [n..n+nAppends])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -176,15 +178,14 @@ iterateSource g i n = f i (sourceN iterStreamLen n)
 iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Element
 
--- this is quadratic
 -- XXX using scanl instead of scanl'
-iterateScan n = iterateSource (S.scanl plus (chr 0)) (maxIters `P.div` 100) n
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhile (> maxElem)) (maxIters `P.div` 100) n
-
+-- Scan increases the size of the stream by 1, drop 1 to not blow up the size
+-- due to many iterations.
+iterateScan n = iterateSource (S.drop 1 . S.scanl plus (chr 0)) maxIters n
 iterateFilterEven n = iterateSource (S.filter (even . ord)) maxIters n
 iterateTakeAll n = iterateSource (S.take nElements) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxElem)) maxIters n
 iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxElem)) maxIters n
 
 -------------------------------------------------------------------------------

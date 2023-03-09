@@ -46,13 +46,14 @@ source n = SL.unfoldM step n
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Monad m => Int -> Source m () Int
-appendSourceR n = foldMap (S.yieldM . return) [n..n+appendValue]
+appendSourceR :: Int -> P.IO ()
+appendSourceR n =
+    toNull $ foldMap (S.yieldM . return) [n..n+appendValue]
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Monad m => Int -> Source m () Int
+appendSourceL :: Int -> P.IO ()
 appendSourceL n =
-    P.foldl (<>) P.mempty (P.map (S.yieldM . return) [n..n+appendValue])
+    toNull $ P.foldl (<>) P.mempty (P.map (S.yieldM . return) [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination

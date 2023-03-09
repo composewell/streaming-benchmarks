@@ -50,13 +50,14 @@ sourceN count begin = S.unfoldr step begin
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream Int
+appendSourceR :: Int -> ()
 appendSourceR n =
-    P.foldr (S.><) S.empty (P.map S.singleton [n..n+appendValue])
+    toNull $ P.foldr (S.><) S.empty (P.map S.singleton [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (S.><) S.empty (P.map S.singleton [n..n+appendValue])
+appendSourceL :: Int -> ()
+appendSourceL n =
+    toNull $ P.foldl (S.><) S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -161,14 +162,11 @@ iterateSource g i n = f i (sourceN iterStreamLen n)
 iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Int
 
--- this is quadratic
 iterateScan  = undefined
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhileL (> maxValue)) (maxIters `P.div` 100) n
-
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileFalse n = iterateSource (S.dropWhileL (> maxValue)) maxIters n
 iterateDropWhileTrue n = iterateSource (S.dropWhileL (<= maxValue)) maxIters n
 
 -------------------------------------------------------------------------------
