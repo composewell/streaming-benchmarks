@@ -56,24 +56,36 @@ Due care has been taken to keep the comparisons fair.  We have optimized
 each library's code to the best of our knowledge, please point out if
 you find any measurement issues.
 
-### Reproducing benchmark results
+## Running Benchmarks
 
-Commands to reproduce the benchmark results are provided in each section
-below. But before you run those commands you need to build the reporting
-tool once using the following command. Note that this command works with
-only ghc-8.8.4 or lower. However, after building this tool you can run
-the benchmarks with any GHC version.
+You can run individual benchmarks using `cabal bench <target>`. You may
+need to specify a build flag to include a particular streaming library
+e.g. `--flag pipes` to benchmark the `pipes` library. Please consult the cabal
+file to find the exact flag names.
 
-```
-$ bin/bench.sh --with-compiler ghc-8.8.4 --no-measure
-```
+### Generating Comparison Reports
 
-Nix users can use `--use-nix` option. It uses an older version of
-nixpkgs that contains the required dependencies. For example:
+You can generate the comparison reports presented in this page yourself.
+To do so you need to run the benchmarks using the reporting tool, first build
+the reporting tool using the following command:
 
 ```
-$ bin/bench.sh --use-nix --quick
+$ cd bench-runner
+$ cabal install --project-file cabal.project.user --installdir ../bin
 ```
+
+If you want to create a report for benchmarks showing a 10% or greater
+improvement with Streamly over Lists, use:
+
+```
+$ bin/bench-runner --package-name streaming-benchmarks --package-version 0.3.0 --compare --diff-cutoff-percent 10 --diff-style absolute --targets "StreamlyPure List"
+```
+
+After running once, you can add `--no-measure` option to use the same benchmark
+measurements for different reports.  For example, use:
+
+* `--diff-cutoff-percent -10` to know where lists are better than streamly
+* `--diff-style multiples` to generate ratios instead of absolute values
 
 ### Streamly vs Haskell Lists
 
@@ -113,12 +125,9 @@ many times slower list is compared to streamly.
 
 * streamly-0.8.0, base-4.14.1.0, ghc-8.10.4, Linux
 
-To reproduce these results use the following commands:
+To generate these reports run `bench-runner` with:
 
-```
-$ bin/bench.sh --benchmarks "StreamlyPure List" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "StreamlyPure List" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
-```
+* `--targets "StreamlyPure List"`
 
 ### Streamly vs Streaming
 
@@ -169,12 +178,9 @@ million element stream.
 
 * streamly-0.8.0, streaming-0.2.3.0, ghc-8.10.4, Linux
 
-To reproduce these results use the following commands:
+To generate these reports run `bench-runner` with:
 
-```
-$ bin/bench.sh --benchmarks "Streamly Streaming" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "Streamly Streaming" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
-```
+* `--targets "Streamly Streaming" --cabal-build-options "--flag streaming"`
 
 ### Streamly vs Pipes
 
@@ -225,12 +231,9 @@ million element stream.
 
 * streamly-0.8.0, pipes-4.3.16, ghc-8.10.4, Linux
 
-To reproduce these results use the following commands:
+To generate these reports run `bench-runner` with:
 
-```
-$ bin/bench.sh --benchmarks "Streamly Pipes" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "Streamly Pipes" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
-```
+* `--targets "Streamly Pipes" --cabal-build-options "--flag pipes"`
 
 ### Streamly vs Conduit
 
@@ -281,36 +284,20 @@ million element stream.
 
 * streamly-0.8.0, conduit-1.3.4.1, ghc-8.10.4, Linux
 
-To reproduce these results use the following commands:
+To generate these reports run `bench-runner` with:
 
-```
-$ bin/bench.sh --benchmarks "Streamly Conduit" --compare --diff-style absolute --diff-cutoff-percent 10 --quick
-$ bin/bench.sh --benchmarks "Streamly Conduit" --compare --diff-style multiples --diff-cutoff-percent 10 --no-measure
-```
+* `--targets "Streamly Conduit" --cabal-build-options "--flag conduit"`
 
 ## Stack and heap utilization
 
-To report heap utilization by individual benchmarks you can include
-`maxrss` in the `--fields` option.
-
-To know about stack and heap utilization by the libraries you can also take a
-look at the RTS heap and stack limits used to run the benchmarks of various
-libraries in [bench-config.sh](bin/bench-config.sh).
+`bench-runner` also generates a `maxrss` comparison report, displaying the
+maximum resident memory for each benchmark.
 
 ## Comparing other libraries
 
-This package supports many streaming libraries. Use the following command to
-see all available benchmarks:
-
-```
-$ ./bench.sh --help
-```
-
-You can then select the libraries you want to compare:
-
-```
-$ ./bench.sh --benchmarks "streaming,pipes" --measure
-```
+This package supports many streaming libraries, bytestring, text, vector etc.
+You can run the benchmarks directly or use `bench-runner` to create comparison
+reports. Check out the targets in the cabal file.
 
 ## Adding New Libraries
 

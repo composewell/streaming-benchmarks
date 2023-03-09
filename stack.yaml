@@ -1,7 +1,7 @@
-resolver: lts-18.0
+resolver: lts-20.13
 packages:
 - '.'
 extra-deps:
-  - streamly-0.8.0
+  - streamly-0.8.3
 
 rebuild-ghc-options: true

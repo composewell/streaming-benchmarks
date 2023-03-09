@@ -31,12 +31,9 @@ extra-source-files:
   Benchmarks/VectorCommon.hs
   Changelog.md
   README.md
-  bench-report/bench-report.cabal
-  bench-report/BenchReport.hs
-  bench-report/bin/bench-runner.sh
-  bench-report/bin/build-lib.sh
-  bin/bench.sh
-  bin/bench-config.sh
+  bench-runner/Main.hs
+  bench-runner/bench-runner.cabal
+  bench-runner/cabal.project.user
 
 extra-doc-files:
   docs/benchmarking-notes.md
@@ -52,6 +49,31 @@ flag no-fusion-plugin
 
 flag use-gauge
   description: Use gauge instead of tasty-bench for benchmarking
+  manual: True
+  default: False
+
+flag drinkery
+  description: Use drinkery
+  manual: True
+  default: False
+
+flag conduit
+  description: Use conduit
+  manual: True
+  default: False
+
+flag pipes
+  description: Use pipes
+  manual: True
+  default: False
+
+flag machines
+  description: Use machines
+  manual: True
+  default: False
+
+flag streaming
+  description: Use streaming
   manual: True
   default: False
 
@@ -71,16 +93,16 @@ common lib-options
     -O2
   build-depends:
     base                == 4.*,
-    deepseq             >= 1.4.0 && < 1.5,
-    mtl                 >= 2     && < 2.3,
+    deepseq             >= 1.4.4 && < 1.5,
+    mtl                 >= 2.2.2 && < 2.4,
     random              >= 1.0   && < 2.0,
-    transformers        >= 0.4   && < 0.6,
-    template-haskell    >= 2.10  && < 2.18
+    transformers        >= 0.5.5 && < 0.7,
+    template-haskell    >= 2.14  && < 2.20
   if flag(use-gauge)
     build-depends:  gauge >= 0.2.4 && < 0.3
   else
-    build-depends:    tasty-bench >= 0.2.5 && < 0.3
-                    , tasty     >= 1.4.1
+    build-depends:    tasty-bench >= 0.3 && < 0.4
+                    , tasty     >= 1.4.1 && < 1.5
     mixins: tasty-bench
       (Test.Tasty.Bench as Gauge
       , Test.Tasty.Bench as Gauge.Main
@@ -146,35 +168,50 @@ benchmark Streaming
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Streaming.hs
   ghc-options: -main-is Benchmarks.Streaming
-  build-depends: streaming >= 0.1.4 && < 0.3
+  if flag(streaming)
+    build-depends: streaming >= 0.1.4 && < 0.3
+  else
+    buildable: False
 
 benchmark Machines
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Machines.hs
   ghc-options: -main-is Benchmarks.Machines
-  build-depends: machines >= 0.6.0 && < 0.8
+  if flag(machines)
+    build-depends: machines >= 0.6.0 && < 0.8
+  else
+    buildable: False
 
 benchmark Pipes
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Pipes.hs
   ghc-options: -main-is Benchmarks.Pipes
-  build-depends: pipes >= 4 && < 4.4
+  if flag(pipes)
+    build-depends: pipes >= 4 && < 4.4
+  else
+    buildable: False
 
 benchmark Conduit
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Conduit.hs
   ghc-options: -main-is Benchmarks.Conduit
-  build-depends: conduit >= 1.3 && < 1.4
+  if flag(conduit)
+    build-depends: conduit >= 1.3 && < 1.4
+  else
+    buildable: False
 
 benchmark Drinkery
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Drinkery.hs
   ghc-options: -main-is Benchmarks.Drinkery
-  build-depends: drinkery >= 0.3 && < 0.5
+  if flag(drinkery)
+    build-depends: drinkery >= 0.3 && < 0.5
+  else
+    buildable: False
 
 -- benchmark SimpleConduit
 --   import: bench-options
@@ -218,32 +255,32 @@ benchmark Text
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Text.hs
   ghc-options: -main-is Benchmarks.Text
-  build-depends: text >= 1.0 && < 1.3
+  build-depends: text >= 1.0 && < 3.0
 
 benchmark VectorStreams
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/VectorStreams.hs
   ghc-options: -main-is Benchmarks.VectorStreams
-  build-depends: vector >= 0.12 && < 0.13
+  build-depends: vector >= 0.12 && < 0.14
 
 benchmark Vector
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Vector.hs
   ghc-options: -main-is Benchmarks.Vector
-  build-depends: vector >= 0.12 && < 0.13
+  build-depends: vector >= 0.12 && < 0.14
 
 benchmark VectorUnboxed
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/VectorUnboxed.hs
   ghc-options: -main-is Benchmarks.VectorUnboxed
-  build-depends: vector >= 0.12 && < 0.13
+  build-depends: vector >= 0.12 && < 0.14
 
 benchmark VectorStorable
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/VectorStorable.hs
   ghc-options: -main-is Benchmarks.VectorStorable
-  build-depends: vector >= 0.12 && < 0.13
+  build-depends: vector >= 0.12 && < 0.14
