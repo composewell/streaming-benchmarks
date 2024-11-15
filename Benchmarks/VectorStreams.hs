@@ -14,7 +14,7 @@ module Benchmarks.VectorStreams where
 import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, maxValue, appendValue)
 import Prelude
-       (Monad, Int, (+), ($), (.), return, even, (>), (<=), div,
+       (Monad, Int, (+), ($), (.), return, even, (>), (<=),
         subtract, undefined, Maybe(..))
 import qualified Prelude as P
 
