@@ -95,6 +95,7 @@ jobs:
             ghc_version: 8.10.4
             runner: ubuntu-latest
             command: cabal
+            cabal_project: cabal.project.user
           - name: ghc-8.10.4-werror
             ghc_version: 8.10.4
             runner: ubuntu-latest
@@ -111,6 +112,7 @@ jobs:
             ghc_version: 8.8.4
             runner: ubuntu-latest
             command: cabal
+            cabal_project: cabal.project.user
     steps:
     - uses: actions/checkout@v2
 
