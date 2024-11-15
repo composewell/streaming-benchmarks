@@ -5,7 +5,7 @@ Benchmarks/ListTransformer.hs
 Benchmarks/LogicT.hs
 Benchmarks/SimpleConduit.hs
 appveyor.yml
-cabal.project
+cabal.project.user
 cabal.project.Werror
 default.nix
 stack.yaml

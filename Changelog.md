@@ -1,3 +1,9 @@
+## 0.4.0
+
+* Add different streaming libraries under individual flags
+* Use the external bench-report package and remove the shell scripts
+* User streamly-core package (streamly-0.9.0 changes)
+
 ## 0.3.0
 
 * Simplify the README, use text tables instead of graphs.

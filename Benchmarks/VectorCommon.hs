@@ -56,13 +56,14 @@ sourceN count begin = let v = S.unfoldr step begin in v S.++ S.singleton (S.unsa
 -------------------------------------------------------------------------------
 
 {-# INLINE appendSourceR #-}
-appendSourceR :: Int -> Stream Int
+appendSourceR :: Int -> ()
 appendSourceR n =
-    P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+    toNull $ P.foldr (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 {-# INLINE appendSourceL #-}
-appendSourceL :: Int -> Stream Int
-appendSourceL n = P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
+appendSourceL :: Int -> ()
+appendSourceL n =
+    toNull $ P.foldl (S.++) S.empty (P.map S.singleton [n..n+appendValue])
 
 -------------------------------------------------------------------------------
 -- Elimination
@@ -171,14 +172,13 @@ iterateSource g i n = f i (sourceN iterStreamLen n)
 iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
     iterateDropWhileFalse, iterateDropWhileTrue :: Int -> Stream Int
 
--- this is quadratic
-iterateScan n = iterateSource (S.scanl' (+) 0) (maxIters `P.div` 100) n
-iterateDropWhileFalse n =
-    iterateSource (S.dropWhile (> maxValue)) (maxIters `P.div` 100) n
-
+-- Scan increases the size of the stream by 1, drop 1 to not blow up the size
+-- due to many iterations.
+iterateScan n = iterateSource (S.drop 1 . S.scanl' (+) 0) maxIters n
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
 iterateDropOne n = iterateSource (S.drop 1) maxIters n
+iterateDropWhileFalse n = iterateSource (S.dropWhile (> maxValue)) maxIters n
 iterateDropWhileTrue n = iterateSource (S.dropWhile (<= maxValue)) maxIters n
 
 -------------------------------------------------------------------------------
