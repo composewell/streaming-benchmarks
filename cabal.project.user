@@ -1,7 +1,7 @@
 packages: streaming-benchmarks.cabal
 
-source-repository-package
-  type: git
-  location: https://github.com/composewell/streamly.git
-  tag: master
-  subdir: core
+-- source-repository-package
+--   type: git
+--   location: https://github.com/composewell/streamly.git
+--   tag: master
+--   subdir: core
