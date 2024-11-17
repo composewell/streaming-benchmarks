@@ -78,7 +78,7 @@ If you want to create a report for benchmarks showing a 10% or greater
 improvement with Streamly over Lists, use:
 
 ```
-$ bin/bench-runner --package-name streaming-benchmarks --package-version 0.3.0 --compare --diff-cutoff-percent 10 --diff-style absolute --targets "StreamlyPure List"
+$ bin/bench-runner --package-name streaming-benchmarks --package-version 0.4.0 --compare --diff-cutoff-percent 10 --diff-style absolute --targets "StreamlyPure List"
 ```
 
 After running once, you can add `--no-measure` option to use the same benchmark
