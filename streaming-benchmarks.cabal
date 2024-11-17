@@ -93,16 +93,16 @@ common lib-options
     -O2
   build-depends:
     base                == 4.*,
-    deepseq             >= 1.4.4 && < 1.5,
+    deepseq             >= 1.4.4 && < 1.6,
     mtl                 >= 2.2.2 && < 2.4,
     random              >= 1.0   && < 2.0,
     transformers        >= 0.5.5 && < 0.7,
-    template-haskell    >= 2.14  && < 2.20
+    template-haskell    >= 2.14  && < 2.23
   if flag(use-gauge)
     build-depends:  gauge >= 0.2.4 && < 0.3
   else
-    build-depends:    tasty-bench >= 0.3 && < 0.4
-                    , tasty     >= 1.4.1 && < 1.5
+    build-depends:    tasty-bench >= 0.3 && < 0.5
+                    , tasty     >= 1.4.1 && < 1.6
     mixins: tasty-bench
       (Test.Tasty.Bench as Gauge
       , Test.Tasty.Bench as Gauge.Main
@@ -124,7 +124,7 @@ common streamly-options
   if !flag(no-fusion-plugin)
       ghc-options: -fplugin Fusion.Plugin
   build-depends:
-      streamly-core >= 0.1.0 && < 0.2
+      streamly-core >= 0.1.0 && < 0.3.1
   if !flag(no-fusion-plugin)
     build-depends: fusion-plugin >= 0.2 && < 0.3
 
@@ -234,21 +234,21 @@ benchmark Sequence
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Sequence.hs
   ghc-options: -main-is Benchmarks.Sequence
-  build-depends: containers >= 0.5 && < 0.7
+  build-depends: containers >= 0.5 && < 0.8
 
 benchmark ByteString
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/ByteString.hs
   ghc-options: -main-is Benchmarks.ByteString
-  build-depends: bytestring >= 0.9 && < 0.12
+  build-depends: bytestring >= 0.9 && < 0.13
 
 benchmark ByteStringLazy
   import: bench-options
   type: exitcode-stdio-1.0
   main-is: Benchmarks/ByteStringLazy.hs
   ghc-options: -main-is Benchmarks.ByteStringLazy
-  build-depends: bytestring >= 0.9 && < 0.12
+  build-depends: bytestring >= 0.9 && < 0.13
 
 benchmark Text
   import: bench-options
