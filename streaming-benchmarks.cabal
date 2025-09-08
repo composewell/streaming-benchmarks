@@ -97,7 +97,7 @@ common lib-options
     mtl                 >= 2.2.2 && < 2.4,
     random              >= 1.0   && < 2.0,
     transformers        >= 0.5.5 && < 0.7,
-    template-haskell    >= 2.14  && < 2.23
+    template-haskell    >= 2.14  && < 2.24
   if flag(use-gauge)
     build-depends:  gauge >= 0.2.4 && < 0.3
   else
@@ -234,7 +234,7 @@ benchmark Sequence
   type: exitcode-stdio-1.0
   main-is: Benchmarks/Sequence.hs
   ghc-options: -main-is Benchmarks.Sequence
-  build-depends: containers >= 0.5 && < 0.8
+  build-depends: containers >= 0.5 && < 0.9
 
 benchmark ByteString
   import: bench-options
