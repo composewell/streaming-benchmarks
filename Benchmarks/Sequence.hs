@@ -7,6 +7,7 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 module Benchmarks.Sequence where
 
