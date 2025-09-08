@@ -7,6 +7,7 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 
 module Benchmarks.DList where
 
@@ -14,7 +15,10 @@ import Benchmarks.DefaultMain (defaultMain)
 import Benchmarks.Common (value, appendValue)
 import Prelude (Int, (+), ($), (.), (>), undefined, Maybe(..))
 import qualified Prelude as P
+
+#if !MIN_VERSION_base(4,20,0)
 import qualified Data.Foldable as P
+#endif
 
 import qualified Data.DList          as S
 
