@@ -20,6 +20,7 @@ import Prelude
 import qualified Prelude as P
 
 import qualified Streamly.Data.Fold as Fold
+import qualified Streamly.Data.Scanl as Scanl
 import qualified Streamly.Data.Stream as S
 import qualified Streamly.Data.StreamK as K
 
@@ -152,7 +153,7 @@ scan, map,
 
 mapM :: Monad m => Int -> Stream m Element -> m ()
 
-scan           n = composeN n $ S.scan (Fold.foldl' (+) 0)
+scan           n = composeN n $ S.scanl (Scanl.mkScanl (+) 0)
 map            n = composeN n $ fmap (+1)
 mapM           n = composeN n $ S.mapM return
 filterEven     n = composeN n $ S.filter even
@@ -193,7 +194,7 @@ iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
 
 -- Scan increases the size of the stream by 1, drop 1 to not blow up the size
 -- due to many iterations.
-iterateScan n = K.toStream $ iterateSource (K.fromStream . S.drop 1 . S.scan (Fold.foldl' (+) 0) . K.toStream) maxIters n
+iterateScan n = K.toStream $ iterateSource (K.fromStream . S.drop 1 . S.scanl (Scanl.mkScanl (+) 0) . K.toStream) maxIters n
 -- iterateScan n = K.toStream $ iterateSource (K.drop 1 . K.scanl' (+) 0) maxIters n
 
 -- iterateMapM n = K.toStream $ iterateSource (K.fromStream . S.mapM return . K.toStream) maxIters n
@@ -233,15 +234,15 @@ scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
     :: Monad m => Int -> Stream m Element -> m ()
 
-scanMap    n = composeN n $ fmap (subtract 1) . S.scan (Fold.foldl' (+) 0)
+scanMap    n = composeN n $ fmap (subtract 1) . S.scanl (Scanl.mkScanl (+) 0)
 dropMap    n = composeN n $ fmap (subtract 1) . S.drop 1
-dropScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.drop 1
+dropScan   n = composeN n $ S.scanl (Scanl.mkScanl (+) 0) . S.drop 1
 takeDrop   n = composeN n $ S.drop 1 . S.take nElements
-takeScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.take nElements
+takeScan   n = composeN n $ S.scanl (Scanl.mkScanl (+) 0) . S.take nElements
 takeMap    n = composeN n $ fmap (subtract 1) . S.take nElements
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxElem)
 filterTake n = composeN n $ S.take maxValue . S.filter (<= maxElem)
-filterScan n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.filter (<= maxElem)
+filterScan n = composeN n $ S.scanl (Scanl.mkScanl (+) 0) . S.filter (<= maxElem)
 filterMap  n = composeN n $ fmap (subtract 1) . S.filter (<= maxElem)
 
 -------------------------------------------------------------------------------

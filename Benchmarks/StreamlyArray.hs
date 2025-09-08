@@ -24,6 +24,7 @@ import Benchmarks.Common (value, maxValue) -- , appendValue)
 import qualified Streamly.Data.Stream  as S
 import qualified Streamly.Data.Array as A
 import qualified Streamly.Data.Fold as Fold
+import qualified Streamly.Data.Scanl as Scanl
 
 instance NFData (A.Array a) where
     {-# INLINE rnf #-}
@@ -37,7 +38,7 @@ type Stream = A.Array
 
 {-# INLINE source #-}
 source :: MonadIO m => Int -> m (Stream Int)
-source n = S.fold (A.writeN value) (S.unfoldr step n)
+source n = S.fold (A.createOf value) (S.unfoldr step n)
     where
     step cnt =
         if cnt > n + value
@@ -46,7 +47,7 @@ source n = S.fold (A.writeN value) (S.unfoldr step n)
 
 {-# INLINE sourceN #-}
 sourceN :: MonadIO m => Int -> Int -> m (Stream Int)
-sourceN count begin = S.fold (A.writeN value) (S.unfoldr step begin)
+sourceN count begin = S.fold (A.createOf value) (S.unfoldr step begin)
     where
     step i =
         if i > begin + count
@@ -107,10 +108,10 @@ composeN
     -> m (Stream Int)
 composeN n f x =
     case n of
-        1 -> S.fold A.write $ f $ S.unfold A.reader x
-        2 -> S.fold A.write $ f . f $ S.unfold A.reader x
-        3 -> S.fold A.write $ f . f . f $ S.unfold A.reader x
-        4 -> S.fold A.write $ f . f . f . f $ S.unfold A.reader x
+        1 -> S.fold A.create $ f $ S.unfold A.reader x
+        2 -> S.fold A.create $ f . f $ S.unfold A.reader x
+        3 -> S.fold A.create $ f . f . f $ S.unfold A.reader x
+        4 -> S.fold A.create $ f . f . f . f $ S.unfold A.reader x
         _ -> undefined
 
 {-# INLINE scan #-}
@@ -132,7 +133,7 @@ scan, map, mapM,
     dropOne, dropAll, dropWhileTrue, dropWhileFalse
     :: MonadIO m => Int -> Stream Int -> m (Stream Int)
 
-scan           n = composeN n $ S.scan (Fold.foldl' (+) 0)
+scan           n = composeN n $ S.scanl (Scanl.mkScanl (+) 0)
 map            n = composeN n $ fmap (+1)
 mapM           n = composeN n $ S.mapM (\x -> P.return $ x + 1)
 filterEven     n = composeN n $ S.filter even
@@ -158,7 +159,7 @@ maxIters = 100000
 iterateSource :: MonadIO m
     => (S.Stream m Int -> S.Stream m Int) -> Int -> Int -> m (Stream Int)
 iterateSource g i n =
-    sourceN iterStreamLen n P.>>= \a -> S.fold A.write (f i $ S.unfold A.reader a)
+    sourceN iterStreamLen n P.>>= \a -> S.fold A.create (f i $ S.unfold A.reader a)
     where
         f (0 :: Int) m = g m
         f x m = g (f (x P.- 1) m)
@@ -176,7 +177,7 @@ iterateMapM, iterateScan, iterateFilterEven, iterateTakeAll, iterateDropOne,
 
 -- Scan increases the size of the stream by 1, drop 1 to not blow up the size
 -- due to many iterations.
-iterateScan n = iterateSource (S.drop 1 . S.scan (Fold.foldl' (+) 0)) (maxIters `div` 100) n
+iterateScan n = iterateSource (S.drop 1 . S.scanl (Scanl.mkScanl (+) 0)) (maxIters `div` 100) n
 iterateMapM n = iterateSource (S.mapM P.return) maxIters n
 iterateFilterEven n = iterateSource (S.filter even) maxIters n
 iterateTakeAll n = iterateSource (S.take maxValue) maxIters n
@@ -202,15 +203,15 @@ scanMap, dropMap, dropScan, takeDrop, takeScan, takeMap, filterDrop,
     filterTake, filterScan, filterMap
     :: MonadIO m => Int -> Stream Int -> m (Stream Int)
 
-scanMap    n = composeN n $ fmap (subtract 1) . S.scan (Fold.foldl' (+) 0)
+scanMap    n = composeN n $ fmap (subtract 1) . S.scanl (Scanl.mkScanl (+) 0)
 dropMap    n = composeN n $ fmap (subtract 1) . S.drop 1
-dropScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.drop 1
+dropScan   n = composeN n $ S.scanl (Scanl.mkScanl (+) 0) . S.drop 1
 takeDrop   n = composeN n $ S.drop 1 . S.take maxValue
-takeScan   n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.take maxValue
+takeScan   n = composeN n $ S.scanl (Scanl.mkScanl (+) 0) . S.take maxValue
 takeMap    n = composeN n $ fmap (subtract 1) . S.take maxValue
 filterDrop n = composeN n $ S.drop 1 . S.filter (<= maxValue)
 filterTake n = composeN n $ S.take maxValue . S.filter (<= maxValue)
-filterScan n = composeN n $ S.scan (Fold.foldl' (+) 0) . S.filter (<= maxBound)
+filterScan n = composeN n $ S.scanl (Scanl.mkScanl (+) 0) . S.filter (<= maxBound)
 filterMap  n = composeN n $ fmap (subtract 1) . S.filter (<= maxValue)
 
 -------------------------------------------------------------------------------

@@ -46,7 +46,13 @@ jobs:
       BUILD: ${{ matrix.build }}
       GHCVER: ${{ matrix.ghc_version }}
       #RESOLVER: ${{ matrix.resolver }}
-      CABAL_BUILD_OPTIONS: ${{ matrix.cabal_build_options }}
+      CABAL_BUILD_OPTIONS: >-
+        -f drinkery
+        -f conduit
+        -f pipes
+        -f machines
+        -f streaming
+        ${{ matrix.cabal_build_options }}
       CABAL_PROJECT: ${{ matrix.cabal_project }}
       DISABLE_DOCS: ${{ matrix.disable_docs }}
       #DISABLE_SDIST_BUILD: ${{ matrix.disable_sdist_build }}
@@ -89,12 +95,13 @@ jobs:
             cabal-version: 3.10.1.0
             cabal_project: cabal.project.user
 
-          - name: 9.4.4
+          - name: 9.4.4-no-fusion-plugin
             runner: ubuntu-latest
             ghc_version: 9.4.4
             build: cabal
             cabal-version: 3.8.1.0
             cabal_project: cabal.project.user
+            cabal_build_options: -f no-fusion-plugin
 
           - name: 9.4.4
             runner: ubuntu-latest
