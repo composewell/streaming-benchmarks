@@ -8,7 +8,7 @@
 This package provides micro-benchmarks to measure and compare the
 performance of various streaming implementations in Haskell.
 
-We have taken due to care to make sure that we are
+We have taken due care to make sure that we are
 benchmarking correctly and fairly. See [the notes on correct
 benchmarking](docs/benchmarking-notes.md).
 

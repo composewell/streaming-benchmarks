@@ -1,35 +1,35 @@
 packages: .
 
-source-repository-package
-  type: git
-  location: https://github.com/composewell/streamly.git
-  tag: 9a039b89c6b81300b2bd9c8765bf4bfa18e7c83c
-
-source-repository-package
-  type: git
-  location: https://github.com/composewell/streamly.git
-  tag: 9a039b89c6b81300b2bd9c8765bf4bfa18e7c83c
-  subdir: core
-
-source-repository-package
-  type: git
-  location: https://github.com/composewell/streamly-process.git
-  tag: c1ce40ebe84973d0c54dd27fb17e337bf9ca4a46
-
-source-repository-package
-  type: git
-  location: https://github.com/composewell/streamly-shell.git
-  tag: 070ff21fda7aab8ca45b08b330746299a91eb981
-
-source-repository-package
-  type: git
-  location: https://github.com/composewell/streamly-coreutils.git
-  tag: 051ef37a5fa399f039d0530e8d642fd79ec6aec2
-
-source-repository-package
-  type: git
-  location: https://github.com/composewell/bench-report.git
-  tag: a9bbaecb19eda832edf32ae274fef48895facf0b
-
 package bench-report
   flags: +no-charts
+
+-- source-repository-package
+--   type: git
+--   location: https://github.com/composewell/streamly.git
+--   tag: 9a039b89c6b81300b2bd9c8765bf4bfa18e7c83c
+-- 
+-- source-repository-package
+--   type: git
+--   location: https://github.com/composewell/streamly.git
+--   tag: 9a039b89c6b81300b2bd9c8765bf4bfa18e7c83c
+--   subdir: core
+-- 
+-- source-repository-package
+--   type: git
+--   location: https://github.com/composewell/streamly-process.git
+--   tag: c1ce40ebe84973d0c54dd27fb17e337bf9ca4a46
+-- 
+-- source-repository-package
+--   type: git
+--   location: https://github.com/composewell/streamly-shell.git
+--   tag: 070ff21fda7aab8ca45b08b330746299a91eb981
+-- 
+-- source-repository-package
+--   type: git
+--   location: https://github.com/composewell/streamly-coreutils.git
+--   tag: 051ef37a5fa399f039d0530e8d642fd79ec6aec2
+-- 
+-- source-repository-package
+--   type: git
+--   location: https://github.com/composewell/bench-report.git
+--   tag: a9bbaecb19eda832edf32ae274fef48895facf0b
