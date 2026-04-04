@@ -1,3 +1,7 @@
+## 0.4.1
+
+* Support streamly-core-0.3.0 and streamly-0.11.0
+
 ## 0.4.0
 
 * Add different streaming libraries under individual flags
