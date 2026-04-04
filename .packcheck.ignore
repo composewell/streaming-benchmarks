@@ -1,4 +1,5 @@
 .github/workflows/build.yml
+.gitignore
 .packcheck.ignore
 Benchmarks/ListT.hs
 Benchmarks/ListTransformer.hs
@@ -7,5 +8,7 @@ Benchmarks/SimpleConduit.hs
 appveyor.yml
 cabal.project.user
 cabal.project.Werror
-default.nix
-stack.yaml
+flake.lock
+flake.nix
+packages.nix
+sources.nix
