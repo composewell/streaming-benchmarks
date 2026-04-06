@@ -97,11 +97,11 @@ common lib-options
     mtl                 >= 2.2.2 && < 2.4,
     random              >= 1.0   && < 2.0,
     transformers        >= 0.5.5 && < 0.7,
-    template-haskell    >= 2.14  && < 2.24
+    template-haskell    >= 2.14  && < 2.25
   if flag(use-gauge)
     build-depends:  gauge >= 0.2.4 && < 0.3
   else
-    build-depends:    tasty-bench >= 0.3 && < 0.5
+    build-depends:    tasty-bench >= 0.3 && < 0.6
                     , tasty     >= 1.4.1 && < 1.6
     mixins: tasty-bench
       (Test.Tasty.Bench as Gauge
