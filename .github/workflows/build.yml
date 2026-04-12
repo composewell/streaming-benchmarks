@@ -363,6 +363,9 @@ jobs:
               chmod +x $1
           fi
         }
+        if test -n "$SUBDIR"; then
+          cd "$SUBDIR"
+        fi
         download_one packcheck.sh
 
     # Store the function in a file so that it can be reused across multiple
@@ -370,14 +373,12 @@ jobs:
     - name: Setup packcheck
       shell: bash
       run: |
+        if test -n "$SUBDIR"; then
+          rm -f cabal.project
+          cd "$SUBDIR"
+        fi
         cat << 'EOF' > packcheck-setup.sh
         setup_packcheck_args() {
-          if test -n "$SUBDIR"; then
-            mv packcheck.sh "$SUBDIR/"
-            rm -f cabal.project
-            cd "$SUBDIR"
-          fi
-
           ARGS="${{ matrix.command }} $COMMON_OPTIONS"
           if test "${{ matrix.command }}" = "cabal"; then
             ARGS="$ARGS $CABAL_OPTIONS"
@@ -418,6 +419,9 @@ jobs:
         (runner.os == 'Windows' && steps.restore-deps-win.outputs.cache-hit != 'true')
       shell: bash
       run: |
+        if test -n "$SUBDIR"; then
+          cd "$SUBDIR"
+        fi
         source packcheck-setup.sh
         setup_packcheck_args
         eval "./packcheck.sh $ARGS BUILD_DEPS_ONLY=y"
@@ -472,6 +476,9 @@ jobs:
     - name: Run packcheck (final build)
       shell: bash
       run: |
+        if test -n "$SUBDIR"; then
+          cd "$SUBDIR"
+        fi
         source packcheck-setup.sh
         setup_packcheck_args
         eval "./packcheck.sh $ARGS BUILD_PACKAGE_ONLY=y"
