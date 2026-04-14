@@ -1,6 +1,6 @@
 cabal-version: 2.2
 name:          streaming-benchmarks
-version:       0.4.0
+version:       0.4.1
 license:       MIT
 license-file:  LICENSE
 author:        Composewell Technologies
@@ -30,21 +30,21 @@ tested-with:
   , GHC==9.2.8
   , GHC==9.4.4
   , GHC==9.6.3
-  , GHC==9.8.1
+  , GHC==9.8.4
   , GHC==9.10.3
-  , GHC==9.12.1
+  , GHC==9.12.4
   , GHC==9.14.1
 
 build-type: Simple
 extra-source-files:
   Benchmarks/VectorCommon.hs
-  Changelog.md
-  README.md
   bench-runner/Main.hs
   bench-runner/bench-runner.cabal
   bench-runner/cabal.project.user
 
 extra-doc-files:
+  Changelog.md
+  README.md
   docs/benchmarking-notes.md
 
 source-repository head
