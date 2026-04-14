@@ -104,7 +104,7 @@ common lib-options
     base                == 4.*,
     deepseq             >= 1.4.4 && < 1.6,
     mtl                 >= 2.2.2 && < 2.4,
-    random              >= 1.0   && < 2.0,
+    random              >= 1.0   && < 2,
     transformers        >= 0.5.5 && < 0.7,
     template-haskell    >= 2.14  && < 2.25
   if flag(use-gauge)
