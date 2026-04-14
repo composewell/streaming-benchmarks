@@ -1,5 +1,10 @@
 packages: streaming-benchmarks.cabal
 
+source-repository-package
+  type: git
+  location: https://github.com/composewell/fusion-plugin.git
+  tag: 15c0ad50a235a35e85d03cced9ad0f3938565e5a
+
 -- source-repository-package
 --   type: git
 --   location: https://github.com/composewell/streamly.git
